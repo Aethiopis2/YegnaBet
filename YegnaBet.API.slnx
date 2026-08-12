@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="YegnaBet.API/YegnaBet.API.csproj" />
+  <Project Path="YegnaBet.Domain/YegnaBet.Domain.csproj" />
+  <Project Path="YegnaBet.Infrastructure/YegnaBet.Infrastructure.csproj" />
+</Solution>
