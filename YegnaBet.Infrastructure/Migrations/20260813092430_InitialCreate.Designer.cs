@@ -12,7 +12,7 @@ using YegnaBet.Infrastructure.Persistence;
 namespace YegnaBet.Infrastructure.Migrations
 {
     [DbContext(typeof(BrokerDbContext))]
-    [Migration("20260812215615_InitialCreate")]
+    [Migration("20260813092430_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -158,6 +158,8 @@ namespace YegnaBet.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("InquiryStatus");
+
                     b.HasIndex("ListingId");
 
                     b.ToTable("Inquiries", "public");
@@ -227,6 +229,8 @@ namespace YegnaBet.Infrastructure.Migrations
                     b.HasIndex("BrokerId");
 
                     b.HasIndex("CategoryId");
+
+                    b.HasIndex("ListingStatus");
 
                     b.HasIndex("LocationId");
 

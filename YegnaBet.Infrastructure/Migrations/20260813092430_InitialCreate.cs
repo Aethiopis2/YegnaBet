@@ -265,6 +265,12 @@ namespace YegnaBet.Infrastructure.Migrations
                 column: "DealId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Inquiries_InquiryStatus",
+                schema: "public",
+                table: "Inquiries",
+                column: "InquiryStatus");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Inquiries_ListingId",
                 schema: "public",
                 table: "Inquiries",
@@ -287,6 +293,12 @@ namespace YegnaBet.Infrastructure.Migrations
                 schema: "public",
                 table: "Listings",
                 column: "CategoryId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Listings_ListingStatus",
+                schema: "public",
+                table: "Listings",
+                column: "ListingStatus");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Listings_LocationId",
