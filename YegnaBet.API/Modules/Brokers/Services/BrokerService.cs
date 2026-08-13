@@ -85,5 +85,56 @@ namespace YegnaBet.API.Modules.Brokers.Services
             
             return true;
         }
+
+        public async Task<long?> CompleteDealAsync(long inquiryId, CompleteDealDto dto)
+        {
+            var inquiry = await _db.Inquiries
+                .Include(x => x.Listing)
+                .FirstOrDefaultAsync(x => x.Id == inquiryId);
+            
+            if (inquiry == null)
+                return null;
+            
+            inquiry.InquiryStatus = InquiryStatus.Completed;
+            
+            var commission = dto.DealValue * dto.CommissionRate / 100m;
+            var deal = new Deal {
+                InquiryId = inquiry.Id,
+                ListingId = inquiry.ListingId,
+                BrokerId = inquiry.Listing.BrokerId ?? 1,
+                DealValue = dto.DealValue,
+                CommissionRate = dto.CommissionRate,
+                CommissionAmount = commission,
+                DealStatus = DealStatus.Successful,
+                CompletedAt = DateTime.UtcNow
+            }; _db.Deals.Add(deal);
+            
+            inquiry.Listing.SuccessfulDeals += 1;
+            inquiry.Listing.TrustScore = Math.Min(100, inquiry.Listing.TrustScore + 1);
+            
+            await _db.SaveChangesAsync();
+            
+            await _hub.Clients.All.SendAsync("DealCompleted", 
+                new { deal.Id, deal.CommissionAmount });
+            
+            return deal.Id;
+        }
+
+        public async Task<PipelineCountsDto> GetCountsAsync()
+        {
+            var data = await _db.Inquiries
+                .GroupBy(x => x.InquiryStatus)
+                .Select(g => new { g.Key, Count = g.Count() })
+                .ToListAsync(); 
+            
+            return new PipelineCountsDto
+            {
+                New = data.FirstOrDefault(x => x.Key == InquiryStatus.New)?.Count ?? 0,
+                Called = data.FirstOrDefault(x => x.Key == InquiryStatus.Called)?.Count ?? 0,
+                Visited = data.FirstOrDefault(x => x.Key == InquiryStatus.Visited)?.Count ?? 0,
+                Negotiating = data.FirstOrDefault(x => x.Key == InquiryStatus.Negotiating)?.Count ?? 0,
+                Completed = data.FirstOrDefault(x => x.Key == InquiryStatus.Completed)?.Count ?? 0
+            };
+        }
     }
 }

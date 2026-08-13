@@ -4,10 +4,21 @@ import { API } from '../services/api';
 
 const BrokerDashboardPage = () => {
     const [items, setItems] = useState<any[]>([]);
+    const [counts, setCounts] = useState<any>({
+        new: 0, 
+        called: 0, 
+        visited: 0,
+        negotiating: 0,
+        completed: 0
+    });
 
     async function load() {
-        const r = await API.get('/inquiries');
-        setItems(r.data);
+        const [itemsRes, countsRes] = await Promise.all([ 
+            API.get('/inquiries'),
+            API.get('/inquiries/counts') ]);
+            
+            setItems(itemsRes.data);
+            setCounts(countsRes.data);
     }
 
     useEffect(() => {
@@ -40,6 +51,14 @@ const BrokerDashboardPage = () => {
         <div style={{padding: 16}}>
             <h1>Broker Dashboard</h1>
 
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 16 }}>
+                <div>New: {counts.new}</div>
+                <div>Called: {counts.called}</div>
+                <div>Visited: {counts.visited}</div>
+                <div>Negotiating: {counts.negotiating}</div>
+                <div>Completed: {counts.completed}</div>
+            </div>
+
             {items.map(i => (
                 <div key={i.id} style={{border: `1px solid #ddd`, marginBottom: 12, padding: 12}}>
                     <h4>{i.listingTitle}</h4>
@@ -49,8 +68,23 @@ const BrokerDashboardPage = () => {
 
                     <button onClick={() => changeStatus(i.id, 'Called')}>Called</button>
                     <button onClick={() => changeStatus(i.id, 'Visited')}>Visited</button>
-                    <button onClick={() => changeStatus(i.id, 'Negotiatied')}>Negotiatied</button>
+                    <button onClick={() => changeStatus(i.id, 'Negotiating')}>Negotiating</button>
                     <button onClick={() => changeStatus(i.id, 'Completed')}>Completed</button>
+
+                    <button onClick={async () => {
+                        const value = prompt('Deal value (ETB)');
+                        if (!value)
+                            return;
+                        
+                        await API.post(`/inquiries/${i.id}/complete`, {
+                            dealValue: Number(value),
+                            commissionRate: 5
+                        });
+                        
+                        load();
+                    }} >
+                        Complete Deal
+                    </button>
                 </div>
             ))}
         </div>

@@ -13,7 +13,7 @@
         New,
         Called,
         Visited,
-        Negotitating,
+        Negotiating,
         Completed,
         Cancelled
     }

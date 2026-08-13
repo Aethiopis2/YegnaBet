@@ -39,5 +39,22 @@ namespace YegnaBet.API.Modules.Brokers.Controllers
 
             return NoContent();
         }
+
+        [HttpPost("{id:long}/complete")]
+        public async Task<IActionResult> Complete(long id, CompleteDealDto dto)
+        {
+            var dealId = await _service.CompleteDealAsync(id, dto);
+
+            if (dealId == null)
+                return NotFound();
+
+            return Ok(new { dealId });
+        }
+
+        [HttpGet("counts")]
+        public async Task<IActionResult> Counts()
+        {
+            return Ok(await _service.GetCountsAsync());
+        }
     }
 }
