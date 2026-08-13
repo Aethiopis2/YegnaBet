@@ -1,5 +1,7 @@
 using Microsoft.EntityFrameworkCore;
+using YegnaBet.API.Modules.Brokers.Services;
 using YegnaBet.API.Modules.Marketplace.Services;
+using YegnaBet.API.Modules.Realtime;
 using YegnaBet.Infrastructure.Persistence;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -8,20 +10,23 @@ builder.Services.AddDbContext<BrokerDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("Default")));
 
 builder.Services.AddScoped<MarketplaceService>();
+builder.Services.AddScoped<BrokerService>();
 builder.Services.AddControllers();
+builder.Services.AddSignalR();
 
 // CORS
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("web", policy =>
-        policy.AllowAnyOrigin()
+        policy.WithOrigins("http://localhost:5173")
         .AllowAnyHeader()
-        .AllowAnyMethod());
+        .AllowAnyMethod()
+        .AllowCredentials());
 });
 
 var app = builder.Build();
 
-app.UseHttpsRedirection();
+//app.UseHttpsRedirection();
 
 app.UseCors("web");
 
@@ -35,4 +40,5 @@ app.MapControllers();
 //    await DbSeeder.SeedAsync(db);
 //}
 
+app.MapHub<BrokerHub>("/hubs/broker");
 app.Run();
