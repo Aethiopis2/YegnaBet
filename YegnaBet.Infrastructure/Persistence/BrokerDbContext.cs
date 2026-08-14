@@ -18,6 +18,8 @@ namespace YegnaBet.Infrastructure.Persistence
         public DbSet<Inquiry> Inquiries => Set<Inquiry>();
         public DbSet<Deal> Deals => Set<Deal>();
         public DbSet<FinancialTransaction> FinancialTransactions => Set<FinancialTransaction>();
+        public DbSet<Expense> Expenses => Set<Expense>();
+        public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -75,6 +77,10 @@ namespace YegnaBet.Infrastructure.Persistence
             
             modelBuilder.Entity<Inquiry>()
                 .HasIndex(x => x.InquiryStatus);
+
+            modelBuilder.Entity<Expense>()
+                .Property(x => x.Amount)
+                .HasPrecision(12, 2);
         }
     }
 }

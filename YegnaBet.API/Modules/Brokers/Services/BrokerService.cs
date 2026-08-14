@@ -5,6 +5,7 @@ using YegnaBet.API.Modules.Realtime;
 using YegnaBet.Domain.Entities;
 using YegnaBet.Domain.Enums;
 using YegnaBet.Infrastructure.Persistence;
+using YegnaBet.Infrastructure.Services;
 
 
 namespace YegnaBet.API.Modules.Brokers.Services
@@ -13,11 +14,13 @@ namespace YegnaBet.API.Modules.Brokers.Services
     {
         private readonly BrokerDbContext _db;
         private readonly IHubContext<BrokerHub> _hub;
+        private readonly AuditService _audit;
 
-        public BrokerService(BrokerDbContext db,  IHubContext<BrokerHub> hub)
+        public BrokerService(BrokerDbContext db,  IHubContext<BrokerHub> hub, AuditService audit)
         {
             _db = db;
             _hub = hub;
+            _audit = audit;
         }
 
         public async Task<long> CreateInquiryAsync(CreateInquiryDto dto)
@@ -116,7 +119,23 @@ namespace YegnaBet.API.Modules.Brokers.Services
             
             await _hub.Clients.All.SendAsync("DealCompleted", 
                 new { deal.Id, deal.CommissionAmount });
-            
+
+            _db.FinancialTransactions.Add(new FinancialTransaction
+            {
+                Deal = deal,
+                TransactionType = "Comission Earned",
+                Amount = commission
+            });
+
+            await _audit.LogAsync(
+                "Deal", 
+                deal.Id, 
+                "Completed", 
+                null, 
+                $"DealValue={deal.DealValue};Commission={deal.CommissionAmount}"
+            );
+
+            await _hub.Clients.All.SendAsync("FinanceUpdated");
             return deal.Id;
         }
 
