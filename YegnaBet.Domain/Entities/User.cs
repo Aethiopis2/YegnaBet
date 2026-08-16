@@ -10,7 +10,7 @@ namespace YegnaBet.Domain.Entities
         public long Id { get; set; }
         public UserRole Role { get; set; } = UserRole.Customer;
 
-        public string Fullname { get; set; } = null!;
+        public string FullName { get; set; } = null!;
         public string PhoneNumber { get; set; } = null!;
 
         public bool IsVerified { get; set; }

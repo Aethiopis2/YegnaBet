@@ -12,8 +12,8 @@ namespace YegnaBet.Domain.Entities
         public long ProviderId { get; set; }
         public User Provider { get; set; } = null!;
 
-        public long? BrokerId { get; set; }
-        public User? Broker { get; set; }
+        public long? EmployeeId { get; set; }
+        public User? Employee { get; set; }
 
         public int CategoryId { get; set; }
         public Category Category { get; set; } = null!;

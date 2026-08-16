@@ -16,6 +16,26 @@ namespace YegnaBet.Infrastructure.Migrations
                 name: "public");
 
             migrationBuilder.CreateTable(
+                name: "AuditLogs",
+                schema: "public",
+                columns: table => new
+                {
+                    Id = table.Column<long>(type: "bigint", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    UserId = table.Column<long>(type: "bigint", nullable: true),
+                    EntityType = table.Column<string>(type: "text", nullable: false),
+                    EntityId = table.Column<long>(type: "bigint", nullable: false),
+                    Action = table.Column<string>(type: "text", nullable: false),
+                    OldValues = table.Column<string>(type: "text", nullable: true),
+                    NewValues = table.Column<string>(type: "text", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_AuditLogs", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Categories",
                 schema: "public",
                 columns: table => new
@@ -29,6 +49,24 @@ namespace YegnaBet.Infrastructure.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Categories", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Expenses",
+                schema: "public",
+                columns: table => new
+                {
+                    Id = table.Column<long>(type: "bigint", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Category = table.Column<string>(type: "text", nullable: false),
+                    Amount = table.Column<decimal>(type: "numeric(12,2)", precision: 12, scale: 2, nullable: false),
+                    Description = table.Column<string>(type: "text", nullable: true),
+                    IncurredAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Expenses", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -57,7 +95,7 @@ namespace YegnaBet.Infrastructure.Migrations
                     Id = table.Column<long>(type: "bigint", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     Role = table.Column<int>(type: "integer", nullable: false),
-                    Fullname = table.Column<string>(type: "text", nullable: false),
+                    FullName = table.Column<string>(type: "text", nullable: false),
                     PhoneNumber = table.Column<string>(type: "text", nullable: false),
                     IsVerified = table.Column<bool>(type: "boolean", nullable: false),
                     IsActive = table.Column<bool>(type: "boolean", nullable: false),
@@ -76,7 +114,7 @@ namespace YegnaBet.Infrastructure.Migrations
                     Id = table.Column<long>(type: "bigint", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     ProviderId = table.Column<long>(type: "bigint", nullable: false),
-                    BrokerId = table.Column<long>(type: "bigint", nullable: true),
+                    EmployeeId = table.Column<long>(type: "bigint", nullable: true),
                     CategoryId = table.Column<int>(type: "integer", nullable: false),
                     LocationId = table.Column<long>(type: "bigint", nullable: false),
                     Kind = table.Column<int>(type: "integer", nullable: false),
@@ -110,8 +148,8 @@ namespace YegnaBet.Infrastructure.Migrations
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_Listings_Users_BrokerId",
-                        column: x => x.BrokerId,
+                        name: "FK_Listings_Users_EmployeeId",
+                        column: x => x.EmployeeId,
                         principalSchema: "public",
                         principalTable: "Users",
                         principalColumn: "Id",
@@ -159,6 +197,7 @@ namespace YegnaBet.Infrastructure.Migrations
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     ListingId = table.Column<long>(type: "bigint", nullable: false),
                     ImageUrl = table.Column<string>(type: "text", nullable: false),
+                    Kind = table.Column<int>(type: "integer", nullable: false),
                     IsPrimary = table.Column<bool>(type: "boolean", nullable: false)
                 },
                 constraints: table =>
@@ -283,16 +322,16 @@ namespace YegnaBet.Infrastructure.Migrations
                 column: "ListingId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Listings_BrokerId",
-                schema: "public",
-                table: "Listings",
-                column: "BrokerId");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_Listings_CategoryId",
                 schema: "public",
                 table: "Listings",
                 column: "CategoryId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Listings_EmployeeId",
+                schema: "public",
+                table: "Listings",
+                column: "EmployeeId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Listings_ListingStatus",
@@ -323,6 +362,14 @@ namespace YegnaBet.Infrastructure.Migrations
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropTable(
+                name: "AuditLogs",
+                schema: "public");
+
+            migrationBuilder.DropTable(
+                name: "Expenses",
+                schema: "public");
+
             migrationBuilder.DropTable(
                 name: "FinancialTransactions",
                 schema: "public");

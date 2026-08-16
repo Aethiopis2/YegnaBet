@@ -10,7 +10,7 @@
     {
         Draft,
         Active,
-        Paused,
+        Pending,
         Closed
     }
 }

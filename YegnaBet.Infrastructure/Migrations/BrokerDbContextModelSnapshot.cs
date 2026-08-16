@@ -236,9 +236,6 @@ namespace YegnaBet.Infrastructure.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
-                    b.Property<long?>("BrokerId")
-                        .HasColumnType("bigint");
-
                     b.Property<int>("CategoryId")
                         .HasColumnType("integer");
 
@@ -247,6 +244,9 @@ namespace YegnaBet.Infrastructure.Migrations
 
                     b.Property<string>("Description")
                         .HasColumnType("text");
+
+                    b.Property<long?>("EmployeeId")
+                        .HasColumnType("bigint");
 
                     b.Property<int>("InquiresCount")
                         .HasColumnType("integer");
@@ -289,9 +289,9 @@ namespace YegnaBet.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("BrokerId");
-
                     b.HasIndex("CategoryId");
+
+                    b.HasIndex("EmployeeId");
 
                     b.HasIndex("ListingStatus");
 
@@ -316,6 +316,9 @@ namespace YegnaBet.Infrastructure.Migrations
 
                     b.Property<bool>("IsPrimary")
                         .HasColumnType("boolean");
+
+                    b.Property<int>("Kind")
+                        .HasColumnType("integer");
 
                     b.Property<long>("ListingId")
                         .HasColumnType("bigint");
@@ -368,7 +371,7 @@ namespace YegnaBet.Infrastructure.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("Fullname")
+                    b.Property<string>("FullName")
                         .IsRequired()
                         .HasColumnType("text");
 
@@ -442,16 +445,16 @@ namespace YegnaBet.Infrastructure.Migrations
 
             modelBuilder.Entity("YegnaBet.Domain.Entities.Listing", b =>
                 {
-                    b.HasOne("YegnaBet.Domain.Entities.User", "Broker")
-                        .WithMany()
-                        .HasForeignKey("BrokerId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
                     b.HasOne("YegnaBet.Domain.Entities.Category", "Category")
                         .WithMany()
                         .HasForeignKey("CategoryId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.HasOne("YegnaBet.Domain.Entities.User", "Employee")
+                        .WithMany()
+                        .HasForeignKey("EmployeeId")
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("YegnaBet.Domain.Entities.Location", "Location")
                         .WithMany()
@@ -465,9 +468,9 @@ namespace YegnaBet.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.Navigation("Broker");
-
                     b.Navigation("Category");
+
+                    b.Navigation("Employee");
 
                     b.Navigation("Location");
 

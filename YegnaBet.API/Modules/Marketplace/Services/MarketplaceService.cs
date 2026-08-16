@@ -50,7 +50,7 @@ namespace YegnaBet.API.Modules.Marketplace.Services
                     PriceUnit = x.PriceUnit, 
                     TrustScore = x.TrustScore,
                     IsVerified = x.IsVerified,
-                    ProviderName = x.Provider.Fullname })
+                    ProviderName = x.Provider.FullName })
                 .FirstOrDefaultAsync();
         }
     }

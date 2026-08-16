@@ -37,9 +37,9 @@ namespace YegnaBet.Infrastructure.Persistence
                 .OnDelete(DeleteBehavior.Restrict); 
             
             modelBuilder.Entity<Listing>()
-                .HasOne(x => x.Broker)
+                .HasOne(x => x.Employee)
                 .WithMany()
-                .HasForeignKey(x => x.BrokerId)
+                .HasForeignKey(x => x.EmployeeId)
                 .OnDelete(DeleteBehavior.Restrict); 
             
             modelBuilder.Entity<Listing>()

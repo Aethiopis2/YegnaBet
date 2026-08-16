@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using YegnaBet.Domain.Enums;
 
 namespace YegnaBet.Domain.Entities
 {
@@ -15,6 +13,8 @@ namespace YegnaBet.Domain.Entities
         public Listing Listing { get; set; } = null!;
 
         public string ImageUrl { get; set; } = null!;
+
+        public ImageKind Kind { get; set; } = ImageKind.Photo;
 
         public bool IsPrimary { get; set; }
     }

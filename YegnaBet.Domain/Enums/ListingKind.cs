@@ -1,17 +1,17 @@
 ﻿namespace YegnaBet.Domain.Enums
 {
     /// <summary>
-    /// Represents the type of Listing or thing offered.
-    /// Property - a house, land, apartment, etc.
-    /// Worker - Cleaner, Driver, Labouror, etc.
-    /// Professional - Accountant, Lawyer, consultant, etc.
+    /// Represents how the listing is offered, i.e. for rent or sales, service or contract.
+    /// Sales - a house, land, apartment, etc. and is for sales 
+    /// Rent - rent purposes
+    /// Contract - On a contract basis s.a. for house labors etc
     /// Service - Plumbing, electrical, repairs, etc.
     /// </summary>
     public enum ListingKind
     {
-        Property,
-        Worker,
-        Professional,
+        Sales,
+        Rent,
+        Contract,
         Service
     }
 }
