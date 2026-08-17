@@ -141,7 +141,7 @@ namespace YegnaBet.Infrastructure.Persistence
                     Name = CultureInfo.CurrentCulture.TextInfo
                         .ToTitleCase(key) + "s",
 
-                    Icon = $"assets/pictures/category_icons/{key}.png",
+                    Icon = $"/assets/pictures/category_icons/{key}.png",
 
                     SortOrder = i + 1
                 };
@@ -334,7 +334,7 @@ namespace YegnaBet.Infrastructure.Persistence
                     new ListingImage
                     {
                         ImageUrl =
-                            $"assets/pictures/lands/{1 + (i % 10)}.jpg"
+                            $"/assets/pictures/lands/{1 + (i % 10)}.jpg"
                     }
                 };
                 }
@@ -362,7 +362,7 @@ namespace YegnaBet.Infrastructure.Persistence
                     new ListingImage
                     {
                         ImageUrl =
-                            $"assets/pictures/houses/{1 + (i % 10)}.jpg"
+                            $"/assets/pictures/houses/{1 + (i % 10)}.jpg"
                     }
                 };
                 }
@@ -390,7 +390,7 @@ namespace YegnaBet.Infrastructure.Persistence
                     new ListingImage
                     {
                         ImageUrl =
-                            $"assets/pictures/apartments/{1 + (i % 10)}.jpg"
+                            $"/assets/pictures/apartments/{1 + (i % 10)}.jpg"
                     }
                 };
                 }
@@ -418,7 +418,7 @@ namespace YegnaBet.Infrastructure.Persistence
                     new ListingImage
                     {
                         ImageUrl =
-                            $"assets/pictures/avatars/{1 + (i % 10)}.jpg"
+                            $"/assets/pictures/avatars/{1 + (i % 10)}.jpg"
                     }
                 };
                 }

@@ -1,40 +1,15 @@
+import { useEffect, useState } from "react";
 import CategoryCard from "./CategoryCard";
+import type { CategoryCardProps } from "../../services/CategoryCardProps";
+import { API } from '../../services/api';
 
 export function CategoryGrid() {
+    const [categories, setCategories] = useState<CategoryCardProps[]>([]);
 
-    const categories = [
-        {
-            name: "Houses",
-            image: "assets/pictures/category-icons/house-icon.png",
-            count: 246
-        },
-        {
-            name: "Apartments",
-            image: "assets/pictures/category-icons/apartment-icon.png",
-            count: 184
-        },
-        {
-            name: "Land",
-            image: "assets/pictures/category-icons/land-icon.png",
-            count: 128
-        },
-        {
-            name: "Cleaners",
-            image: "assets/pictures/category-icons/cleaner-icon.png",
-            count: 96
-        },
-        {
-            name: "Electricians",
-            image: "assets/pictures/category-icons/electrician-icon.png",
-            count: 74
-        },
-        {
-            name: "Accountants",
-            image: "assets/pictures/category-icons/accountant-icon.png",
-            count: 51
-        }
-    ];
-
+    useEffect(() => {
+        API.get(`/categories/`).then(r => setCategories(r.data));
+    }, []);
+    
     return (
         <div className="
             grid
@@ -45,7 +20,7 @@ export function CategoryGrid() {
         ">
             {categories.map(category => (
                 <CategoryCard
-                    key={category.name}
+                    key={category.id}
                     {...category}
                 />
             ))}

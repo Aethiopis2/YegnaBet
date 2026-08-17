@@ -11,7 +11,7 @@ const App = () => {
                 <Route path="/" element={<HomePage />} />
 
                 <Route
-                    path="/category/:categoryId"
+                    path="/category/:categoryId/:categoryName"
                     element={<CategoryPage />}
                 />
 

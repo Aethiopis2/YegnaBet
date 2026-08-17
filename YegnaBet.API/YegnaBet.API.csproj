@@ -30,4 +30,8 @@
     <ProjectReference Include="..\YegnaBet.Infrastructure\YegnaBet.Infrastructure.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="WWWRoot\" />
+  </ItemGroup>
+
 </Project>

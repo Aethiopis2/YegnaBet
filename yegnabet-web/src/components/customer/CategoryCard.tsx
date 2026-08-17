@@ -1,36 +1,35 @@
-interface CategoryCardProps {
-    name: string;
-    image: string;
-    count?: number;
-};
+import { useNavigate } from "react-router-dom";
+import type { CategoryCardProps } from "../../services/CategoryCardProps";
 
-const CategoryCard = ({name, image, count}: CategoryCardProps) => {
-  return (
-      <button className="group relative h-40 overflow-hidden rounded-3xl text-left shadow-sm transition
-              duration-300 hover:-translate-y-1hover:shadow-lg" style={{
-        backgroundImage: `url(${image})`
-    }}>
+const CategoryCard = ({id, name, image, count}: CategoryCardProps) => {
+    const navigate = useNavigate();
 
-          <img src={image} alt={name}
-              className="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-105" />
+    return (
+        <button className="group relative h-40 overflow-hidden rounded-3xl text-left shadow-sm transition
+                duration-300 hover:-translate-y-1hover:shadow-lg" style={{
+            backgroundImage: `url(${image})`}} 
+            onClick={() => navigate(`/category/${id}/${name}`)} >
 
-          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
+            <img src={`http://localhost:5150/${image}`} alt={name}
+                className="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-105" />
 
-          <div className="absolute bottom-0 left-0 right-0 p-5">
+            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
 
-              <div className="text-lg font-semibold text-white">
-                  {name}
-              </div>
+            <div className="absolute bottom-0 left-0 right-0 p-5">
 
-              {count !== undefined && (
-                  <div className="mt-1 text-sm text-white/70">
-                      {count} listings
-                  </div>
-              )}
+                <div className="text-lg font-semibold text-white">
+                    {name}
+                </div>
 
-          </div>
+                {count !== undefined && (
+                    <div className="mt-1 text-sm text-white/70">
+                        {count} listings
+                    </div>
+                )}
 
-      </button>
+            </div>
+
+        </button>
     );
 }
 

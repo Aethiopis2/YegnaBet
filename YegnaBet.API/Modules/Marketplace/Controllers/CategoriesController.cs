@@ -15,12 +15,17 @@ namespace YegnaBet.API.Modules.Marketplace.Controllers
             _db = db;
         }
 
-        [HttpGet] public async Task<IActionResult> Get()
+        [HttpGet] 
+        public async Task<IActionResult> Get()
         {
             var data = await _db.Categories
                 .OrderBy(x => x.SortOrder)
-                .Select(x => new { x.Id, x.Name })
-                .ToListAsync(); 
+                .Select(x => new {
+                    id = x.Id, 
+                    name = x.Name, 
+                    image = x.Icon,
+                    Count = _db.Listings.Count(l => l.CategoryId == x.Id)
+                }).ToListAsync();
             
             return Ok(data);
         }

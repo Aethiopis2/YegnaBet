@@ -30,6 +30,7 @@ namespace YegnaBet.API.Modules.Marketplace.Services
                     Area = x.Location.Area,
                     Price = x.Price,
                     PriceUnit = x.PriceUnit,
+                    Image = x.Images.First().ImageUrl,
                     TrustScore = x.TrustScore,
                     IsVerified = x.IsVerified
                 })
