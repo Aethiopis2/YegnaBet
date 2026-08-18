@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using System.Net.NetworkInformation;
 using YegnaBet.API.Modules.Marketplace.Dtos;
 using YegnaBet.Domain.Enums;
 using YegnaBet.Infrastructure.Persistence;
@@ -55,5 +56,42 @@ namespace YegnaBet.API.Modules.Marketplace.Services
                     ProviderName = x.Provider.FullName })
                 .FirstOrDefaultAsync();
         }
+
+        public async Task<List<ListingStatusCountDto>> GetListingStatusCountAsync(int providerId)
+        {
+            return await _db.Listings
+                .Where(x => x.ProviderId == providerId)
+                .OrderBy(x => x.ListingStatus)
+                .GroupBy(x => x.ListingStatus)
+                .Select(g => new ListingStatusCountDto 
+                {
+                    Status = g.Key == ListingStatus.Draft ? "Draft" :
+                        g.Key == ListingStatus.Active ? "Active" :
+                        g.Key == ListingStatus.Pending ? "Pending" : "Closed",
+                    Count = g.Count()
+                })
+                .ToListAsync();
+        } // end GetListingStatusCount
+
+        public async Task<List<ProviderListingViewDto>> GetProviderListings(int providerId)
+        {
+            return await _db.Listings
+                .Where(x => x.ProviderId == providerId)
+                .Select(x => new ProviderListingViewDto
+                {
+                    Id = x.Id,
+                    Title = x.Title,
+                    Type = x.Kind == ListingKind.Sales ? "Sales" :
+                        x.Kind == ListingKind.Rent ? "Rent" :
+                        x.Kind == ListingKind.Contract ? "Contract" : "Service",
+                    Price = x.Price,
+                    PriceUnit = x.PriceUnit,
+                    Status = x.ListingStatus == ListingStatus.Draft ? "Draft" :
+                        x.ListingStatus == ListingStatus.Active ? "Active" :
+                        x.ListingStatus == ListingStatus.Pending ? "Pending" : "Closed",
+                    Image = x.Images.First().ImageUrl
+                })
+                .ToListAsync();
+        } // end GetProviderLisitings
     }
 }

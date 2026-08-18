@@ -21,6 +21,18 @@ namespace YegnaBet.API.Modules.Marketplace.Controllers
             return Ok(await _service.GetListingsAsync(categoryId));
         }
 
+        [HttpGet("status-count")]
+        public async Task<IActionResult> Get([FromQuery] int providerId)
+        {
+            return Ok(await _service.GetListingStatusCountAsync(providerId));
+        }
+
+        [HttpGet("provider-listings")]
+        public async Task<IActionResult> GetProviderListings([FromQuery] int providerId)
+        {
+            return Ok(await _service.GetProviderListings(providerId));
+        }
+
         [HttpGet("{id:long}")]
         public async Task<IActionResult> Get(long id)
         {

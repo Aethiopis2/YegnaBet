@@ -22,3 +22,9 @@ export interface ListingFullProps {
   isVerified: boolean;
   providerName: string;
 }
+
+
+export interface ListingStatusCount {
+    status: string;
+    count: number;
+}

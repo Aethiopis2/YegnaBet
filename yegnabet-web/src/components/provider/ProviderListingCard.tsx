@@ -1,36 +1,19 @@
+import { ASSET_URL } from "../../services/api";
+import type { ProviderListingCardProps } from "../../services/ProviderListingProps";
 import { ProviderStatusBadge } from "./ProviderStatusBadge";
 
-interface ProviderListing {
-    id: number;
-    title: string;
-    type: string;
-    price: number;
-    priceUnit: string;
-    status: string;
-    image: string;
-}
-
-interface ProviderListingCardProps {
-    listing: ProviderListing;
-}
 
 export function ProviderListingCard({
     listing
 }: ProviderListingCardProps) {
 
     return (
-        <div className="
-            overflow-hidden
-            rounded-2xl
-            border
-            border-stone-200
-            bg-white
-        ">
+        <div className="overflow-hidden rounded-2xl border border-stone-200 bg-white">
 
             <div className="relative h-40">
 
                 <img
-                    src={listing.image}
+                    src={ASSET_URL + listing.image}
                     alt={listing.title}
                     className="
                         h-full

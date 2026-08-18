@@ -3,6 +3,7 @@ using YegnaBet.API.Modules.Brokers.Services;
 using YegnaBet.API.Modules.Finance.Services;
 using YegnaBet.API.Modules.Marketplace.Services;
 using YegnaBet.API.Modules.Realtime;
+using YegnaBet.API.Modules.Users.Services;
 using YegnaBet.Infrastructure.Persistence;
 using YegnaBet.Infrastructure.Services;
 
@@ -15,6 +16,7 @@ builder.Services.AddScoped<MarketplaceService>();
 builder.Services.AddScoped<BrokerService>();
 builder.Services.AddScoped<AuditService>();
 builder.Services.AddScoped<FinanceService>();
+builder.Services.AddScoped<UserService>();
 builder.Services.AddControllers();
 builder.Services.AddSignalR();
 
