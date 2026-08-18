@@ -1,17 +1,16 @@
 import { useNavigate, useParams } from "react-router-dom"
-import { API } from "../../services/api";
+import { API, ASSET_URL } from "../../services/api";
 import { useEffect, useState } from "react";
-import type { ListingCardProps } from "../../services/ListingCardProps";
+import type { ListingFullProps } from "../../services/ListingCardProps";
 
 const ListingDetailsPage = () => {
     const navigate = useNavigate();
     const { listingId } = useParams();
 
-    const [listing, setListing] = useState<ListingCardProps>({});
+    const [listing, setListing] = useState<ListingFullProps>({} as ListingFullProps);
 
     useEffect(() => {
-            API.get(`/listings/${listingId}`).then(r => setListing(r.data));
-        }, []);
+        API.get(`/listings/${listingId}`).then(r => setListing(r.data))}, []);
 
     return (
         <main className="min-h-screen text-stone50">
@@ -22,7 +21,7 @@ const ListingDetailsPage = () => {
 
                 {/* Hero */}
                 <div className="relative h-[55vh] min-h-[400px] overflow-hidden rounded-[2em] bg-cover bg-center" 
-                    style={{backgroundImage: `url(http://localhost:5150/${listing.image})`}}>
+                    style={{backgroundImage: `url(${ASSET_URL}${listing.image})`}}>
 
                     <div className="absoulte inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
 
@@ -35,7 +34,7 @@ const ListingDetailsPage = () => {
                         )}
 
                         <h1 className="mt-3 text-3xl font-semibold sm:text-4xl">
-                            {listing.title}
+                            {listing.providerName} - {listing.title}
                         </h1>
 
                         <p className="mt-1 text-white/70">
@@ -49,7 +48,7 @@ const ListingDetailsPage = () => {
                     <div className="flex flex-wrap items-end justify-between gap-4">
                         <div>
                             <div className="text-3xl font-bold text-stone-900">
-                                {listing.price.toLocaleString()} ETB
+                                {listing.price && listing.price.toLocaleString()} ETB
                             </div>
 
                             <div className="text-sm text-stone-500">

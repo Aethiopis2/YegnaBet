@@ -1,8 +1,9 @@
 import { useNavigate, useParams } from "react-router-dom";
-import { API } from "../../services/api";
+import { ASSET_URL } from "../../services/api";
 import type { ListingCardProps } from "../../services/ListingCardProps";
 
 const ListingCard = ({
+    id,
     title,
     area,
     price,
@@ -13,13 +14,12 @@ const ListingCard = ({
   }: ListingCardProps) => {
 
     const navigate = useNavigate();
-    const { listingId } = useParams();
 
     return (
       <button className="group relative h-72 w-full overflow-hidden 
         rounded-3xl bg-cover bg-center text-left shadow-sm transition duration-300 hover:translate-y-1 hover:shadow-xl"
-        onClick={() => navigate(`/listing/${listingId}`)}
-        style={{backgroundImage: `url(http://localhost:5150/${image})`}}>
+        onClick={() => navigate(`/listing/${id}`)}
+        style={{backgroundImage: `url(${ASSET_URL}${image})`}}>
 
           {/* Image shadding */}
           {isVerified && (

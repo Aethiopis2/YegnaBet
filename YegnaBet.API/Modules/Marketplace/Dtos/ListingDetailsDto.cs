@@ -8,6 +8,7 @@
         public string Area { get; set; } = null!;
         public decimal? Price { get; set; }
         public string? PriceUnit { get; set; }
+        public string? Image {  get; set; }
         public decimal TrustScore { get; set; }
         public bool IsVerified { get; set; }
         public string ProviderName { get; set; } = null!;
