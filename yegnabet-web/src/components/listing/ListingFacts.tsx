@@ -7,7 +7,7 @@ import {
   CalendarDays,
 } from "lucide-react";
 
-import type { ListingMetadata } from "../types/listings";
+import type { ListingMetadata } from "../../types/listings";
 
 interface ListingFactsProps {
   metadata: ListingMetadata;

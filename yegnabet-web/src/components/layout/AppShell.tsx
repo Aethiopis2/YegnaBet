@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 
 import { AppHeader } from "../navigation/AppHeader";
 import { BottomNavigation } from "./BottomNavigation";
+import { QuickActionSheet } from "../quick-actions/QuickActionSheet";
 
 interface AppShellProps {
   children: ReactNode;

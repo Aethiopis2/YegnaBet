@@ -4,11 +4,11 @@ import {
   TrendingUp,
 } from "lucide-react";
 
-import type { Listing } from "../types/listings";
+import type { Listing } from "../../types/listings";
 
 import {
   formatPrice,
-} from "../lib/formatters";
+} from "../../lib/formatters";
 
 interface ListingHeaderProps {
   listing: Listing;

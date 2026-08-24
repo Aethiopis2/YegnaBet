@@ -1,6 +1,6 @@
 import type { ButtonHTMLAttributes, ReactNode } from "react"
 import Button from "./Button";
-import { cn } from "../lib/cn";
+import { cn } from "../../lib/cn";
 
 interface IconButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   children: ReactNode;
@@ -11,9 +11,11 @@ interface IconButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 const IconButton = ({children, label, active=false, className, ...props}: IconButtonProps) => {
   return (
     <Button
+      variant="ghost"
       type="button"
       aria-label={label}
       title={label}
+      size="sm"
       className={cn(
         "relative grid size-11 place-items-center rounded-full",
         "transition-all duration-200",

@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-import type { Listing } from "../types/listings";
+import type { Listing } from "../../types/listings";
 
 import { ListingGallery } from "./ListingGallery";
 import { ListingHeader } from "./ListingHeader";

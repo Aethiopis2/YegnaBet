@@ -1,4 +1,4 @@
-import type { Listing } from "../components/types/listings";
+import type { Listing } from "../types/listings";
 
 export const listings: Listing[] = [
   {

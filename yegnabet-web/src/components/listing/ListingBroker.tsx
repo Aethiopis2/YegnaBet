@@ -4,7 +4,7 @@ import {
   UserRound,
 } from "lucide-react";
 
-import type { ListingBroker as Broker } from "../types/listings";
+import type { ListingBroker as Broker } from "../../types/listings";
 
 interface ListingBrokerProps {
   broker?: Broker;

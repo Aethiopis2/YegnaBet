@@ -3,7 +3,7 @@ import {
   Navigation,
 } from "lucide-react";
 
-import type { ListingLocation as Location } from "../types/listings";
+import type { ListingLocation as Location } from "../../types/listings";
 
 interface ListingLocationProps {
   location: Location;

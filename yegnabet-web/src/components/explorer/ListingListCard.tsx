@@ -9,12 +9,12 @@ import {
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-import type { Listing } from "../types/listings";
+import type { Listing } from "../../types/listings";
 import {
   formatArea,
   formatPrice,
-} from "../lib/formatters";
-import { cn } from "../lib/cn";
+} from "../../lib/formatters";
+import { cn } from "../../lib/cn";
 
 interface ListingListCardProps {
   listing: Listing;

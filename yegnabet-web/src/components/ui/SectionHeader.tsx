@@ -1,7 +1,7 @@
 import { ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
 
-import { cn } from "../lib/cn";
+import { cn } from "../../lib/cn";
 
 interface SectionHeaderProps {
   title: string;

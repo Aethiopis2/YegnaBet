@@ -1,5 +1,5 @@
 import { type ButtonHTMLAttributes } from 'react'
-import { cn } from '../lib/cn';
+import { cn } from '../../lib/cn';
 
 type ButtonVariant = | "primary" | "secondary" | "ghost" | "soft";
 
@@ -38,7 +38,7 @@ const Button = ({
         size === "sm" && "h-9 px-3 text-sm",
         size === "md" && "h-11 px-4 text-sm",
         size === "lg" && "h-12 px-5",
-
+      
         className
     )}
     {...props}

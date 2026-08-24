@@ -1,7 +1,7 @@
 import { Search, SlidersHorizontal } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
-import { cn } from "../lib/cn";
+import { cn } from "../../lib/cn";
 
 interface SearchBarProps {
   className?: string;
@@ -28,20 +28,17 @@ export function SearchBar({
     >
       <Search className="size-5 shrink-0 text-gray-400" />
 
-      <button
-        type="button"
-        onClick={() => navigate("/search")}
+      <input
+        type="input"
         className="
           min-w-0 flex-1
           truncate
           text-left text-sm
           text-gray-400
           outline-none
-          dark:text-gray-500
-        "
-      >
-        {placeholder}
-      </button>
+          dark:text-gray-500"
+          placeholder={placeholder}
+      />
 
       <button
         type="button"

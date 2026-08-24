@@ -10,9 +10,9 @@ import type {
   ListingFilters,
   ListingMode,
   ListingSort,
-} from "../types/explorer";
+} from "../../types/explorer";
 
-import type { Listing } from "../types/listings";
+import type { Listing } from "../../types/listings";
 
 const PAGE_SIZE = 5;
 

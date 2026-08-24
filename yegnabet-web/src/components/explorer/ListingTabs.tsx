@@ -1,5 +1,5 @@
-import type { ListingMode } from "../../components/types/explorer";
-import { cn } from "../lib/cn";
+import type { ListingMode } from "../../types/explorer";
+import { cn } from "../../lib/cn";
 
 interface ListingTabsProps {
   value: ListingMode;

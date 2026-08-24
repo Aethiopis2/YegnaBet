@@ -12,7 +12,7 @@ import type {
   ListingMode,
   ListingSort,
   ListingView,
-} from "../types/explorer";
+} from "../../types/explorer";
 
 import { useInfiniteListings } from "../hooks/useInfiniteListings";
 

@@ -9,7 +9,7 @@ import {
 
 import { NavLink } from "react-router-dom";
 
-import { cn } from "../lib/cn";
+import { cn } from "../../lib/cn";
 
 const navigation = [
   {

@@ -5,7 +5,7 @@ import {
   SlidersHorizontal,
 } from "lucide-react";
 
-import type { ListingFilters } from "../../components/types/explorer";
+import type { ListingFilters } from "../../types/explorer";
 
 import { FilterChip } from "./FilterChip";
 

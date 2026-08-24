@@ -8,9 +8,9 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 
-import type { Listing } from "../types/listings";
-import { formatArea, formatPrice } from "../lib/formatters";
-import { cn } from "../lib/cn";
+import type { Listing } from "../../types/listings";
+import { formatArea, formatPrice } from "../../lib/formatters";
+import { cn } from "../../lib/cn";
 
 interface FeaturedCardProps {
   listing: Listing;

@@ -7,9 +7,9 @@ import {
 import type {
   ListingSort,
   ListingView,
-} from "../../components/types/explorer";
+} from "../../types/explorer";
 
-import { cn } from "../lib/cn";
+import { cn } from "../../lib/cn";
 
 interface ExplorerToolbarProps {
   resultCount: number;

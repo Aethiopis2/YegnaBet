@@ -8,12 +8,12 @@ import {
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 
-import type { Listing } from "../types/listings";
+import type { Listing } from "../../types/listings";
 import {
   formatArea,
   formatPrice,
-} from "../lib/formatters";
-import { cn } from "../lib/cn";
+} from "../../lib/formatters";
+import { cn } from "../../lib/cn";
 
 interface ListingGridCardProps {
   listing: Listing;

@@ -1,7 +1,7 @@
 import type { LucideIcon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
-import { cn } from "../lib/cn";
+import { cn } from "../../lib/cn";
 
 interface PreferenceCardProps {
   title: string;

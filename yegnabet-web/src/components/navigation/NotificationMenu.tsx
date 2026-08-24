@@ -7,8 +7,8 @@ import {
   Tag,
 } from "lucide-react";
 
-import { notifications } from "../../data/Notifications";
-import type { Notification } from "../types/notification";
+import { notifications } from "../../data/notifications";
+import type { Notification } from "../../types/notification";
 
 import { Avatar } from "../ui/Avatar";
 import { Dropdown } from "../ui/Dropdown";
