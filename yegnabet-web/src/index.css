@@ -1,1 +1,69 @@
 @import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+    font-family: Inter, ui-sans-serif, system-ui, --apple-system, BlackMackSystemFont,
+        "Segoe UI", sans-serif;
+    
+    color: #172019;
+    background: #f7f8f6;
+
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -mox-osx-font-smoothing: grayscale;
+}
+
+html {
+    background: #f7f8f6;
+}
+
+html.dark {
+    background: #101512;
+}
+
+body {
+    margin: 0;
+    min-width: 320px;
+    min-height: 100vh;
+}
+
+button {
+  cursor: pointer;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+::selection {
+  background: rgb(16 116 65 / 0.18);
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgb(120 130 124 / 0.35);
+  border-radius: 999px;
+}
+
+@theme {
+  --color-yegna-50: #f1f8f3;
+  --color-yegna-100: #dcefe1;
+  --color-yegna-200: #bde0c7;
+  --color-yegna-300: #91cbaa;
+  --color-yegna-400: #5fb183;
+  --color-yegna-500: #39935f;
+  --color-yegna-600: #287747;
+  --color-yegna-700: #21603b;
+  --color-yegna-800: #1d4d31;
+  --color-yegna-900: #193f29;
+}

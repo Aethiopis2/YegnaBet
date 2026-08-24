@@ -12,16 +12,13 @@ namespace YegnaBet.Domain.Entities
         public long ProviderId { get; set; }
         public User Provider { get; set; } = null!;
 
-        public long? EmployeeId { get; set; }
-        public User? Employee { get; set; }
-
         public int CategoryId { get; set; }
         public Category Category { get; set; } = null!;
 
         public long LocationId { get; set; }
         public Location Location { get; set; } = null!;
 
-        public ListingKind Kind { get; set; }
+        public ListingMethod Method { get; set; }
 
         public string Title { get; set; } = null!;
         public string? Description { get; set; }
@@ -41,6 +38,9 @@ namespace YegnaBet.Domain.Entities
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
-        public ICollection<ListingImage> Images { get; set; } = new List<ListingImage>();
+        public ICollection<ListingImage> Images { get; set; } = [];
+        public ICollection<ListingTaxonomyNode> TaxonomyNodes { get; set; } = [];
+
+        public ICollection<ListingAttributeValue> AttributeValues { get; set; } = [];
     }
 }
