@@ -1,14 +1,20 @@
 import { Routes, Route } from "react-router-dom";
 
-import  HomePage  from "../pages/HomePage";
-import { ExplorePage } from "../pages/ExplorePage";
-import { CategoryPage } from "../pages/CategoryPage";
-import { ListingDetailPage } from "../pages/ListingDetailPage";
-import { FindMyMatchPage } from "../pages/FindMyMatchPage";
-import { MatchPreferencesPage } from "../pages/MatchPreferencesPage";
-import { MatchResultsPage } from "../pages/MatchResultsPage";
-import { MyRequestsPage } from "../pages/MyRequestPage";
-import { RequestPropertyPage } from "../pages/RequestPropertyPage";
+import  HomePage  from "../pages/customer/HomePage";
+import { ExplorePage } from "../pages/customer/ExplorePage";
+import { CategoryPage } from "../pages/customer/CategoryPage";
+import { ListingDetailPage } from "../pages/customer/ListingDetailPage";
+import { FindMyMatchPage } from "../pages/customer/FindMyMatchPage";
+import { MatchPreferencesPage } from "../pages/customer/MatchPreferencesPage";
+import { MatchResultsPage } from "../pages/customer/MatchResultsPage";
+import { MyRequestsPage } from "../pages/customer/MyRequestPage";
+import { RequestPropertyPage } from "../pages/customer/RequestPropertyPage";
+import { InboxPage } from "../pages/customer/InboxPage";
+import { ProfilePage } from "../pages/customer/ProfilePage";
+import { TaxonomiesPage } from "../pages/employee/TaxonomiesPage";
+import { EmployeeDashboardPage } from "../pages/employee/EmployeeDashboardPage";
+import OwnerDashboard from "../pages/owner/OwnerDashboard";
+import ProviderDashboard from "../pages/provider/ProviderDashboard";
 
 export function AppRoutes() {
   return (
@@ -56,6 +62,36 @@ export function AppRoutes() {
       <Route
         path="/requests/property"
         element={<RequestPropertyPage />}
+      />
+
+      <Route
+        path="/inbox"
+        element={<InboxPage />}
+      />
+
+      <Route
+        path="/profile"
+        element={<ProfilePage />}
+      />
+
+      <Route
+        path="/employee"
+        element={<EmployeeDashboardPage />}
+      />
+
+      <Route
+        path="/employee/taxonomies"
+        element={<TaxonomiesPage />}
+      />
+
+      <Route
+        path="/owner"
+        element={<OwnerDashboard />}
+      />
+
+      <Route
+        path="/provider"
+        element={<ProviderDashboard />}
       />
     </Routes>
   );

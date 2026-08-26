@@ -2,21 +2,18 @@
 
 namespace YegnaBet.Domain.Entities
 {
-    /// <summary>
-    /// Who was intereseted
-    /// </summary>
     public class Inquiry
     {
         public long Id { get; set; }
-
         public long ListingId { get; set; }
-        public Listing Listing { get; set; } = null!;
-
-        public string CustomerName { get; set; } = null!;
-        public string CustomerPhone { get; set; } = null!;
-
+        public long EmployeeId { get; set; }
+        public long? CustomerId { get; set; }
+        public string? CustomerName { get; set; }
+        public string? CustomerPhone { get; set; }
         public InquiryStatus InquiryStatus { get; set; } = InquiryStatus.New;
-
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public Listing Listing { get; set; } = null!;
+        public User Employee { get; set; } = null!;
+        public User? Customer { get; set; }
     }
 }

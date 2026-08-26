@@ -1,7 +1,7 @@
 import { useParams } from "react-router-dom";
 
-import { AppShell } from "../components/layout/AppShell";
-import { Explorer } from "../components/explorer/Explorer";
+import { AppShell } from "../../components/layout/AppShell";
+import { Explorer } from "../../components/explorer/Explorer";
 
 const categoryNames: Record<
   string,

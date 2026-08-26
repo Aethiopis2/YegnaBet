@@ -8,10 +8,10 @@ import {
 
 import { useNavigate } from "react-router-dom";
 
-import { AppShell } from "../components/layout/AppShell";
-import { PageContainer } from "../components/layout/PageContainer";
+import { AppShell } from "../../components/layout/AppShell";
+import { PageContainer } from "../../components/layout/PageContainer";
 
-import type { UserRequest } from "../types/request";
+import type { UserRequest } from "../../types/request";
 
 function getRequests(): UserRequest[] {
   try {

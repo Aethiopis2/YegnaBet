@@ -3,10 +3,10 @@ import {
   useParams,
 } from "react-router-dom";
 
-import { AppShell } from "../components/layout/AppShell";
-import { ListingDetail } from "../components/listing/ListingDetails";
+import { AppShell } from "../../components/layout/AppShell";
+import { ListingDetail } from "../../components/listing/ListingDetails";
 
-import { listings } from "../data/listings";
+import { listings } from "../../data/listings";
 
 export function ListingDetailPage() {
   const { id } = useParams();

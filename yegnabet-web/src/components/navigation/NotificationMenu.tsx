@@ -13,6 +13,7 @@ import type { Notification } from "../../types/notification";
 import { Avatar } from "../ui/Avatar";
 import { Dropdown } from "../ui/Dropdown";
 import  IconButton  from "../ui/IconButton";
+import { useNavigate } from "react-router-dom";
 
 interface NotificationMenuProps {
   open: boolean;
@@ -27,6 +28,7 @@ export function NotificationMenu({
     (notification) => !notification.read
   ).length;
 
+  const navigate = useNavigate();
   return (
     <div className="relative">
       <IconButton
@@ -101,6 +103,7 @@ export function NotificationMenu({
                 dark:text-yegna-300
                 dark:hover:bg-yegna-900/20
               "
+              onClick={()=> navigate('/inbox')}
             >
               View all notifications
             </button>

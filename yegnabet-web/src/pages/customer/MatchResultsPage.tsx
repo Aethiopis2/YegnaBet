@@ -1,19 +1,19 @@
 import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 
-import { AppShell } from "../components/layout/AppShell";
-import { PageContainer } from "../components/layout/PageContainer";
+import { AppShell } from "../../components/layout/AppShell";
+import { PageContainer } from "../../components/layout/PageContainer";
 
-import { MatchListingCard } from "../components/match/MatchListingCard";
-import { MatchResultsHeader } from "../components/match/MatchResultsHeader";
+import { MatchListingCard } from "../../components/match/MatchListingCard";
+import { MatchResultsHeader } from "../../components/match/MatchResultsHeader";
 
 import {
   findMatches,
-} from "../lib/matching";
+} from "../../lib/matching";
 
-import type { MatchPreferences } from "../types/match";
+import type { MatchPreferences } from "../../types/match";
 
-import { listings } from "../data/listings";
+import { listings } from "../../data/listings";
 
 export function MatchResultsPage() {
   const navigate = useNavigate();

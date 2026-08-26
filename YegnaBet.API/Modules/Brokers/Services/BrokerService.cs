@@ -104,7 +104,7 @@ namespace YegnaBet.API.Modules.Brokers.Services
             var deal = new Deal {
                 InquiryId = inquiry.Id,
                 ListingId = inquiry.ListingId,
-                BrokerId = inquiry.Listing.EmployeeId ?? 1,
+                EmployeeId = inquiry.EmployeeId,
                 DealValue = dto.DealValue,
                 CommissionRate = dto.CommissionRate,
                 CommissionAmount = commission,

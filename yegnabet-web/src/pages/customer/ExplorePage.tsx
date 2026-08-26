@@ -1,5 +1,5 @@
-import { AppShell } from "../components/layout/AppShell";
-import { Explorer } from "../components/explorer/Explorer";
+import { AppShell } from "../../components/layout/AppShell";
+import { Explorer } from "../../components/explorer/Explorer";
 
 export function ExplorePage() {
   return (

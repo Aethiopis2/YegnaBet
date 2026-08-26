@@ -1,8 +1,6 @@
 import {
   ArrowLeft,
   ArrowRight,
-  Bath,
-  BedDouble,
   Building2,
   Home,
   LandPlot,
@@ -12,35 +10,33 @@ import {
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-import { AppShell } from "../components/layout/AppShell";
-import { PageContainer } from "../components/layout/PageContainer";
-
-import { MatchOptionCard } from "../components/match/MatchOptionCard";
-import { MatchProgress } from "../components/match/MatchProgress";
+import { AppShell } from "../../components/layout/AppShell";
+import { PageContainer } from "../../components/layout/PageContainer";
+import { MatchOptionCard } from "../../components/match/MatchOptionCard";
+import { MatchProgress } from "../../components/match/MatchProgress";
 
 import type {
-  MatchPreferences,
-  MatchPropertyType,
-} from "../types/match";
+  PropertyRequest,
+} from "../../types/request";
 
 const propertyTypes = [
   {
-    value: "house" as MatchPropertyType,
+    value: "house",
     label: "House",
     icon: Home,
   },
   {
-    value: "apartment" as MatchPropertyType,
+    value: "apartment",
     label: "Apartment",
     icon: Building2,
   },
   {
-    value: "land" as MatchPropertyType,
+    value: "land",
     label: "Land",
     icon: LandPlot,
   },
   {
-    value: "commercial" as MatchPropertyType,
+    value: "commercial",
     label: "Commercial",
     icon: Store,
   },
@@ -53,7 +49,6 @@ const areas = [
   "Ayat",
   "Saris",
   "Summit",
-  "Lebu",
   "Gerji",
 ];
 
@@ -63,38 +58,35 @@ const features = [
   "Furnished",
   "Security",
   "Water supply",
-  "Solar backup",
 ];
 
-export function MatchPreferencesPage() {
+export function RequestPropertyPage() {
   const navigate = useNavigate();
-
-  const [preferences, setPreferences] =
-    useState<MatchPreferences>({
-      propertyType: undefined,
-      city: "Addis Ababa",
-      areas: [],
-      minPrice: undefined,
-      maxPrice: undefined,
-      bedrooms: undefined,
-      bathrooms: undefined,
-      features: [],
-      verifiedOnly: false,
-    });
 
   const [step, setStep] = useState(1);
 
+  const [request, setRequest] =
+    useState<PropertyRequest>({
+      id: crypto.randomUUID(),
+      type: "property",
+      areas: [],
+      features: [],
+      status: "pending",
+      createdAt:
+        new Date().toISOString(),
+    });
+
   const update = (
-    values: Partial<MatchPreferences>
+    values: Partial<PropertyRequest>
   ) => {
-    setPreferences((current) => ({
+    setRequest((current) => ({
       ...current,
       ...values,
     }));
   };
 
   const toggleArea = (area: string) => {
-    setPreferences((current) => ({
+    setRequest((current) => ({
       ...current,
       areas: current.areas.includes(area)
         ? current.areas.filter(
@@ -107,7 +99,7 @@ export function MatchPreferencesPage() {
   const toggleFeature = (
     feature: string
   ) => {
-    setPreferences((current) => ({
+    setRequest((current) => ({
       ...current,
       features: current.features.includes(
         feature
@@ -119,26 +111,22 @@ export function MatchPreferencesPage() {
     }));
   };
 
-  const next = () => {
-    if (step < 4) {
-      setStep((value) => value + 1);
-      return;
-    }
-
-    sessionStorage.setItem(
-      "yegna-match-preferences",
-      JSON.stringify(preferences)
+  const submit = () => {
+    const existing = JSON.parse(
+      localStorage.getItem(
+        "yegna-requests"
+      ) ?? "[]"
     );
 
-    navigate("/match/results");
-  };
+    localStorage.setItem(
+      "yegna-requests",
+      JSON.stringify([
+        ...existing,
+        request,
+      ])
+    );
 
-  const back = () => {
-    if (step > 1) {
-      setStep((value) => value - 1);
-    } else {
-      navigate(-1);
-    }
+    navigate("/requests");
   };
 
   return (
@@ -147,7 +135,13 @@ export function MatchPreferencesPage() {
         <main className="mx-auto max-w-xl px-1 py-5">
           <button
             type="button"
-            onClick={back}
+            onClick={() =>
+              step > 1
+                ? setStep(
+                    (value) => value - 1
+                  )
+                : navigate(-1)
+            }
             className="
               mb-5
               grid
@@ -155,11 +149,9 @@ export function MatchPreferencesPage() {
               place-items-center
               rounded-full
               text-gray-500
-              transition
               hover:bg-gray-100
               dark:hover:bg-white/[0.06]
             "
-            aria-label="Go back"
           >
             <ArrowLeft className="size-4" />
           </button>
@@ -174,29 +166,29 @@ export function MatchPreferencesPage() {
           {step === 1 && (
             <section className="mt-8">
               <h1 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">
-                What are you looking for?
+                What do you need?
               </h1>
 
               <p className="mt-2 text-xs leading-5 text-gray-400">
-                Choose the type of property
-                that fits your needs.
+                Tell us the kind of property
+                you're looking for.
               </p>
 
               <div className="mt-6 grid gap-3">
                 {propertyTypes.map(
-                  (type) => (
+                  (item) => (
                     <MatchOptionCard
-                      key={type.value}
-                      label={type.label}
-                      icon={type.icon}
+                      key={item.value}
+                      label={item.label}
+                      icon={item.icon}
                       selected={
-                        preferences.propertyType ===
-                        type.value
+                        request.propertyType ===
+                        item.value
                       }
                       onClick={() =>
                         update({
                           propertyType:
-                            type.value,
+                            item.value,
                         })
                       }
                     />
@@ -211,17 +203,18 @@ export function MatchPreferencesPage() {
           {step === 2 && (
             <section className="mt-8">
               <h1 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">
-                Where should it be?
+                Where do you need it?
               </h1>
 
               <p className="mt-2 text-xs leading-5 text-gray-400">
-                Select one or more areas.
+                Select the areas you'd be
+                interested in.
               </p>
 
               <div className="mt-6 flex flex-wrap gap-2">
                 {areas.map((area) => {
                   const selected =
-                    preferences.areas.includes(
+                    request.areas.includes(
                       area
                     );
 
@@ -252,22 +245,6 @@ export function MatchPreferencesPage() {
                   );
                 })}
               </div>
-
-              <button
-                type="button"
-                onClick={() =>
-                  update({ areas: [] })
-                }
-                className="
-                  mt-4
-                  text-xs
-                  font-medium
-                  text-gray-400
-                  hover:text-yegna-700
-                "
-              >
-                Any area
-              </button>
             </section>
           )}
 
@@ -276,38 +253,34 @@ export function MatchPreferencesPage() {
           {step === 3 && (
             <section className="mt-8">
               <h1 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">
-                Tell us your budget
+                What's your budget?
               </h1>
-
-              <p className="mt-2 text-xs leading-5 text-gray-400">
-                Don't worry — you can leave
-                either side flexible.
-              </p>
 
               <div className="mt-6 grid grid-cols-2 gap-3">
                 <label>
-                  <span className="text-[10px] font-medium text-gray-400">
+                  <span className="text-[10px] text-gray-400">
                     Minimum
                   </span>
 
                   <input
                     type="number"
                     value={
-                      preferences.minPrice ??
+                      request.minPrice ??
                       ""
                     }
                     onChange={(event) =>
                       update({
                         minPrice:
-                          event.target.value
+                          event.target
+                            .value
                             ? Number(
-                                event.target
+                                event
+                                  .target
                                   .value
                               )
                             : undefined,
                       })
                     }
-                    placeholder="0"
                     className="
                       mt-2
                       h-12
@@ -319,38 +292,39 @@ export function MatchPreferencesPage() {
                       px-3
                       text-sm
                       outline-none
-                      transition
                       focus:border-yegna-600
                       dark:border-white/[0.07]
                       dark:bg-white/[0.035]
                       dark:text-white
                     "
+                    placeholder="0"
                   />
                 </label>
 
                 <label>
-                  <span className="text-[10px] font-medium text-gray-400">
+                  <span className="text-[10px] text-gray-400">
                     Maximum
                   </span>
 
                   <input
                     type="number"
                     value={
-                      preferences.maxPrice ??
+                      request.maxPrice ??
                       ""
                     }
                     onChange={(event) =>
                       update({
                         maxPrice:
-                          event.target.value
+                          event.target
+                            .value
                             ? Number(
-                                event.target
+                                event
+                                  .target
                                   .value
                               )
                             : undefined,
                       })
                     }
-                    placeholder="No limit"
                     className="
                       mt-2
                       h-12
@@ -362,19 +336,19 @@ export function MatchPreferencesPage() {
                       px-3
                       text-sm
                       outline-none
-                      transition
                       focus:border-yegna-600
                       dark:border-white/[0.07]
                       dark:bg-white/[0.035]
                       dark:text-white
                     "
+                    placeholder="No limit"
                   />
                 </label>
               </div>
 
-              <div className="mt-8">
+              <div className="mt-7">
                 <p className="text-sm font-semibold text-gray-900 dark:text-white">
-                  Minimum bedrooms
+                  Bedrooms
                 </p>
 
                 <div className="mt-3 flex gap-2">
@@ -398,7 +372,7 @@ export function MatchPreferencesPage() {
                           text-xs
                           font-semibold
                           ${
-                            preferences.bedrooms ===
+                            request.bedrooms ===
                             number
                               ? "border-yegna-700 bg-yegna-700 text-white"
                               : "border-black/[0.06] bg-white text-gray-500 dark:border-white/[0.07] dark:bg-white/[0.035]"
@@ -412,47 +386,6 @@ export function MatchPreferencesPage() {
                   )}
                 </div>
               </div>
-
-              <div className="mt-7">
-                <p className="text-sm font-semibold text-gray-900 dark:text-white">
-                  Minimum bathrooms
-                </p>
-
-                <div className="mt-3 flex gap-2">
-                  {[1, 2, 3, 4].map(
-                    (number) => (
-                      <button
-                        key={number}
-                        type="button"
-                        onClick={() =>
-                          update({
-                            bathrooms:
-                              number,
-                          })
-                        }
-                        className={`
-                          grid
-                          size-11
-                          place-items-center
-                          rounded-xl
-                          border
-                          text-xs
-                          font-semibold
-                          ${
-                            preferences.bathrooms ===
-                            number
-                              ? "border-yegna-700 bg-yegna-700 text-white"
-                              : "border-black/[0.06] bg-white text-gray-500 dark:border-white/[0.07] dark:bg-white/[0.035]"
-                          }
-                        `}
-                      >
-                        {number}
-                        {number === 4 && "+"}
-                      </button>
-                    )
-                  )}
-                </div>
-              </div>
             </section>
           )}
 
@@ -461,12 +394,12 @@ export function MatchPreferencesPage() {
           {step === 4 && (
             <section className="mt-8">
               <h1 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">
-                What matters to you?
+                Anything else?
               </h1>
 
               <p className="mt-2 text-xs leading-5 text-gray-400">
-                Pick anything you'd like your
-                ideal property to have.
+                Add things that are important
+                to you.
               </p>
 
               <div className="mt-6 grid gap-3">
@@ -475,7 +408,7 @@ export function MatchPreferencesPage() {
                     <MatchOptionCard
                       key={feature}
                       label={feature}
-                      selected={preferences.features.includes(
+                      selected={request.features.includes(
                         feature
                       )}
                       onClick={() =>
@@ -488,78 +421,49 @@ export function MatchPreferencesPage() {
                 )}
               </div>
 
-              <button
-                type="button"
-                onClick={() =>
+              <textarea
+                value={
+                  request.notes ?? ""
+                }
+                onChange={(event) =>
                   update({
-                    verifiedOnly:
-                      !preferences.verifiedOnly,
+                    notes:
+                      event.target.value,
                   })
                 }
-                className={`
-                  mt-3
-                  flex
+                placeholder="Anything else you'd like us to know?"
+                rows={4}
+                className="
+                  mt-4
                   w-full
-                  items-center
-                  justify-between
+                  resize-none
                   rounded-2xl
                   border
+                  border-black/[0.06]
+                  bg-white
                   p-4
-                  text-left
-                  ${
-                    preferences.verifiedOnly
-                      ? "border-yegna-600 bg-yegna-50 dark:bg-yegna-900/20"
-                      : "border-black/[0.05] bg-white dark:border-white/[0.06] dark:bg-white/[0.035]"
-                  }
-                `}
-              >
-                <div>
-                  <p className="text-sm font-semibold text-gray-900 dark:text-white">
-                    Verified properties only
-                  </p>
-
-                  <p className="mt-0.5 text-[10px] text-gray-400">
-                    Only show properties
-                    reviewed by Yegna Bet
-                  </p>
-                </div>
-
-                <div
-                  className={`
-                    h-6
-                    w-11
-                    rounded-full
-                    p-1
-                    transition
-                    ${
-                      preferences.verifiedOnly
-                        ? "bg-yegna-700"
-                        : "bg-gray-200 dark:bg-white/10"
-                    }
-                  `}
-                >
-                  <div
-                    className={`
-                      size-4
-                      rounded-full
-                      bg-white
-                      shadow
-                      transition-transform
-                      ${
-                        preferences.verifiedOnly
-                          ? "translate-x-5"
-                          : ""
-                      }
-                    `}
-                  />
-                </div>
-              </button>
+                  text-sm
+                  outline-none
+                  focus:border-yegna-600
+                  dark:border-white/[0.07]
+                  dark:bg-white/[0.035]
+                  dark:text-white
+                "
+              />
             </section>
           )}
 
           <button
             type="button"
-            onClick={next}
+            onClick={() => {
+              if (step < 4) {
+                setStep(
+                  (value) => value + 1
+                );
+              } else {
+                submit();
+              }
+            }}
             className="
               mt-8
               flex
@@ -575,13 +479,13 @@ export function MatchPreferencesPage() {
               text-white
               shadow-lg
               shadow-yegna-700/15
-              transition-all
+              transition
               hover:bg-yegna-800
               active:scale-[0.98]
             "
           >
             {step === 4
-              ? "Find My Matches"
+              ? "Send Request"
               : "Continue"}
 
             <ArrowRight className="size-4" />

@@ -10,6 +10,7 @@ import {
 import { NavLink } from "react-router-dom";
 
 import { cn } from "../../lib/cn";
+import { QuickActionSheet } from "../quick-actions/QuickActionSheet";
 
 const navigation = [
   {
@@ -25,7 +26,7 @@ const navigation = [
   {
     label: "Messages",
     icon: MessageCircle,
-    href: "/messages",
+    href: "/inbox",
   },
   {
     label: "Profile",
@@ -50,13 +51,15 @@ export function BottomNavigation() {
       "
     >
       <div className="relative mx-auto flex h-14 max-w-xl items-center justify-between">
-        {navigation.slice(0, 2).map((item) => (
+        {navigation.map((item) => (
           <NavigationItem
             key={item.href}
             {...item}
           />
         ))}
 
+        <QuickActionSheet />
+{/* 
         <button
           type="button"
           aria-label="Create request"
@@ -78,6 +81,7 @@ export function BottomNavigation() {
           <Plus className="size-6" />
         </button>
 
+        
         <div className="w-14" />
 
         {navigation.slice(2).map((item) => (
@@ -85,7 +89,7 @@ export function BottomNavigation() {
             key={item.href}
             {...item}
           />
-        ))}
+        ))} */}
       </div>
     </nav>
   );

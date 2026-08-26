@@ -26,12 +26,9 @@ namespace YegnaBet.Infrastructure.Persistence
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.HasDefaultSchema("public");
-
-            mprotected override void OnModelCreating(ModelBuilder modelBuilder)
-        {
             base.OnModelCreating(modelBuilder);
 
+            modelBuilder.HasDefaultSchema("public");
             modelBuilder.Entity<Taxonomy>(entity =>
             {
                 entity.ToTable("Taxonomies");
@@ -56,15 +53,11 @@ namespace YegnaBet.Infrastructure.Persistence
                     .HasMaxLength(150)
                     .IsRequired();
 
-                entity.Property(x => x.Slug)
-                    .HasMaxLength(150)
-                    .IsRequired();
-
                 entity.HasIndex(x => new
                 {
                     x.TaxonomyId,
                     x.ParentId,
-                    x.Slug
+                    x.Name
                 })
                 .IsUnique();
 
@@ -209,9 +202,6 @@ namespace YegnaBet.Infrastructure.Persistence
 
             modelBuilder.Entity<Listing>()
                 .HasIndex(x => x.ListingStatus); 
-            
-            modelBuilder.Entity<Listing>()
-                .HasIndex(x => x.CategoryId);
 
             modelBuilder.Entity<Listing>()
                 .HasIndex(x => x.LocationId); 
