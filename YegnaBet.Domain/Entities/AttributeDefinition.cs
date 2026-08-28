@@ -11,6 +11,8 @@ namespace YegnaBet.Domain.Entities
         public AttributeDataType DataType { get; set; }
         public string? Description { get; set; }
         public bool IsActive { get; set; } = true;
+        public bool IsSearchable { get; set; }
+        public bool IsFilterable { get; set; }
         public JsonDocument? Options { get; set; }
         public ICollection<NodeAttributeDefinition> Nodes { get; set; } = [];
         public ICollection<ListingAttributeValue> Values { get; set; } = [];

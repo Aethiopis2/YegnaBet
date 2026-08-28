@@ -2,9 +2,6 @@
 
 namespace YegnaBet.Domain.Entities
 {
-    /// <summary>
-    /// A representation of a person in the system.
-    /// </summary>
     public class User
     {
         public long Id { get; set; }

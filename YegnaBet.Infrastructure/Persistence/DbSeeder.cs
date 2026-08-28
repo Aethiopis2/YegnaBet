@@ -1,4 +1,6 @@
-﻿using System.Globalization;
+﻿using Microsoft.EntityFrameworkCore;
+using System.Globalization;
+using System.Text.Json.Nodes;
 using YegnaBet.Domain.Entities;
 using YegnaBet.Domain.Enums;
 
@@ -9,108 +11,105 @@ namespace YegnaBet.Infrastructure.Persistence
         private const int NUM_USERS = 100;
         private const int NUM_LISTINGS = 1000;
 
-        private static readonly string[] categories_list =
-        {
-        "land",
-        "house",
-        "apartment",
-        "cleaner",
-        "electrician",
-        "accountant",
-        "carpenter",
-        "painter",
-        "mechanic"
-    };
-
         private static readonly string[] cities_list =
         {
-        "Addis Ababa",
-        "Adama",
-        "Hawassa",
-        "Bishoftu",
-        "Gondar",
-        "Mekele"
-    };
+            "Addis Ababa",
+            "Adama",
+            "Hawassa",
+            "Bishoftu",
+            "Gondar",
+            "Mekele"
+        };
 
         private static readonly string[] areas_list =
         {
-        "22",
-        "Bole",
-        "Piassa",
-        "Merkato",
-        "Arada",
-        "Azezo",
-        "Ayider",
-        "Gulele",
-        "Wessen",
-        "CMC",
-        "Ayat",
-        "Semit",
-        "Shiro Meda",
-        "Torhailoch",
-        "Lem Hotel"
-    };
+            "22",
+            "Bole",
+            "Piassa",
+            "Merkato",
+            "Arada",
+            "Azezo",
+            "Ayider",
+            "Gulele",
+            "Wessen",
+            "CMC",
+            "Ayat",
+            "Semit",
+            "Shiro Meda",
+            "Torhailoch",
+            "Lem Hotel",
+            "Gurd Shola",
+            "Meganaga",
+            "Garment",
+            "Saris"
+        };
 
         private static readonly string[] names_list =
         {
-        "Abebe",
-        "Kebede",
-        "Samson",
-        "Samuel",
-        "Tobby",
-        "Melona",
-        "Mar",
-        "Binyam",
-        "Rediet",
-        "Chekol",
-        "Deribew",
-        "Bubu",
-        "Almemayehu",
-        "Kassa",
-        "Mergassa",
-        "Debo",
-        "Tola",
-        "Kirubel",
-        "Admas",
-        "Tolossa",
-        "Tofic",
-        "Muhammed",
-        "Jemal",
-        "Destaw",
-        "Girma",
-        "Meron",
-        "Genet",
-        "Getinet"
-    };
+            "Abebe",
+            "Kebede",
+            "Samson",
+            "Samuel",
+            "Tobby",
+            "Melona",
+            "Mar",
+            "Binyam",
+            "Rediet",
+            "Chekol",
+            "Deribew",
+            "Bubu",
+            "Almemayehu",
+            "Kassa",
+            "Mergassa",
+            "Debo",
+            "Tola",
+            "Kirubel",
+            "Admas",
+            "Tolossa",
+            "Tofic",
+            "Muhammed",
+            "Jemal",
+            "Destaw",
+            "Girma",
+            "Meron",
+            "Genet",
+            "Getinet"
+        };
 
         private static readonly string[] titles =
         {
-        "Modern and clean",
-        "Classic",
-        "Studio",
-        "Luxurious",
-        "Affordable",
-        "Spacious",
-        "Newly renovated"
-    };
+            "Modern and clean",
+            "Classic",
+            "Studio",
+            "Luxurious",
+            "Affordable",
+            "Spacious",
+            "Newly renovated"
+        };
 
         private static readonly string[] adjs =
         {
-        "near",
-        "close to",
-        "around",
-        "in",
-        "across",
-        "on the road to"
-    };
+            "near",
+            "close to",
+            "around",
+            "in",
+            "across",
+            "on the road to"
+        };
 
+
+        private static List<TaxonomyNode> nodes = new List<TaxonomyNode>();
+        private static List<AttributeDefinition> house_attributes = new List<AttributeDefinition>();
+        private static List<AttributeDefinition> land_attributes = new List<AttributeDefinition>();
+        private static List<AttributeDefinition> service_attributes = new List<AttributeDefinition>();
 
         /// <summary>
         /// Populates the database with canned and random values for testing purposes.
         /// </summary>
         public static async Task SeedAsync(BrokerDbContext db)
         {
-            List<Category> categories = SeedCategories(db);
+            await SeedRoots(db);
+
             List<Location> locations = SeedLocations(db);
             Dictionary<UserRole, List<User>> users = SeedUsers(db);
 
@@ -121,36 +120,295 @@ namespace YegnaBet.Infrastructure.Persistence
             await db.SaveChangesAsync();
         }
 
-
-        /// <summary>
-        /// Populates the Category table.
-        /// </summary>
-        private static List<Category> SeedCategories(BrokerDbContext db)
+        private static void SetAttribute(
+            Listing listing,
+            AttributeDefinition attribute,
+            object value)
         {
-            if (db.Categories.Any())
-                return db.Categories.ToList();
-
-            List<Category> categories = new();
-
-            for (int i = 0; i < categories_list.Length; i++)
-            {
-                string key = categories_list[i];
-
-                var category = new Category
+            listing.AttributeValues.Add(
+                new ListingAttributeValue
                 {
-                    Name = CultureInfo.CurrentCulture.TextInfo
-                        .ToTitleCase(key) + "s",
+                    AttributeDefinition = attribute,
+                    Value = JsonValue.Create(value)
+                });
+        }
 
-                    Icon = $"assets/pictures/category_icons/{key}.png",
+        private static string CreateSlug(string value)
+        {
+            return value
+                .Trim()
+                .ToLowerInvariant()
+                .Replace(" ", "-");
+        }
 
-                    SortOrder = i + 1
-                };
+        private static TaxonomyNode Node(string name)
+        {
+            return new TaxonomyNode
+            {
+                Name = name,
+                Slug = CreateSlug(name),
+                Description = $"{name} listings",
+                IsActive = true,
+                SortOrder = 0
+            };
+        }
 
-                db.Categories.Add(category);
-                categories.Add(category);
-            }
+        private static AttributeDefinition Attribute(
+            string name,
+            string key,
+            AttributeDataType type,
+            bool searchable = false,
+            bool filterable = false,
+            bool required = false)
+        {
+            return new AttributeDefinition
+            {
+                Name = name,
+                Key = key,
+                DataType = type,
+                IsSearchable = searchable,
+                IsFilterable = filterable,
+                IsActive = true
+            };
+        }
 
-            return categories;
+        private static void Attach(
+            TaxonomyNode node,
+            AttributeDefinition attribute,
+            bool required = false)
+        {
+            node.Attributes.Add(
+                new NodeAttributeDefinition
+                {
+                    AttributeDefinition = attribute,
+                    IsRequired = required,
+                    SortOrder = node.Attributes.Count + 1
+                });
+        }
+
+        private static async Task SeedRoots(BrokerDbContext db)
+        {
+            if (await db.Taxonomy.AnyAsync(x => x.Name == "Listing Types"))
+                return;
+
+            var taxonomy = new Taxonomy
+            {
+                Name = "Listing Types",
+                Description = "Classifications of listings for YegnaBet",
+                IsActive = true,
+            };
+
+
+            db.Taxonomy.Add(taxonomy);
+
+            // now hit listing categories
+            var listing = Node("Listing");
+
+            var property = Node("Property");
+            var house = Node("House");
+            var apartment = Node("Apartment");
+            var villa = Node("Villa");
+            var office = Node("Office");
+            var shop = Node("Shop");
+            var land = Node("Land");
+            var farm = Node("Farm");
+
+            var service = Node("Service");
+            var certified = Node("Certified");
+            var accountant = Node("Accountant");
+            var lawyer = Node("Lawyer");
+            var other = Node("Other");
+            var cleaner = Node("Cleaner");
+            var painter = Node("Painter");
+
+            // add nodes 
+            nodes.AddRange([
+                apartment, villa, office, shop, farm,
+                accountant, cleaner, painter
+            ]);
+
+            // make attributes
+            var area = Attribute(
+                "Area",
+                "area",
+                AttributeDataType.Decimal,
+                filterable: true,
+                required: true);
+
+            var bedrooms = Attribute(
+                "Bedrooms",
+                "bedrooms",
+                AttributeDataType.Integer,
+                filterable: true,
+                required: true);
+
+            var bathrooms = Attribute(
+                "Bathrooms",
+                "bathrooms",
+                AttributeDataType.Integer,
+                filterable: true);
+
+            var furnished = Attribute(
+                "Furnished",
+                "furnished",
+                AttributeDataType.Boolean,
+                filterable: true);
+
+            var parking = Attribute(
+                "Parking",
+                "parking",
+                AttributeDataType.Boolean,
+                filterable: true);
+
+            var floors = Attribute(
+                "Floors",
+                "floors",
+                AttributeDataType.Integer,
+                filterable: true);
+
+            var compound_size = Attribute(
+                "Compound_Size",
+                "compound_size",
+                AttributeDataType.Decimal,
+                filterable: true);
+
+            var land_type = Attribute(
+                "Land Type",
+                "land_type",
+                AttributeDataType.Choice,
+                searchable: true,
+                filterable: true,
+                required: true);
+
+            var title_deed = Attribute(
+                "Title Deed",
+                "title_deed",
+                AttributeDataType.Boolean,
+                filterable: true);
+
+            var road = Attribute(
+                "Road Access",
+                "road_access",
+                AttributeDataType.Boolean,
+                filterable: true);
+
+            var rooms = Attribute(
+                "Rooms",
+                "rooms",
+                AttributeDataType.Integer,
+                filterable: true);
+
+            var experience = Attribute(
+                "Experience",
+                "experience",
+                AttributeDataType.Integer,
+                filterable: true);
+
+            var water = Attribute(
+                "Water Access",
+                "water_access",
+                AttributeDataType.Boolean,
+                filterable: true);
+
+            var electricity = Attribute(
+                "Electricity",
+                "electricity",
+                AttributeDataType.Boolean,
+                filterable: true);
+
+            var mcertified = Attribute(
+                "Certified",
+                "certified",
+                AttributeDataType.Boolean,
+                filterable: true);
+
+            var specialization = Attribute(
+                "Specialization",
+                "specialization",
+                AttributeDataType.Choice,
+                searchable: true,
+                filterable: true);
+
+            var licensed = Attribute(
+                "Licensed",
+                "licensed",
+                AttributeDataType.Boolean,
+                filterable: true);
+
+            // add attributes for listing initialization
+            house_attributes.AddRange([
+                area, furnished, compound_size, bedrooms, rooms, bathrooms, parking
+            ]);
+            land_attributes.AddRange([
+                area, land_type, title_deed, road, electricity, water
+            ]);
+            service_attributes.AddRange([experience, licensed, specialization, mcertified]);
+
+            Attach(house, area);
+            Attach(house, rooms);
+            Attach(house, bathrooms);
+            Attach(house, bedrooms);
+            Attach(house, compound_size);
+
+            Attach(villa, area);
+            Attach(villa, bathrooms);
+            Attach(villa, bedrooms);
+            Attach(villa, compound_size);
+
+            Attach(apartment, area);
+            Attach(apartment, floors);
+            Attach(apartment, bathrooms);
+            Attach(apartment, bedrooms);
+
+            Attach(office, area);
+            Attach(office, rooms);
+            Attach(office, parking);
+            Attach(office, floors);
+
+            Attach(shop, road);
+            Attach(shop, area);
+            Attach(shop, parking);
+
+            Attach(land, area);
+            Attach(land, land_type);
+            Attach(land, electricity);
+            Attach(land, water);
+            Attach(land, road);
+
+            Attach(farm, area);
+            Attach(farm, electricity);
+            Attach(farm, water);
+            Attach(farm, road);
+            Attach(accountant, experience);
+            Attach(accountant, licensed);
+            Attach(accountant, mcertified);
+
+            Attach(lawyer, experience);
+            Attach(lawyer, licensed);
+            Attach(lawyer, mcertified);
+
+            Attach(cleaner, experience);
+            Attach(painter, experience);
+
+            house.Children.Add(villa);
+            house.Children.Add(apartment);
+            house.Children.Add(office);
+            house.Children.Add(shop);
+
+            land.Children.Add(farm);
+            property.Children.Add(house);
+            property.Children.Add(land);
+
+            certified.Children.Add(accountant);
+            certified.Children.Add(lawyer);
+            other.Children.Add(cleaner);
+            other.Children.Add(painter);
+            service.Children.Add(certified);
+            service.Children.Add(other);
+
+            listing.Children.Add(property);
+            listing.Children.Add(service);
+            taxonomy.Nodes.Add(listing);
         }
 
 
@@ -258,8 +516,6 @@ namespace YegnaBet.Infrastructure.Persistence
             if (db.Listings.Any())
                 return;
 
-            var categories = db.Categories.ToList();
-
             var providers = users[UserRole.Provider];
 
             var employees = users[UserRole.Employee];
@@ -272,21 +528,17 @@ namespace YegnaBet.Infrastructure.Persistence
 
             for (int i = 0; i < NUM_LISTINGS; i++)
             {
-                int categoryIndex = i % categories.Count;
-
-                Category category = categories[categoryIndex];
-
-                string categoryKey =
-                    categories_list[categoryIndex];
-
                 Location location =
-                    locations[i % locations.Count];
+                    locations[random.Next() % locations.Count];
 
                 User provider =
-                    providers[i % providers.Count];
+                    providers[random.Next() % providers.Count];
 
                 User employee =
                     employees[i % employees.Count];
+
+                // get a category
+                var category = nodes[random.Next() % nodes.Count];
 
                 var listing = new Listing
                 {
@@ -295,19 +547,10 @@ namespace YegnaBet.Infrastructure.Persistence
                     ProviderId = provider.Id,
                     Provider = provider,
 
-                    EmployeeId = employee.Id,
-                    Employee = employee,
-
                     ListingStatus = ListingStatus.Active,
 
-                    CategoryId = category.Id,
-                    Category = category,
-
-                    Price = GeneratePrice(categoryKey, random),
-
-                    PriceUnit = GetPriceUnit(categoryKey),
-
-                    IsVerified = random.NextDouble() < 0.35,
+                    Price = GeneratePrice(category.Slug, random),
+                    PriceUnit = GetPriceUnit(category.Slug),
 
                     TrustScore = 70 + random.Next(31)
                 };
@@ -317,26 +560,36 @@ namespace YegnaBet.Infrastructure.Persistence
                 // LAND
                 // ----------------------------------------------------
 
-                if (categoryKey == "land")
+                if (category.Slug == "farm")
                 {
                     listing.Title =
-                        "Land " +
+                        "Farming land " +
                         adjs[i % adjs.Length] + " " +
                         location.Area;
 
-                    listing.Kind =
+                    listing.Method =
                         i % 2 == 0
-                            ? ListingKind.Sales
-                            : ListingKind.Rent;
+                            ? ListingMethod.Sales
+                            : ListingMethod.Contract;
+                    listing.ListingStatus = ListingStatus.Active;
 
                     listing.Images = new List<ListingImage>
-                {
-                    new ListingImage
                     {
-                        ImageUrl =
-                            $"assets/pictures/lands/{1 + (i % 10)}.jpg"
+                        new ListingImage
+                        {
+                            ImageUrl =
+                                $"assets/images/lands/{1 + (i % 10)}.jpg"
+                        }
+                    };
+
+                    for (int j = random.Next(0, land_attributes.Count); j < land_attributes.Count; j++)
+                    {
+                        var attribute = land_attributes[j];
+                        if (attribute.Key == "area") SetAttribute(listing, attribute, 5000f + random.NextDouble() * 10_000);
+                        else if (attribute.Key == "electricity" || attribute.Key == "water" || attribute.Key == "road_access" || attribute.Key == "title_deed")
+                            SetAttribute(listing, attribute, true);
+                        else if (attribute.Key == "land_type") SetAttribute(listing, attribute, "{type:farm}");
                     }
-                };
                 }
 
 
@@ -344,27 +597,38 @@ namespace YegnaBet.Infrastructure.Persistence
                 // HOUSE
                 // ----------------------------------------------------
 
-                else if (categoryKey == "house")
+                else if (category.Slug == "villa")
                 {
                     listing.Title =
                         titles[i % titles.Length] +
-                        " house " +
+                        " villa " +
                         adjs[i % adjs.Length] + " " +
                         location.Area;
 
-                    listing.Kind =
+                    listing.Method =
                         i % 2 == 0
-                            ? ListingKind.Sales
-                            : ListingKind.Rent;
+                            ? ListingMethod.Sales
+                            : ListingMethod.Rent;
 
                     listing.Images = new List<ListingImage>
-                {
-                    new ListingImage
                     {
-                        ImageUrl =
-                            $"assets/pictures/houses/{1 + (i % 10)}.jpg"
+                        new ListingImage
+                        {
+                            ImageUrl =
+                                $"assets/images/houses/{1 + (i % 10)}.jpg"
+                        }
+                    };
+
+                    for (int j = random.Next(0, house_attributes.Count); j < house_attributes.Count; j++)
+                    {
+                        var attribute = house_attributes[j];
+                        if (attribute.Key == "area") SetAttribute(listing, attribute, 5000f + random.NextDouble() * 10_000);
+                        else if (attribute.Key == "furnished" || attribute.Key == "parking")
+                            SetAttribute(listing, attribute, true);
+                        else if (attribute.Key == "bedrooms" || attribute.Key == "rooms") SetAttribute(listing, attribute, random.Next(3, 9));
+                        else if (attribute.Key == "bathrooms") SetAttribute(listing, attribute, random.Next(1, 4));
+                        else if (attribute.Key == "compound_size") SetAttribute(listing, attribute, 15.0f + random.NextDouble() * 100);
                     }
-                };
                 }
 
 
@@ -372,7 +636,7 @@ namespace YegnaBet.Infrastructure.Persistence
                 // APARTMENT
                 // ----------------------------------------------------
 
-                else if (categoryKey == "apartment")
+                else if (category.Slug == "apartment")
                 {
                     listing.Title =
                         titles[i % titles.Length] +
@@ -380,21 +644,135 @@ namespace YegnaBet.Infrastructure.Persistence
                         adjs[i % adjs.Length] + " " +
                         location.Area;
 
-                    listing.Kind =
+                    listing.Method =
                         i % 2 == 0
-                            ? ListingKind.Sales
-                            : ListingKind.Rent;
+                            ? ListingMethod.Sales
+                            : ListingMethod.Rent;
 
                     listing.Images = new List<ListingImage>
-                {
-                    new ListingImage
                     {
-                        ImageUrl =
-                            $"assets/pictures/apartments/{1 + (i % 10)}.jpg"
+                        new ListingImage
+                        {
+                            ImageUrl =
+                                $"assets/images/apartments/{1 + (i % 10)}.jpg"
+                        }
+                    };
+
+                    for (int j = random.Next(0, house_attributes.Count); j < house_attributes.Count; j++)
+                    {
+                        var attribute = house_attributes[j];
+                        if (attribute.Key == "area") SetAttribute(listing, attribute, 5000f + random.NextDouble() * 10_000);
+                        else if (attribute.Key == "furnished")
+                            SetAttribute(listing, attribute, true);
+                        else if (attribute.Key == "bedrooms" || attribute.Key == "rooms") SetAttribute(listing, attribute, random.Next(3, 9));
+                        else if (attribute.Key == "bathrooms") SetAttribute(listing, attribute, random.Next(1, 4));
                     }
-                };
                 }
 
+
+                // ----------------------------------------------------
+                // Shop
+                // ----------------------------------------------------
+
+                else if (category.Slug == "shop")
+                {
+                    listing.Title =
+                        titles[i % titles.Length] +
+                        " shop " +
+                        adjs[i % adjs.Length] + " " +
+                        location.Area;
+
+                    listing.Method =
+                        i % 2 == 0
+                            ? ListingMethod.Sales
+                            : ListingMethod.Rent;
+
+                    listing.Images = new List<ListingImage>
+                    {
+                        new ListingImage
+                        {
+                            ImageUrl =
+                                $"assets/images/shops/{1 + (i % 10)}.jpg"
+                        }
+                    };
+
+                    for (int j = random.Next(0, house_attributes.Count); j < house_attributes.Count; j++)
+                    {
+                        var attribute = house_attributes[j];
+                        if (attribute.Key == "area") SetAttribute(listing, attribute, 5000f + random.NextDouble() * 10_000);
+                        else if (attribute.Key == "furnished")
+                            SetAttribute(listing, attribute, true);
+                        else if (attribute.Key == "rooms") SetAttribute(listing, attribute, random.Next(1, 3));
+                    }
+                }
+
+
+                // ----------------------------------------------------
+                // OFFICE
+                // ----------------------------------------------------
+
+                else if (category.Slug == "office")
+                {
+                    listing.Title =
+                        titles[i % titles.Length] +
+                        " office " +
+                        adjs[i % adjs.Length] + " " +
+                        location.Area;
+
+                    listing.Method =
+                        i % 2 == 0
+                            ? ListingMethod.Sales
+                            : ListingMethod.Rent;
+
+                    listing.Images = new List<ListingImage>
+                    {
+                        new ListingImage
+                        {
+                            ImageUrl =
+                                $"assets/images/apartments/{1 + (i % 10)}.jpg"
+                        }
+                    };
+
+                    for (int j = random.Next(0, house_attributes.Count); j < house_attributes.Count; j++)
+                    {
+                        var attribute = house_attributes[j];
+                        if (attribute.Key == "area") SetAttribute(listing, attribute, 5000f + random.NextDouble() * 10_000);
+                        else if (attribute.Key == "parking")
+                            SetAttribute(listing, attribute, true);
+                        else if (attribute.Key == "rooms") SetAttribute(listing, attribute, random.Next(3, 20));
+                        else if (attribute.Key == "compound_size") SetAttribute(listing, attribute, 15.0f + random.NextDouble() * 100);
+                    }
+                }
+
+
+                // accountant
+                else if (category.Slug == "accountant")
+                {
+                    listing.Title =
+                        category.Name.TrimEnd('s') +
+                        " " +
+                        adjs[i % adjs.Length] + " " +
+                        location.Area;
+
+                    listing.Method = ListingMethod.Service;
+
+                    listing.Images = new List<ListingImage>
+                    {
+                        new ListingImage
+                        {
+                            ImageUrl =
+                                $"assets/images/avatars/{1 + (i % 10)}.jpg"
+                        }
+                    };
+
+                    for (int j = random.Next(0, service_attributes.Count); j < service_attributes.Count; j++)
+                    {
+                        var attribute = service_attributes[j];
+                        if (attribute.Key == "experience") SetAttribute(listing, attribute, random.Next(1, 10));
+                        else if (attribute.Key == "certified" || attribute.Key == "licensed")
+                            SetAttribute(listing, attribute, true);
+                    }
+                }
 
                 // ----------------------------------------------------
                 // SERVICES / CONTRACT WORK
@@ -408,19 +786,29 @@ namespace YegnaBet.Infrastructure.Persistence
                         adjs[i % adjs.Length] + " " +
                         location.Area;
 
-                    listing.Kind =
+                    listing.Method =
                         i % 2 == 0
-                            ? ListingKind.Contract
-                            : ListingKind.Service;
+                            ? ListingMethod.Contract
+                            : ListingMethod.Service;
 
                     listing.Images = new List<ListingImage>
-                {
-                    new ListingImage
                     {
-                        ImageUrl =
-                            $"assets/pictures/avatars/{1 + (i % 10)}.jpg"
+                        new ListingImage
+                        {
+                            ImageUrl =
+                                $"assets/images/avatars/{1 + (i % 10)}.jpg"
+                        }
+                    };
+
+                    for (int j = 0; j < service_attributes.Count; j++)
+                    {
+                        var attribute = service_attributes[j];
+                        if (attribute.Key == "experience")
+                        {
+                            SetAttribute(listing, attribute, random.Next(1, 10));
+                            break;
+                        }
                     }
-                };
                 }
 
                 db.Listings.Add(listing);
@@ -437,10 +825,10 @@ namespace YegnaBet.Infrastructure.Persistence
         {
             return category switch
             {
-                "land" =>
+                "farm" =>
                     random.Next(500_000, 20_000_000),
 
-                "house" =>
+                "villa" =>
                     random.Next(15_000, 80_000),
 
                 "apartment" =>
@@ -449,14 +837,17 @@ namespace YegnaBet.Infrastructure.Persistence
                 "cleaner" =>
                     random.Next(1_000, 5_000),
 
-                "electrician" =>
-                    random.Next(500, 10_000),
+                "office" =>
+                    random.Next(40_000, 300_000),
+
+                "shop" =>
+                    random.Next(100_000, 1000_000),
 
                 "accountant" =>
                     random.Next(2_000, 30_000),
 
-                "carpenter" =>
-                    random.Next(1_000, 15_000),
+                "lawyer" =>
+                    random.Next(30_000, 55_000),
 
                 "painter" =>
                     random.Next(1_000, 20_000),
@@ -477,15 +868,15 @@ namespace YegnaBet.Infrastructure.Persistence
         {
             return category switch
             {
-                "house" => "month",
+                "villa" => "month",
                 "apartment" => "month",
-
-                "land" => "total",
+                "shop" => "month",
+                "farm" => "month",
 
                 "cleaner" => "service",
                 "electrician" => "service",
                 "accountant" => "service",
-                "carpenter" => "service",
+                "office" => "month",
                 "painter" => "service",
                 "mechanic" => "service",
 
