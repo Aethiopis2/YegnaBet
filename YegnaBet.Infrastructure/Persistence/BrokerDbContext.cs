@@ -37,10 +37,8 @@ namespace YegnaBet.Infrastructure.Persistence
                 .HasOne(x => x.Provider)
                 .WithMany()
                 .HasForeignKey(x => x.ProviderId)
-                .OnDelete(DeleteBehavior.Restrict); 
-            
+                .OnDelete(DeleteBehavior.Restrict);
 
-            
             modelBuilder.Entity<Listing>()
                 .Property(x => x.TrustScore)
                 .HasPrecision(5, 2); 

@@ -5,4 +5,4 @@ export const API = axios.create({
 });
 
 
-export const ASSET_URL:string = `http://localhost:5150`;
+export const ASSET_URL:string = `http://localhost:5150/`;

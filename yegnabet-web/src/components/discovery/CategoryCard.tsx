@@ -2,6 +2,7 @@ import { useNavigate } from "react-router-dom";
 
 import { cn } from "../../lib/cn";
 import type { Category } from "../../types/category";
+import { ASSET_URL } from "../../types/api";
 
 interface CategoryCardProps {
   category: Category;
@@ -33,7 +34,7 @@ export function CategoryCard({
         "
       >
         <img
-          src={category.image}
+          src={ASSET_URL + category.image}
           alt={category.name}
           className="
             size-full object-cover

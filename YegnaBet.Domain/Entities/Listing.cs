@@ -14,6 +14,9 @@ namespace YegnaBet.Domain.Entities
         public ListingMethod Method { get; set; }
         public ListingStatus ListingStatus { get; set; } = ListingStatus.Draft;
         public decimal TrustScore { get; set; } = 50m;
+        public bool IsVerified { get; set; }
+        public bool IsFeatured { get; set; }
+        public DateTime FeaturedUntil { get; set; } = DateTime.UtcNow;
         public int ViewsCount { get; set; }
         public int InquiresCount { get; set; }
         public int SuccessfulDeals {  get; set; }

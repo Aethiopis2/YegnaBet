@@ -11,7 +11,7 @@
         public int SortOrder { get; set; }
         public bool IsActive { get; set; } = true;
         public Taxonomy Taxonomy { get; set; } = null!;
-        public ListingImage Image { get; set; } = new ListingImage();
+        public string? Image { get; set; }
         public TaxonomyNode? Parent { get; set; }
         public ICollection<TaxonomyNode> Children { get; set; } = [];
         public ICollection<NodeAttributeDefinition> Attributes { get; set; } = [];

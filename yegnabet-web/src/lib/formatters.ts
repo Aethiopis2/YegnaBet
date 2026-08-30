@@ -5,5 +5,5 @@ export function formatPrice(value: number, currency = "ETB") : string {
 export function formatArea(value?: number) : string {
     if (!value) return "";
 
-    return `{new Intl.NumberFormat("en-US").format(value)} m²`;
+    return `${new Intl.NumberFormat("en-US").format(value)} m²`;
 }

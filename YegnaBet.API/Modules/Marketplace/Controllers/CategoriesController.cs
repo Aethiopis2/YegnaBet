@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc;
 using YegnaBet.Infrastructure.Persistence;
+using YegnaBet.API.Modules.Marketplace.Dtos;
 
 namespace YegnaBet.API.Modules.Marketplace.Controllers
 {
@@ -18,13 +19,19 @@ namespace YegnaBet.API.Modules.Marketplace.Controllers
         [HttpGet] 
         public async Task<IActionResult> Get()
         {
-            var data = await _db.Categories
-                .OrderBy(x => x.SortOrder)
-                .Select(x => new {
-                    id = x.Id, 
-                    name = x.Name, 
-                    image = x.Icon,
-                    Count = _db.Listings.Count(l => l.CategoryId == x.Id)
+            var data = await _db.TaxonomyNode
+                .Include(x => x.Parent)
+                .Where(x => x.ParentId != null &&
+                            x.Parent!.ParentId != null)
+                .OrderBy(x => x.Parent!.Id)
+                .ThenBy(x => x.Name)
+                .Select(x => new HomeCategoryDto {
+                    Id = x.Slug,
+                    Name = x.Name,
+                    Description = x.Description,
+                    Image = x.Image,
+                    Type = x.Name,
+                    Route = $"/categories/{x.Name}"
                 }).ToListAsync();
             
             return Ok(data);

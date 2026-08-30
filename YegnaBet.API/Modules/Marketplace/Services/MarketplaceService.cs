@@ -21,8 +21,8 @@ namespace YegnaBet.API.Modules.Marketplace.Services
                 .AsNoTracking()
                 .Where(x => x.ListingStatus == ListingStatus.Active); 
             
-            if (categoryId.HasValue)
-                query = query.Where(x => x.CategoryId == categoryId);
+            //if (categoryId.HasValue)
+            //    query = query.Where(x => x.CategoryId == categoryId);
             
             return await query.OrderByDescending(x => x.TrustScore)
                 .Select(x => new ListingCardDto {
@@ -81,9 +81,9 @@ namespace YegnaBet.API.Modules.Marketplace.Services
                 {
                     Id = x.Id,
                     Title = x.Title,
-                    Type = x.Kind == ListingKind.Sales ? "Sales" :
-                        x.Kind == ListingKind.Rent ? "Rent" :
-                        x.Kind == ListingKind.Contract ? "Contract" : "Service",
+                    Type = x.Method == ListingMethod.Sales ? "Sales" :
+                        x.Method == ListingMethod.Rent ? "Rent" :
+                        x.Method == ListingMethod.Contract ? "Contract" : "Service",
                     Price = x.Price,
                     PriceUnit = x.PriceUnit,
                     Status = x.ListingStatus == ListingStatus.Draft ? "Draft" :

@@ -1,9 +1,17 @@
-import { categories } from "../../data/categories";
+import { useEffect, useState } from "react";
 
 import { SectionHeader } from "../ui/SectionHeader";
 import { CategoryCard } from "./CategoryCard";
+import { API } from "../../types/api";
+import type { Category } from "../../types/category";
 
 export function CategorySection() {
+  const [categories, setCategories] = useState<Category[]>([]);
+
+  useEffect(() => {
+        API.get(`/categories/`).then(r => setCategories(r.data));
+    }, []);
+
   return (
     <section className="mt-8">
       <SectionHeader
@@ -33,7 +41,7 @@ export function CategorySection() {
             id: "more",
             name: "More",
             description: "All categories",
-            image: "/images/categories/more.jpg",
+            image: "assets/images/categories/more.jpg",
             type: "service",
             route: "/categories",
           }}

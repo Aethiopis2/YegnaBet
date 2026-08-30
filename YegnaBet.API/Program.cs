@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Npgsql;
 using YegnaBet.API.Modules.Brokers.Services;
 using YegnaBet.API.Modules.Finance.Services;
 using YegnaBet.API.Modules.Marketplace.Services;
@@ -32,7 +33,7 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-//app.UseHttpsRedirection();
+app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseCors("web");
 

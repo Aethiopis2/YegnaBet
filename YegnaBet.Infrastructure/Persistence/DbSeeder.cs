@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using System.Globalization;
+using System.Text.Json;
 using System.Text.Json.Nodes;
 using YegnaBet.Domain.Entities;
 using YegnaBet.Domain.Enums;
@@ -129,7 +130,7 @@ namespace YegnaBet.Infrastructure.Persistence
                 new ListingAttributeValue
                 {
                     AttributeDefinition = attribute,
-                    Value = JsonValue.Create(value)
+                    Value = JsonSerializer.Serialize(value)
                 });
         }
 
@@ -141,14 +142,16 @@ namespace YegnaBet.Infrastructure.Persistence
                 .Replace(" ", "-");
         }
 
-        private static TaxonomyNode Node(string name)
+        private static TaxonomyNode Node(string name, long id)
         {
             return new TaxonomyNode
             {
                 Name = name,
                 Slug = CreateSlug(name),
                 Description = $"{name} listings",
+                TaxonomyId = id,
                 IsActive = true,
+                Image = $"/assets/images/categories/{name}.jpg",
                 SortOrder = 0
             };
         }
@@ -200,26 +203,28 @@ namespace YegnaBet.Infrastructure.Persistence
 
 
             db.Taxonomy.Add(taxonomy);
+            await db.SaveChangesAsync();
+
+            taxonomy = db.Taxonomy.First();
 
             // now hit listing categories
-            var listing = Node("Listing");
+            var listing = Node("Listing", taxonomy.Id);
+            var property = Node("Property", taxonomy.Id);
+            var house = Node("House", taxonomy.Id);
+            var apartment = Node("Apartment", taxonomy.Id);
+            var villa = Node("Villa", taxonomy.Id);
+            var office = Node("Office", taxonomy.Id);
+            var shop = Node("Shop", taxonomy.Id);
+            var land = Node("Land", taxonomy.Id);
+            var farm = Node("Farm", taxonomy.Id);
 
-            var property = Node("Property");
-            var house = Node("House");
-            var apartment = Node("Apartment");
-            var villa = Node("Villa");
-            var office = Node("Office");
-            var shop = Node("Shop");
-            var land = Node("Land");
-            var farm = Node("Farm");
-
-            var service = Node("Service");
-            var certified = Node("Certified");
-            var accountant = Node("Accountant");
-            var lawyer = Node("Lawyer");
-            var other = Node("Other");
-            var cleaner = Node("Cleaner");
-            var painter = Node("Painter");
+            var service = Node("Service", taxonomy.Id);
+            var certified = Node("Certified", taxonomy.Id);
+            var accountant = Node("Accountant", taxonomy.Id);
+            var lawyer = Node("Lawyer", taxonomy.Id);
+            var other = Node("Other", taxonomy.Id);
+            var cleaner = Node("Cleaner", taxonomy.Id);
+            var painter = Node("Painter", taxonomy.Id);
 
             // add nodes 
             nodes.AddRange([
@@ -552,7 +557,9 @@ namespace YegnaBet.Infrastructure.Persistence
                     Price = GeneratePrice(category.Slug, random),
                     PriceUnit = GetPriceUnit(category.Slug),
 
-                    TrustScore = 70 + random.Next(31)
+                    TrustScore = 70 + random.Next(31),
+                    IsVerified = i % 10 == 0 ? false : true,
+                    IsFeatured = i % 50 == 0 ? false : true
                 };
 
 
@@ -578,7 +585,7 @@ namespace YegnaBet.Infrastructure.Persistence
                         new ListingImage
                         {
                             ImageUrl =
-                                $"assets/images/lands/{1 + (i % 10)}.jpg"
+                                $"/assets/images/lands/{1 + (i % 10)}.jpg"
                         }
                     };
 
@@ -615,7 +622,7 @@ namespace YegnaBet.Infrastructure.Persistence
                         new ListingImage
                         {
                             ImageUrl =
-                                $"assets/images/houses/{1 + (i % 10)}.jpg"
+                                $"/assets/images/houses/{1 + (i % 10)}.jpg"
                         }
                     };
 
@@ -654,7 +661,7 @@ namespace YegnaBet.Infrastructure.Persistence
                         new ListingImage
                         {
                             ImageUrl =
-                                $"assets/images/apartments/{1 + (i % 10)}.jpg"
+                                $"/assets/images/apartments/{1 + (i % 10)}.jpg"
                         }
                     };
 
@@ -692,7 +699,7 @@ namespace YegnaBet.Infrastructure.Persistence
                         new ListingImage
                         {
                             ImageUrl =
-                                $"assets/images/shops/{1 + (i % 10)}.jpg"
+                                $"/assets/images/shops/{1 + (i % 10)}.jpg"
                         }
                     };
 
@@ -729,7 +736,7 @@ namespace YegnaBet.Infrastructure.Persistence
                         new ListingImage
                         {
                             ImageUrl =
-                                $"assets/images/apartments/{1 + (i % 10)}.jpg"
+                                $"/assets/images/apartments/{1 + (i % 10)}.jpg"
                         }
                     };
 
@@ -761,7 +768,7 @@ namespace YegnaBet.Infrastructure.Persistence
                         new ListingImage
                         {
                             ImageUrl =
-                                $"assets/images/avatars/{1 + (i % 10)}.jpg"
+                                $"/assets/images/avatars/{1 + (i % 10)}.jpg"
                         }
                     };
 
@@ -796,7 +803,7 @@ namespace YegnaBet.Infrastructure.Persistence
                         new ListingImage
                         {
                             ImageUrl =
-                                $"assets/images/avatars/{1 + (i % 10)}.jpg"
+                                $"/assets/images/avatars/{1 + (i % 10)}.jpg"
                         }
                     };
 

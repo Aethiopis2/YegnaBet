@@ -6,7 +6,7 @@ namespace YegnaBet.Domain.Entities
     {
         public long ListingId { get; set; }
         public long AttributeDefinitionId { get; set; }
-        public JsonValue Value { get; set; } = null!;
+        public string Value { get; set; } = null!;
         public Listing Listing { get; set; } = null!;
         public AttributeDefinition AttributeDefinition { get; set; } = null!;
     }
