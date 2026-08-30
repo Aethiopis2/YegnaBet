@@ -93,5 +93,37 @@ namespace YegnaBet.API.Modules.Marketplace.Services
                 })
                 .ToListAsync();
         } // end GetProviderLisitings
+
+        public async Task<object> GetFeaturedListings()
+        {
+            return await _db.Listings
+                .Where(x => x.IsFeatured == true)
+                .Select(x => new 
+                {
+                    Id = x.Id,
+                    Title = x.Title,
+                    Description = x.Description,
+                    Price = x.Price,
+                    Currency = "ETB",
+                    Status = x.Method == ListingMethod.Sales ? "Sales" : "Rent",
+                    location = new
+                    {
+                        City = x.Location.City,
+                        Area = x.Location.Area,
+                    },
+                    Images = x.Images.Select(y => y.ImageUrl).ToArray(),
+                    Featured = x.IsFeatured,
+                    Verified = x.IsVerified,
+                    Trending = true,
+                    Saved = false,
+                    Metadata = x.AttributeValues.Select(i => new
+                    {
+                        Name = i.AttributeDefinition.Name,
+                        value = i.Value
+                        
+                    })
+                })
+                .ToListAsync();
+        }
     }
 }

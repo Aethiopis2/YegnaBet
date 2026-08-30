@@ -43,5 +43,11 @@ namespace YegnaBet.API.Modules.Marketplace.Controllers
             
             return Ok(listing);
         }
+
+        [HttpGet("featured-listings")]
+        public async Task<IActionResult> GetFeaturedListings()
+        {
+            return Ok(await _service.GetFeaturedListings());
+        }
     }
 }

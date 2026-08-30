@@ -1,9 +1,16 @@
-import { listings } from "../../data/listings";
-
+import { useEffect, useState } from "react";
 import { SectionHeader } from "../ui/SectionHeader";
 import { FeaturedCard } from "./FeaturedCard";
+import type { Listing } from "../../types/listings";
+import { API } from "../../types/api";
 
 export function FeaturedSection() {
+  const [listings, setListings] = useState<Listing[]>([]);
+
+  useEffect(() => {
+    API.get(`/listings/featured-listings`).then(r => setListings(r.data));
+  });
+
   const featured = listings.filter(
     (listing) => listing.featured
   );

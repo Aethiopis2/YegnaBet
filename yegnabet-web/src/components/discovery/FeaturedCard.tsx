@@ -8,9 +8,10 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 
-import type { Listing } from "../../types/listings";
+import type { Listing, ListingMetadata } from "../../types/listings";
 import { formatArea, formatPrice } from "../../lib/formatters";
 import { cn } from "../../lib/cn";
+import { ASSET_URL } from "../../types/api";
 
 interface FeaturedCardProps {
   listing: Listing;
@@ -41,7 +42,7 @@ export function FeaturedCard({
     >
       <div className="relative aspect-[1.35/1] overflow-hidden">
         <img
-          src={listing.images[0]}
+          src={ASSET_URL + listing.images[0]}
           alt={listing.title}
           className="
             size-full object-cover
@@ -136,7 +137,7 @@ export function FeaturedCard({
         </div>
 
         <div className="mt-3 flex items-center gap-3 text-[10px] text-gray-500 dark:text-gray-400">
-          {listing.metadata.bedrooms !==
+          {/* {listing.metadata.bedrooms !==
             undefined && (
             <Feature
               icon={BedDouble}
@@ -168,7 +169,15 @@ export function FeaturedCard({
               icon={ParkingSquare}
               value={`${listing.metadata.parking}`}
             />
-          )}
+          )} */}
+          
+          {listing.metadata.slice(0, 3).map(v => (
+            <Feature key={v.name}
+              icon={Bath}
+              value={v.value}
+            />
+          ))
+          }
         </div>
       </div>
     </article>

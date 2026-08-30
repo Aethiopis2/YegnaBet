@@ -18,15 +18,8 @@ export interface ListingProvider {
 }
 
 export interface ListingMetadata {
-    bedrooms?: number;
-    bathrooms?: number;
-    area?: number;
-    parking?: number;
-    rating?: number;
-    experiance?: number;
-    floors?: number;
-    parkingSpaces?: number;
-    yearBuilt?: number;
+    name: string;
+    value: string;
 }
 
 export interface ListingBroker {
@@ -52,7 +45,7 @@ export interface Listing {
     verified?: boolean;
     trending?: boolean;
     saved?: boolean;
-    metadata: ListingMetadata;
+    metadata: ListingMetadata[];
     provider: ListingProvider;
     features?: string[];
     createdAt?: string;
