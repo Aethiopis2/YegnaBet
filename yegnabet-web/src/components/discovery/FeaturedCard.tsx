@@ -171,7 +171,7 @@ export function FeaturedCard({
             />
           )} */}
           
-          {listing.metadata.slice(0, 3).map(v => (
+          {listing.metadata.map(v => (
             <Feature key={v.name}
               icon={Bath}
               value={v.value}

@@ -1,23 +1,28 @@
 import {
-  Bath,
-  BedDouble,
   Heart,
   MapPin,
-  Maximize,
 } from "lucide-react";
+
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 
 import type { Listing } from "../../types/listings";
+
 import {
-  formatArea,
   formatPrice,
 } from "../../lib/formatters";
+
 import { cn } from "../../lib/cn";
+
+import { ASSET_URL } from "../../types/api";
+
+import { resolveIcon } from "../../lib/IconResolver";
+
 
 interface ListingGridCardProps {
   listing: Listing;
 }
+
 
 export function ListingGridCard({
   listing,
@@ -28,9 +33,11 @@ export function ListingGridCard({
     listing.saved ?? false
   );
 
+
   const openListing = () => {
     navigate(`/listing/${listing.id}`);
   };
+
 
   return (
     <article
@@ -51,7 +58,9 @@ export function ListingGridCard({
         dark:shadow-none
       "
     >
+
       {/* Image */}
+
       <div
         role="button"
         tabIndex={0}
@@ -77,18 +86,27 @@ export function ListingGridCard({
         "
         aria-label={`View ${listing.title}`}
       >
-        <img
-          src={listing.images[0]}
-          alt={listing.title}
-          className="
-            size-full
-            object-cover
-            transition-transform
-            duration-500
-            group-hover:scale-105
-          "
-          loading="lazy"
-        />
+
+        {listing.images?.length > 0 && (
+          <img
+            src={
+              ASSET_URL +
+              listing.images[0]
+            }
+            alt={listing.title}
+            className="
+              size-full
+              object-cover
+              transition-transform
+              duration-500
+              group-hover:scale-105
+            "
+            loading="lazy"
+          />
+        )}
+
+
+        {/* Featured */}
 
         {listing.featured && (
           <span
@@ -111,7 +129,9 @@ export function ListingGridCard({
           </span>
         )}
 
-        {/* Save button */}
+
+        {/* Save */}
+
         <button
           type="button"
           aria-label={
@@ -122,7 +142,10 @@ export function ListingGridCard({
           aria-pressed={saved}
           onClick={(event) => {
             event.stopPropagation();
-            setSaved((value) => !value);
+
+            setSaved(
+              (value) => !value
+            );
           }}
           className="
             absolute
@@ -150,10 +173,14 @@ export function ListingGridCard({
             )}
           />
         </button>
+
       </div>
 
+
       {/* Content */}
+
       <div className="p-3.5">
+
         <button
           type="button"
           onClick={openListing}
@@ -164,6 +191,9 @@ export function ListingGridCard({
             focus:outline-none
           "
         >
+
+          {/* Title */}
+
           <h3
             className="
               truncate
@@ -175,6 +205,9 @@ export function ListingGridCard({
           >
             {listing.title}
           </h3>
+
+
+          {/* Location */}
 
           <div
             className="
@@ -194,6 +227,9 @@ export function ListingGridCard({
             </span>
           </div>
 
+
+          {/* Price */}
+
           <p
             className="
               mt-2
@@ -209,45 +245,59 @@ export function ListingGridCard({
             )}
           </p>
 
-          <div
-            className="
-              mt-3
-              flex
-              items-center
-              gap-3
-              text-[10px]
-              text-gray-500
-              dark:text-gray-400
-            "
-          >
-            {listing.metadata.bedrooms !==
-              undefined && (
-              <span className="inline-flex items-center gap-1">
-                <BedDouble className="size-3.5" />
-                {listing.metadata.bedrooms}
-              </span>
-            )}
 
-            {listing.metadata.bathrooms !==
-              undefined && (
-              <span className="inline-flex items-center gap-1">
-                <Bath className="size-3.5" />
-                {listing.metadata.bathrooms}
-              </span>
-            )}
+          {/* Dynamic Metadata */}
 
-            {listing.metadata.area !==
-              undefined && (
-              <span className="inline-flex items-center gap-1">
-                <Maximize className="size-3.5" />
-                {formatArea(
-                  listing.metadata.area
-                )}
-              </span>
-            )}
-          </div>
+          {listing.metadata?.length > 0 && (
+            <div
+              className="
+                mt-3
+                flex
+                items-center
+                gap-3
+                overflow-hidden
+                text-[10px]
+                text-gray-500
+                dark:text-gray-400
+              "
+            >
+
+              {listing.metadata.map(
+                (metadata) => {
+                  const Icon =
+                    resolveIcon(
+                      metadata.name
+                    );
+
+                  return (
+                    <span
+                      key={
+                        metadata.name
+                      }
+                      className="
+                        inline-flex
+                        shrink-0
+                        items-center
+                        gap-1
+                      "
+                    >
+                      <Icon className="size-3.5" />
+
+                      <span>
+                        {metadata.value}
+                      </span>
+                    </span>
+                  );
+                }
+              )}
+
+            </div>
+          )}
+
         </button>
+
       </div>
+
     </article>
   );
 }

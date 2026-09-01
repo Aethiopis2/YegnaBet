@@ -4,17 +4,22 @@ import {
   useState,
 } from "react";
 
-import { listings as mockListings } from "../../data/listings";
-
 import type {
   ListingFilters,
   ListingMode,
   ListingSort,
 } from "../../types/explorer";
 
-import type { Listing } from "../../types/listings";
+import type {
+  Listing,
+  ListingPage,
+} from "../../types/listings";
+
+import { API } from "../../types/api";
+
 
 const PAGE_SIZE = 5;
+
 
 interface Options {
   mode: ListingMode;
@@ -22,16 +27,18 @@ interface Options {
   sort: ListingSort;
 }
 
+
 export function useInfiniteListings({
   mode,
   filters,
   sort,
 }: Options) {
-  const [items, setItems] = useState<Listing[]>(
-    []
-  );
 
-  const [page, setPage] = useState(0);
+  const [items, setItems] =
+    useState<Listing[]>([]);
+
+  const [page, setPage] =
+    useState(0);
 
   const [loading, setLoading] =
     useState(false);
@@ -39,197 +46,262 @@ export function useInfiniteListings({
   const [hasMore, setHasMore] =
     useState(true);
 
+
+  const buildQuery = (
+    pageNumber: number
+  ) => {
+
+    const params =
+      new URLSearchParams();
+
+    params.set(
+      "page",
+      pageNumber.toString()
+    );
+
+    params.set(
+      "pageSize",
+      PAGE_SIZE.toString()
+    );
+
+
+    /*
+     * Sale / Rent
+     */
+
+    if (mode !== "all") {
+      params.set(
+        "method",
+        mode === "sale"
+          ? "Sales"
+          : "Rent"
+      );
+    }
+
+
+    /*
+     * Location
+     */
+
+    if (filters.location) {
+      params.set(
+        "location",
+        filters.location
+      );
+    }
+
+
+    /*
+     * Category
+     */
+
+    if (filters.category) {
+      params.set(
+        "category",
+        filters.category
+      );
+    }
+
+
+    /*
+     * Verified
+     */
+
+    if (filters.verified) {
+      params.set(
+        "verified",
+        "true"
+      );
+    }
+
+
+    /*
+     * Featured
+     */
+
+    if (filters.featured) {
+      params.set(
+        "featured",
+        "true"
+      );
+    }
+
+
+    /*
+     * Trending
+     */
+
+    if (filters.trending) {
+      params.set(
+        "trending",
+        "true"
+      );
+    }
+
+
+    /*
+     * Saved
+     */
+
+    if (filters.saved) {
+      params.set(
+        "saved",
+        "true"
+      );
+    }
+
+
+    /*
+     * Bedrooms
+     *
+     * Keep compatibility with
+     * the current UI for now.
+     */
+
+    if (
+      filters.bedrooms !== undefined
+    ) {
+      params.set(
+        "attributes[bedrooms]",
+        filters.bedrooms.toString()
+      );
+    }
+
+
+    /*
+     * Price
+     */
+
+    if (
+      filters.minPrice !== undefined
+    ) {
+      params.set(
+        "minPrice",
+        filters.minPrice.toString()
+      );
+    }
+
+    if (
+      filters.maxPrice !== undefined
+    ) {
+      params.set(
+        "maxPrice",
+        filters.maxPrice.toString()
+      );
+    }
+
+
+    /*
+     * Sorting
+     */
+
+    if (sort) {
+      params.set(
+        "sort",
+        sort
+      );
+    }
+
+    return params.toString();
+  };
+
+
   const loadPage = useCallback(
     async (
       pageNumber: number,
       reset = false
     ) => {
+
       if (loading && !reset) {
         return;
       }
 
       setLoading(true);
 
-      // Simulate API latency.
-      await new Promise((resolve) =>
-        window.setTimeout(resolve, 500)
-      );
+      try {
 
-      let result = [...mockListings];
+        const query =
+          buildQuery(pageNumber);
 
-      /*
-       * Mode
-       */
-      if (mode !== "all") {
-        result = result.filter(
-          (listing) =>
-            listing.status === mode
-        );
-      }
-
-      /*
-       * Location
-       */
-      if (filters.location) {
-        result = result.filter(
-          (listing) =>
-            listing.location.area
-              .toLowerCase()
-              .includes(
-                filters.location!.toLowerCase()
-              )
-        );
-      }
-
-      /*
-       * Category
-       */
-      if (filters.category) {
-        result = result.filter(
-          (listing) =>
-            listing.type ===
-            filters.category
-        );
-      }
-
-      /*
-       * Verified
-       */
-      if (filters.verified) {
-        result = result.filter(
-          (listing) => listing.verified
-        );
-      }
-
-      /*
-       * Featured
-       */
-      if (filters.featured) {
-        result = result.filter(
-          (listing) => listing.featured
-        );
-      }
-
-      /*
-       * Trending
-       */
-      if (filters.trending) {
-        result = result.filter(
-          (listing) => listing.trending
-        );
-      }
-
-      /*
-       * Saved
-       */
-      if (filters.saved) {
-        result = result.filter(
-          (listing) => listing.saved
-        );
-      }
-
-      /*
-       * Bedrooms
-       */
-      if (filters.bedrooms) {
-        result = result.filter(
-          (listing) =>
-            (listing.metadata.bedrooms ??
-              0) >= filters.bedrooms!
-        );
-      }
-
-      /*
-       * Price
-       */
-      if (filters.minPrice !== undefined) {
-        result = result.filter(
-          (listing) =>
-            listing.price >=
-            filters.minPrice!
-        );
-      }
-
-      if (filters.maxPrice !== undefined) {
-        result = result.filter(
-          (listing) =>
-            listing.price <=
-            filters.maxPrice!
-        );
-      }
-
-      /*
-       * Sorting
-       */
-      switch (sort) {
-        case "price-low":
-          result.sort(
-            (a, b) => a.price - b.price
+        const response =
+          await API.get<ListingPage>(
+            `listings/get-listings?${query}`
           );
-          break;
 
-        case "price-high":
-          result.sort(
-            (a, b) => b.price - a.price
-          );
-          break;
+        const data =
+          response.data;
 
-        case "newest":
-          result.sort(
-            (a, b) => b.id - a.id
-          );
-          break;
 
-        default:
-          break;
+        setItems(current =>
+          reset
+            ? data.items
+            : [
+                ...current,
+                ...data.items,
+              ]
+        );
+
+
+        setPage(data.page);
+
+        setHasMore(
+          data.hasMore
+        );
+
+      } finally {
+
+        setLoading(false);
+
       }
-
-      const start =
-        pageNumber * PAGE_SIZE;
-
-      const pageItems = result.slice(
-        start,
-        start + PAGE_SIZE
-      );
-
-      setItems((current) =>
-        reset
-          ? pageItems
-          : [...current, ...pageItems]
-      );
-
-      setPage(pageNumber);
-
-      setHasMore(
-        start + PAGE_SIZE < result.length
-      );
-
-      setLoading(false);
     },
-    [filters, mode, sort, loading]
+    [
+      mode,
+      filters,
+      sort,
+      loading,
+    ]
   );
 
+
   /*
-   * Reset whenever the query changes.
+   * Reset whenever the
+   * query changes.
    */
+
   useEffect(() => {
+
     setItems([]);
+
     setPage(0);
+
     setHasMore(true);
 
     loadPage(0, true);
-  }, [mode, filters, sort]);
 
-  const loadMore = useCallback(() => {
-    if (!loading && hasMore) {
-      loadPage(page + 1);
-    }
   }, [
-    hasMore,
-    loadPage,
-    loading,
-    page,
+    mode,
+    filters,
+    sort,
   ]);
+
+
+  const loadMore =
+    useCallback(() => {
+
+      if (
+        !loading &&
+        hasMore
+      ) {
+        loadPage(page + 1);
+      }
+
+    }, [
+      hasMore,
+      loadPage,
+      loading,
+      page,
+    ]);
+
 
   return {
     items,

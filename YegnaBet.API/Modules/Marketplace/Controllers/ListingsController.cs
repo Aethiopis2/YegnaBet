@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using YegnaBet.API.Modules.Marketplace.Dtos;
 using YegnaBet.API.Modules.Marketplace.Services;
 
 namespace YegnaBet.API.Modules.Marketplace.Controllers
@@ -45,9 +46,19 @@ namespace YegnaBet.API.Modules.Marketplace.Controllers
         }
 
         [HttpGet("featured-listings")]
-        public async Task<IActionResult> GetFeaturedListings()
+        public async Task<IActionResult> GetFeaturedListings([FromQuery] int page = 0, [FromQuery] int pageSize = 1000)
         {
-            return Ok(await _service.GetFeaturedListings());
+            return Ok(await _service.GetFeaturedListings(page, pageSize));
+        }
+
+        [HttpGet("get-listings")]
+        public async Task<ActionResult<ListingPageDto>> GetListings(
+            [FromQuery] ListingQueryDto request)
+        {
+            var result =
+                await _service.GetListings(request);
+
+            return Ok(result);
         }
     }
 }

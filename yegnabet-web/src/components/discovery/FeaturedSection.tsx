@@ -8,7 +8,7 @@ export function FeaturedSection() {
   const [listings, setListings] = useState<Listing[]>([]);
 
   useEffect(() => {
-    API.get(`/listings/featured-listings`).then(r => setListings(r.data));
+    API.get(`/listings/featured-listings?page=0&pageSize=3`).then(r => setListings(r.data.items));
   });
 
   const featured = listings.filter(

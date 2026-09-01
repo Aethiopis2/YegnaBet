@@ -18,8 +18,16 @@ export interface ListingProvider {
 }
 
 export interface ListingMetadata {
-    name: string;
-    value: string;
+  name: string;
+  key: string;
+  value: string;
+}
+
+export interface ListingPage {
+  items: Listing[];
+  page: number;
+  pageSize: number;
+  hasMore: boolean;
 }
 
 export interface ListingBroker {
