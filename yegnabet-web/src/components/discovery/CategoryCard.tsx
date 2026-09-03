@@ -2,7 +2,6 @@ import { useNavigate } from "react-router-dom";
 
 import { cn } from "../../lib/cn";
 import type { Category } from "../../types/category";
-import { ASSET_URL } from "../../types/api";
 
 interface CategoryCardProps {
   category: Category;
@@ -20,7 +19,7 @@ export function CategoryCard({
       type="button"
       onClick={() => navigate(category.route)}
       className={cn(
-        "group w-[82px] shrink-0",
+        "group w-20.5 shrink-0",
         "text-center",
         className
       )}
@@ -34,7 +33,7 @@ export function CategoryCard({
         "
       >
         <img
-          src={ASSET_URL + category.image}
+          src={category.image}
           alt={category.name}
           className="
             size-full object-cover
@@ -47,7 +46,7 @@ export function CategoryCard({
         <div
           className="
             absolute inset-0
-            bg-gradient-to-t
+            bg-linear-to-t
             from-black/20
             via-transparent
             to-transparent

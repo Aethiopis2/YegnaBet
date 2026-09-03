@@ -1,8 +1,8 @@
 import {
-  BellPlus,
-  ClipboardList,
-  Home,
+  Flame,
+  Heart,
   Search,
+  Verified,
 } from "lucide-react";
 
 import { useNavigate } from "react-router-dom";
@@ -20,36 +20,36 @@ export function QuickActionMenu({
 
   const actions = [
     {
-      icon: Home,
-      title: "Request a property",
-      description:
-        "Tell us what you're looking for",
-      onClick: () =>
-        navigate("/requests/property"),
-    },
-    {
       icon: Search,
       title: "Find my match",
       description:
         "Find properties matching your needs",
       onClick: () =>
-        navigate("/match"),
+        navigate("/find-my-match"),
     },
     {
-      icon: BellPlus,
-      title: "Create an alert",
+      icon: Verified,
+      title: "Verified Listings",
       description:
-        "We'll notify you when something appears",
+        "Browse listings that have been verified by our team",
+      onClick: () =>
+        navigate("/explore?verified=true"),
+    },
+    {
+      icon: Heart,
+      title: "Saved",
+      description:
+        "Your favorite properties",
       onClick: () =>
         navigate("/requests/alert"),
     },
     {
-      icon: ClipboardList,
-      title: "My requests",
+      icon: Flame,
+      title: "Trending",
       description:
-        "See what you've asked Yegna Bet to find",
+        "See what's popular right now",
       onClick: () =>
-        navigate("/requests"),
+        navigate("/explore?trending=trending"),
     },
   ];
 

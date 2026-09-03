@@ -30,7 +30,7 @@ export interface ListingPage {
   hasMore: boolean;
 }
 
-export interface ListingBroker {
+export interface ListingEmployee {
   id: number;
   name: string;
   avatar?: string;
@@ -57,5 +57,8 @@ export interface Listing {
     provider: ListingProvider;
     features?: string[];
     createdAt?: string;
-    broker?: ListingBroker;
+    employee?: ListingEmployee;
+
+    assignmentId?: string;
+    assignmentExpiresAt?: string;
 }

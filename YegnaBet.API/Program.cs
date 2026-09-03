@@ -31,6 +31,18 @@ builder.Services.AddCors(options =>
         .AllowCredentials());
 });
 
+builder.Services.AddSingleton<
+    EmployeeAssignmentState>();
+
+builder.Services.AddSingleton<
+    EmployeeAssignmentService>();
+
+builder.Services.AddSingleton<
+    EmployeeAssignmentInitializer>();
+
+builder.Services.AddHostedService<
+    EmployeeAssignmentCleanupService>();
+
 var app = builder.Build();
 
 app.UseHttpsRedirection();
@@ -46,6 +58,16 @@ app.MapControllers();
 //    var db = scope.ServiceProvider.GetRequiredService<BrokerDbContext>();
 //    await DbSeeder.SeedAsync(db);
 //}
+
+using (var scope = app.Services.CreateScope())
+{
+    var initializer =
+        scope.ServiceProvider
+            .GetRequiredService<
+                EmployeeAssignmentInitializer>();
+
+    await initializer.InitializeAsync();
+}
 
 app.MapHub<BrokerHub>("/hubs/broker");
 app.Run();

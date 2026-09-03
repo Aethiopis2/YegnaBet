@@ -2,19 +2,50 @@ import { useEffect, useState } from "react";
 import { SectionHeader } from "../ui/SectionHeader";
 import { FeaturedCard } from "./FeaturedCard";
 import type { Listing } from "../../types/listings";
-import { API } from "../../types/api";
+import { API, ASSET_URL } from "../../types/api";
+import { AppShell } from "../layout/AppShell";
 
 export function FeaturedSection() {
   const [listings, setListings] = useState<Listing[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    API.get(`/listings/featured-listings?page=0&pageSize=3`).then(r => setListings(r.data.items));
-  });
+    setLoading(true);
+    API.get(`/listings/featured-listings?page=0&pageSize=5`)
+      .then((res) => {
+        // correct image url if since its always relative
+        if (res.data) {
+          res.data.items.forEach((listing: Listing) => {
+            if (listing.images) {
+              listing.images = listing.images.map((img: string) => ASSET_URL + img);
+            }
+          });
+          setListings(res.data.items);
+        }
+      })
+      .catch((error) => {
+        console.error("Failed to load listing", error);
+        setListings([]);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  }, []);
 
   const featured = listings.filter(
     (listing) => listing.featured
   );
 
+  if (loading) {
+    return (
+      <AppShell>
+        <div className="flex items-center justify-center py-10">
+          <div className="h-6 w-6 animate-spin rounded-full border-2 border-gray-300 border-t-orange-500" />
+        </div>
+      </AppShell>
+    );
+  }
+  
   return (
     <section className="mt-8">
       <SectionHeader
@@ -38,10 +69,10 @@ export function FeaturedSection() {
             listing={listing}
             className="
               w-[82vw]
-              max-w-[330px]
+              max-w-82.5
               shrink-0
               snap-start
-              sm:w-[300px]
+              sm:w-75
             "
           />
         ))}

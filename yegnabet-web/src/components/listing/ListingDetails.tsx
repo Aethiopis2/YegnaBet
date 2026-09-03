@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import type { Listing } from "../../types/listings";
 
@@ -12,6 +12,10 @@ import { ListingLocation } from "./ListingLocation";
 import { ListingBroker } from "./ListingBroker";
 import { ListingActionBar } from "./ListingActionBar";
 
+import { CustomerInfoDialog } from "../common/CustomerInfoDialog";
+import { Toast } from "../common/Toast";
+import { ASSET_URL } from "../../types/api";
+
 interface ListingDetailProps {
   listing: Listing;
 }
@@ -23,6 +27,119 @@ export function ListingDetail({
     listing.saved ?? false
   );
 
+  const [showCustomerDialog, setShowCustomerDialog] =
+    useState(false);
+
+  const [showToast, setShowToast] =
+    useState(false);
+
+  const [submitting, setSubmitting] =
+    useState(false);
+
+  useEffect(() => {
+    if (!showToast) {
+      return;
+    }
+
+    const timer = window.setTimeout(() => {
+      setShowToast(false);
+    }, 4000);
+
+    return () => {
+      window.clearTimeout(timer);
+    };
+  }, [showToast]);
+
+  /*
+   * Later this will come from our authentication/session state.
+   *
+   * For now:
+   *   null = guest
+   *
+   * Later:
+   *   const customer = useAuth();
+   *   const customerId = customer?.id ?? null;
+   */
+  const customerId: number | null = null;
+
+  const submitInquiry = async (
+    customer?: {
+      fullName: string;
+      phone: string;
+    }
+  ) => {
+    if (!listing.assignmentId) {
+      console.error(
+        "No employee assignment available."
+      );
+
+      return;
+    }
+
+    if (submitting) {
+      return;
+    }
+
+    try {
+      setSubmitting(true);
+
+
+      const response = await fetch(
+        ASSET_URL + "api/inquiries",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            listingId: listing.id,
+            assignmentId: listing.assignmentId,
+
+            /*
+             * Logged-in customer:
+             * use the customer ID.
+             */
+            customerId,
+
+            /*
+             * Guest customer:
+             * use the information entered
+             * in the dialog.
+             */
+            customerName:
+              customer?.fullName ?? null,
+
+            customerPhone:
+              customer?.phone ?? null,
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        const error =
+          await response.json().catch(() => null);
+
+        throw new Error(
+          error?.message ??
+            "Failed to request viewing."
+        );
+      }
+
+      /*
+       * Inquiry successfully created.
+       */
+      setShowCustomerDialog(false);
+      setShowToast(true);
+    } catch (error) {
+      console.error(
+        "Request viewing failed:",
+        error
+      );
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   const handleMessage = () => {
     console.log(
       "Message broker:",
@@ -31,10 +148,34 @@ export function ListingDetail({
   };
 
   const handleViewing = () => {
-    console.log(
-      "Request viewing:",
-      listing.id
-    );
+    /*
+     * No assignment means we cannot safely
+     * create an inquiry.
+     */
+    if (!listing.assignmentId) {
+      console.error(
+        "No employee assignment available."
+      );
+
+      return;
+    }
+
+    /*
+     * Later, authentication will provide
+     * the customer ID.
+     *
+     * Logged in:
+     *      submit immediately
+     *
+     * Guest:
+     *      ask for minimal contact information
+     */
+    if (customerId) {
+      submitInquiry();
+      return;
+    }
+
+    setShowCustomerDialog(true);
   };
 
   return (
@@ -71,19 +212,23 @@ export function ListingDetail({
             listing={listing}
           />
 
-          <ListingFacts
-            metadata={listing.metadata}
-          />
+          {listing.metadata?.length > 0 && (
+            <ListingFacts
+              metadata={listing.metadata}
+            />
+          )}
 
-          <ListingDescription
-            description={
-              listing.description
-            }
-          />
+          {listing.description && (
+            <ListingDescription
+              description={listing.description}
+            />
+          )}
 
-          <ListingFeatures
-            features={listing.features}
-          />
+          {listing.features?.length ? (
+            <ListingFeatures
+              features={listing.features}
+            />
+          ) : null}
 
           <ListingVerification
             verified={listing.verified}
@@ -93,18 +238,40 @@ export function ListingDetail({
             location={listing.location}
           />
 
-          <ListingBroker
-            broker={listing.broker}
-          />
+          {listing.employee && (
+            <ListingBroker
+              broker={listing.employee}
+            />
+          )}
 
           <ListingActionBar
             onMessage={handleMessage}
-            onRequestViewing={
-              handleViewing
-            }
+            onRequestViewing={handleViewing}
           />
         </div>
       </div>
+
+      <CustomerInfoDialog
+        open={showCustomerDialog}
+        onClose={() =>
+          setShowCustomerDialog(false)
+        }
+        onSubmit={submitInquiry}
+      />
+
+      <Toast
+        open={showToast}
+        message="Viewing request sent successfully."
+        onClose={() =>
+          setShowToast(false)
+        }
+      />
+
+      {/*
+       * We don't need to visually expose submitting
+       * here yet. The dialog can be enhanced later
+       * with a loading state.
+       */}
     </div>
   );
 }

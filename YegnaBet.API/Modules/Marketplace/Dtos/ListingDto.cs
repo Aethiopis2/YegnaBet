@@ -1,4 +1,6 @@
-﻿namespace YegnaBet.API.Modules.Marketplace.Dtos
+﻿using YegnaBet.API.Modules.Users.Dtos;
+
+namespace YegnaBet.API.Modules.Marketplace.Dtos
 {
     public class ListingDto
     {
@@ -15,5 +17,9 @@
         public bool Trending { get; set; }
         public bool Saved { get; set; }
         public List<ListingMetadataDto> Metadata { get; set; } = [];
+        public ListingEmployeeDto? Employee { get; set; }
+
+        public Guid? AssignmentId { get; set; }
+        public DateTime? AssignmentExpiresAt { get; set; }
     }
 }

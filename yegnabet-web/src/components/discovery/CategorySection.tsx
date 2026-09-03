@@ -2,15 +2,45 @@ import { useEffect, useState } from "react";
 
 import { SectionHeader } from "../ui/SectionHeader";
 import { CategoryCard } from "./CategoryCard";
-import { API } from "../../types/api";
+import { API, ASSET_URL } from "../../types/api";
 import type { Category } from "../../types/category";
+import { AppShell } from "../layout/AppShell";
 
 export function CategorySection() {
   const [categories, setCategories] = useState<Category[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-        API.get(`/categories/`).then(r => setCategories(r.data));
+        API.get(`/categories/`)
+          .then((r) => {
+            // correct image url if since its always relative
+            setLoading(true);
+            r.data.forEach((cat:Category) => {
+              if (cat.image) {
+                cat.image = ASSET_URL + cat.image;
+              }
+            })
+ 
+            setCategories(r.data);
+          })
+          .catch((error) => {
+            console.error("Failed to load listing", error);
+            setCategories([]);
+          })
+          .finally(() => {
+            setLoading(false);
+          });
     }, []);
+
+  if (loading) {
+      return (
+        <AppShell>
+          <div className="flex items-center justify-center py-10">
+            <div className="h-6 w-6 animate-spin rounded-full border-2 border-gray-300 border-t-orange-500" />
+          </div>
+        </AppShell>
+      );
+    }
 
   return (
     <section className="mt-8">
@@ -41,7 +71,7 @@ export function CategorySection() {
             id: "more",
             name: "More",
             description: "All categories",
-            image: "assets/images/categories/more.jpg",
+            image: ASSET_URL + "assets/images/categories/more.jpg",
             type: "service",
             route: "/categories",
           }}

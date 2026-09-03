@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using System.Net.NetworkInformation;
 using YegnaBet.API.Modules.Marketplace.Dtos;
+using YegnaBet.API.Modules.Users.Dtos;
 using YegnaBet.Domain.Enums;
 using YegnaBet.Infrastructure.Persistence;
 
@@ -8,11 +9,14 @@ namespace YegnaBet.API.Modules.Marketplace.Services
 {
     public class MarketplaceService
     {
-        private readonly BrokerDbContext _db; 
-        
-        public MarketplaceService(BrokerDbContext db) 
+        private readonly BrokerDbContext _db;
+        private readonly EmployeeAssignmentService _employeeAssignmentService;
+
+        public MarketplaceService(BrokerDbContext db, 
+            EmployeeAssignmentService employeeAssignmentService) 
         { 
             _db = db; 
+            _employeeAssignmentService = employeeAssignmentService;
         }
 
         public async Task<List<ListingCardDto>> GetListingsAsync(int? categoryId) 
@@ -38,23 +42,44 @@ namespace YegnaBet.API.Modules.Marketplace.Services
                 .ToListAsync();
         }
 
-        public async Task<ListingDetailsDto?> GetListingAsync(long id) 
-        { 
-            return await _db.Listings
-                .AsNoTracking()
-                .Where(x => x.Id == id)
-                .Select(x => new ListingDetailsDto { 
-                    Id = x.Id,
-                    Title = x.Title,
-                    Description = x.Description,
-                    Area = x.Location.Area,
-                    Price = x.Price,
-                    PriceUnit = x.PriceUnit,
-                    Image = x.Images.First().ImageUrl,
-                    TrustScore = x.TrustScore,
-                    IsVerified = x.IsVerified,
-                    ProviderName = x.Provider.FullName })
-                .FirstOrDefaultAsync();
+        public async Task<ListingDto?> GetListingAsync(long id)
+        {
+            var res = await GetListings(
+                new ListingQueryDto
+                {
+                    Id = id
+                });
+
+            var ret = res.Items.FirstOrDefault();
+
+            if (ret == null)
+                return null;
+
+            var assignment =
+                _employeeAssignmentService
+                    .Assign(id);
+
+            if (assignment != null)
+            {
+                var emp =
+                    assignment.Employee;
+
+                ret.Employee = new ListingEmployeeDto
+                {
+                    Id = emp.Id,
+                    Name = emp.Name,
+                    Avatar = emp.Avatar,
+                    Phone = emp.Phone,
+                };
+
+                ret.AssignmentId =
+                    assignment.AssignmentId;
+
+                ret.AssignmentExpiresAt =
+                    assignment.ExpiresAt;
+            }
+
+            return ret;
         }
 
         public async Task<List<ListingStatusCountDto>> GetListingStatusCountAsync(int providerId)
@@ -168,9 +193,13 @@ namespace YegnaBet.API.Modules.Marketplace.Services
             var query = _db.Listings
                 .AsNoTracking()
                 .Where(x =>
-                x.IsFeatured &&
                 (x.ListingStatus == ListingStatus.Active ||
                  x.ListingStatus == ListingStatus.Pending));
+
+            if (request.Id != -1)
+            {
+                query = query.Where(x => x.Id == request.Id);
+            }
 
             if (request.Method.HasValue)
             {
@@ -214,12 +243,24 @@ namespace YegnaBet.API.Modules.Marketplace.Services
 
             if (!string.IsNullOrWhiteSpace(request.Category))
             {
-                var category =
-                    request.Category.Trim().ToLower();
+                var category = request.Category.Trim().ToLower();
 
-                query = query.Where(x =>
-                    x.TaxonomyNodes.Any(t =>
-                        t.TaxonomyNode.Slug == category));
+                var categoryNode = await _db.TaxonomyNode
+                    .AsNoTracking()
+                    .Where(x => x.Slug == category)
+                    .Select(x => new
+                    {
+                        x.Id
+                    })
+                    .FirstOrDefaultAsync();
+
+                if (categoryNode != null)
+                {
+                    query = query.Where(x =>
+                        x.TaxonomyNodes.Any(t =>
+                            t.TaxonomyNode.Id == categoryNode.Id ||
+                            t.TaxonomyNode.ParentId == categoryNode.Id));
+                }
             }
 
             if (request.Attributes != null)

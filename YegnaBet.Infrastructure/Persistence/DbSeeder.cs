@@ -98,6 +98,104 @@ namespace YegnaBet.Infrastructure.Persistence
             "on the road to"
         };
 
+        private static readonly string[] farm =
+        {
+            "Spacious agricultural land with fertile soil, reliable road access, and excellent potential for crop farming or livestock.",
+            "Well-positioned farmland with open space, productive soil, and convenient access to nearby communities and markets.",
+            "Prime farming property suitable for vegetables, grains, fruit cultivation, or mixed agricultural use.",
+            "Peaceful rural farm with generous land area, natural surroundings, and strong potential for long-term agricultural investment.",
+            "Productive farmland offering ample cultivation space and easy access for farming equipment and transport.",
+            "Established farm property with fertile grounds and room for expansion, ideal for commercial or family agriculture.",
+            "Affordable agricultural property in a promising farming area, suitable for investors looking to build a productive land portfolio.",
+            "Large open farm with excellent cultivation potential, good accessibility, and plenty of room for future development.",
+            "Versatile agricultural property suitable for farming, livestock, greenhouse projects, or other rural business opportunities.",
+            "Investment-ready farmland offering generous space, peaceful surroundings, and strong potential for agricultural development."
+        };
+
+        private static readonly string[] villa =
+        {
+            "Elegant family villa offering spacious rooms, modern finishes, and a comfortable setting designed for quality living.",
+            "Beautifully maintained villa with generous living areas, private outdoor space, and a refined residential atmosphere.",
+            "Modern luxury villa combining stylish architecture, practical living spaces, and a peaceful neighborhood setting.",
+            "Spacious villa ideal for families seeking comfort, privacy, and easy access to essential services and amenities.",
+            "Well-designed family home featuring bright interiors, quality finishes, and ample space for everyday living.",
+            "Premium residential villa with attractive surroundings, spacious bedrooms, and excellent potential for comfortable family living.",
+            "Tastefully designed villa offering privacy, convenience, and generous indoor and outdoor spaces for the whole family.",
+            "Move-in-ready villa with modern features, comfortable rooms, and a welcoming environment in a desirable location.",
+            "Contemporary villa with an excellent balance of space, comfort, privacy, and accessibility.",
+            "Exceptional family property offering elegant living spaces, a peaceful environment, and strong long-term residential value."
+        };
+
+        private static readonly string[] apartment =
+        {
+            "Comfortable modern apartment with well-planned rooms, convenient access, and everything needed for practical city living.",
+            "Bright and spacious apartment ideal for families, professionals, or investors looking for a convenient residential property.",
+            "Well-maintained apartment offering comfortable bedrooms, a functional layout, and easy access to nearby amenities.",
+            "Modern apartment in a convenient setting, combining affordability, comfort, and excellent everyday accessibility.",
+            "Stylish residential apartment with generous living space and a practical layout suited to modern urban lifestyles.",
+            "Clean and welcoming apartment offering a comfortable home environment with convenient access to transport and services.",
+            "Well-positioned apartment ideal for both personal residence and rental investment, with excellent potential for long-term value.",
+            "Spacious apartment featuring practical living areas, good natural light, and a convenient neighborhood location.",
+            "Affordable and comfortable apartment suitable for individuals, couples, or small families looking for a well-connected home.",
+            "Move-in-ready apartment offering a smart layout, comfortable living spaces, and a convenient urban lifestyle."
+        };
+
+        private static readonly string[] shop =
+        {
+            "Prime commercial shop with excellent business potential, convenient access, and a layout suitable for a wide range of businesses.",
+            "Well-positioned retail space ideal for a grocery, boutique, electronics store, pharmacy, or other customer-focused business.",
+            "Spacious commercial property offering strong visibility and convenient access for entrepreneurs looking to grow their business.",
+            "Ready-to-use shop in a busy commercial setting, suitable for retail, services, or small-scale business operations.",
+            "Affordable business space with a practical layout and excellent potential for attracting regular customers.",
+            "Strategically located shop offering a strong opportunity for retailers and entrepreneurs seeking a convenient commercial base.",
+            "Well-maintained commercial space suitable for retail, office services, salon, café, or other customer-facing businesses.",
+            "Flexible shop property with good accessibility and enough space to establish and grow a successful local business.",
+            "Promising commercial property for entrepreneurs seeking a practical location with strong business potential.",
+            "Excellent shop opportunity offering convenience, visibility, and a flexible space suitable for a variety of commercial activities."
+        };
+
+        private static readonly string[] office =
+        {
+            "Professional office space with a practical layout, comfortable working environment, and convenient access for clients and staff.",
+            "Modern office property suitable for companies, consultants, agencies, and growing businesses looking for a professional workspace.",
+            "Well-maintained office with flexible rooms and a business-friendly environment designed for productive daily operations.",
+            "Spacious commercial office offering comfortable work areas, good accessibility, and room for future business growth.",
+            "Bright and practical office space ideal for startups, professional services, NGOs, or established businesses.",
+            "Conveniently located office with a professional atmosphere and flexible configuration for different business needs.",
+            "Ready-to-use office property offering a comfortable working environment and excellent accessibility for customers and employees.",
+            "Well-planned office space suitable for teams that need a clean, organized, and professional place to work.",
+            "Affordable business office combining practicality, accessibility, and a welcoming environment for clients and staff.",
+            "Premium office opportunity offering flexible workspace, professional surroundings, and strong potential for business operations."
+        };
+
+        private static readonly string[] accountant =
+        {
+            "Experienced accounting professional providing reliable bookkeeping, financial reporting, and business accounting support.",
+            "Trusted accountant offering practical financial management, tax preparation, reporting, and bookkeeping services for businesses.",
+            "Professional accounting expertise for businesses and individuals seeking accurate records, organized finances, and dependable support.",
+            "Reliable accounting specialist helping businesses maintain accurate books, manage expenses, and understand their financial position.",
+            "Skilled accountant offering bookkeeping, financial statements, payroll support, and general accounting services.",
+            "Business-focused accounting professional providing accurate financial records and practical guidance for better financial decisions.",
+            "Dependable accountant experienced in organizing financial records, preparing reports, and supporting day-to-day business accounting.",
+            "Professional financial services designed to help small and growing businesses keep their accounts accurate and up to date.",
+            "Detail-oriented accountant offering bookkeeping and financial reporting support tailored to the needs of local businesses.",
+            "Reliable accounting expertise for entrepreneurs who want organized records, clear reports, and better control over their finances."
+        };
+
+        private static readonly string[] services =
+        {
+            "Reliable electrical professional offering installation, maintenance, troubleshooting, and general electrical repair services.",
+            "Skilled plumber providing dependable installation, repair, maintenance, and emergency plumbing support for homes and businesses.",
+            "Experienced carpenter offering quality furniture, cabinetry, doors, repairs, and custom woodwork tailored to customer needs.",
+            "Professional painter providing interior and exterior painting services with careful preparation and quality finishing.",
+            "Trusted cleaning specialist offering thorough residential and commercial cleaning services with flexible scheduling.",
+            "Experienced mechanic providing vehicle inspection, maintenance, diagnostics, and repair services for everyday drivers.",
+            "Professional construction worker offering reliable masonry, renovation, finishing, and general building services.",
+            "Skilled technician providing dependable installation, maintenance, and repair solutions for homes, offices, and businesses.",
+            "Experienced moving and relocation specialist helping customers transport household and business items safely and efficiently.",
+            "Reliable home maintenance professional offering practical repair, installation, renovation, and general property improvement services."
+        };
+
 
         private static List<TaxonomyNode> nodes = new List<TaxonomyNode>();
         private static List<AttributeDefinition> house_attributes = new List<AttributeDefinition>();
@@ -499,7 +597,8 @@ namespace YegnaBet.Infrastructure.Persistence
                     PhoneNumber =
                         "09" + i.ToString("00000000"),
 
-                    IsVerified = true
+                    IsVerified = true,
+                    Avatar = $"/assets/images/avatar/{i % 10}.jpg"
                 };
 
                 db.Users.Add(user);
@@ -559,7 +658,15 @@ namespace YegnaBet.Infrastructure.Persistence
 
                     TrustScore = 70 + random.Next(31),
                     IsVerified = i % 10 == 0 ? false : true,
-                    IsFeatured = i % 50 == 0 ? false : true
+                    IsFeatured = i % 30 == 0 ? true : false,
+
+                    TaxonomyNodes =
+                    [
+                        new ListingTaxonomyNode
+                        {
+                            TaxonomyNode = category
+                        }
+                    ]
                 };
 
 
@@ -573,6 +680,7 @@ namespace YegnaBet.Infrastructure.Persistence
                         "Farming land " +
                         adjs[i % adjs.Length] + " " +
                         location.Area;
+                    listing.Description = farm[i % farm.Length];
 
                     listing.Method =
                         i % 2 == 0
@@ -611,6 +719,7 @@ namespace YegnaBet.Infrastructure.Persistence
                         " villa " +
                         adjs[i % adjs.Length] + " " +
                         location.Area;
+                    listing.Description = villa[i  % villa.Length];
 
                     listing.Method =
                         i % 2 == 0
@@ -650,6 +759,7 @@ namespace YegnaBet.Infrastructure.Persistence
                         " apartment " +
                         adjs[i % adjs.Length] + " " +
                         location.Area;
+                    listing.Description = apartment[i % apartment.Length];
 
                     listing.Method =
                         i % 2 == 0
@@ -688,6 +798,7 @@ namespace YegnaBet.Infrastructure.Persistence
                         " shop " +
                         adjs[i % adjs.Length] + " " +
                         location.Area;
+                    listing.Description = shop[i  % shop.Length];
 
                     listing.Method =
                         i % 2 == 0
@@ -725,6 +836,7 @@ namespace YegnaBet.Infrastructure.Persistence
                         " office " +
                         adjs[i % adjs.Length] + " " +
                         location.Area;
+                    listing.Description = office[i  % office.Length];
 
                     listing.Method =
                         i % 2 == 0
@@ -760,6 +872,7 @@ namespace YegnaBet.Infrastructure.Persistence
                         " " +
                         adjs[i % adjs.Length] + " " +
                         location.Area;
+                    listing.Description = accountant[i % accountant.Length];
 
                     listing.Method = ListingMethod.Service;
 
@@ -792,6 +905,7 @@ namespace YegnaBet.Infrastructure.Persistence
                         " " +
                         adjs[i % adjs.Length] + " " +
                         location.Area;
+                    listing.Description = services[i % services.Length];
 
                     listing.Method =
                         i % 2 == 0

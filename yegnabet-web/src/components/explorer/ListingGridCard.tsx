@@ -46,14 +46,14 @@ export function ListingGridCard({
         overflow-hidden
         rounded-2xl
         border
-        border-black/[0.05]
+        border-black/5
         bg-white
         shadow-[0_4px_20px_rgba(0,0,0,0.035)]
         transition-all
         duration-300
         hover:-translate-y-1
         hover:shadow-[0_12px_35px_rgba(0,0,0,0.08)]
-        dark:border-white/[0.06]
+        dark:border-white/6
         dark:bg-white/[0.035]
         dark:shadow-none
       "
@@ -167,7 +167,7 @@ export function ListingGridCard({
         >
           <Heart
             className={cn(
-              "size-[17px] transition-all",
+              "size-4.25 transition-all",
               saved &&
                 "fill-red-500 stroke-red-500"
             )}

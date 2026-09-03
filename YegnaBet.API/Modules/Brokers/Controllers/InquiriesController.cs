@@ -16,13 +16,32 @@ namespace YegnaBet.API.Modules.Brokers.Controllers
             _service = service;
         }
 
-
         [HttpPost]
-        public async Task<IActionResult> Create(CreateInquiryDto dto)
+        public async Task<IActionResult> Create([FromBody] CreateInquiryDto request, 
+            CancellationToken cancellationToken)
         {
-            var id = await _service.CreateInquiryAsync(dto);
-            return Ok(new { id });
+            try
+            {
+                var inquiry = await _service.CreateAsync(request, cancellationToken); 
+                if (inquiry == null)
+                {
+                    return NotFound(new { message = "Listing not found or unavailable." });
+                }
+
+                return Ok(inquiry);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
+
+        //[HttpPost]
+        //public async Task<IActionResult> Create(CreateInquiryDto dto)
+        //{
+        //    var id = await _service.CreateInquiryAsync(dto);
+        //    return Ok(new { id });
+        //}
 
         [HttpGet]
         public async Task<IActionResult> Get()

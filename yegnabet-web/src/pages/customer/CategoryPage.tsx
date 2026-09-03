@@ -34,7 +34,7 @@ export function CategoryPage() {
                 ? "house"
                 : category,
           },
-          showPopularLocations: true,
+          showPopularLocations: false,
           showModeTabs:
             category !== "services",
           showFilters: true,

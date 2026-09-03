@@ -5,59 +5,125 @@ import {
   Maximize,
   Layers3,
   CalendarDays,
+  Home,
+  Ruler,
+  Building2,
+  Map,
+  DoorOpen,
+  Sofa,
+  Trees,
+  ShieldCheck,
+  Zap,
+  Droplets,
+  ParkingSquare,
+  CircleDot,
 } from "lucide-react";
 
 import type { ListingMetadata } from "../../types/listings";
 
 interface ListingFactsProps {
-  metadata: ListingMetadata;
+  metadata: ListingMetadata[];
+}
+
+/**
+ * Resolves a suitable icon for a metadata definition.
+ *
+ * The metadata system remains completely generic.
+ * We only use the key to make the UI a little smarter.
+ */
+function resolveMetadataIcon(key: string) {
+  const normalizedKey = key
+    .trim()
+    .toLowerCase()
+    .replace(/[\s-]+/g, "_");
+
+  switch (normalizedKey) {
+    // Property
+    case "bedrooms":
+    case "bedroom":
+    case "beds":
+      return BedDouble;
+
+    case "bathrooms":
+    case "bathroom":
+    case "baths":
+      return Bath;
+
+    case "area":
+    case "property_area":
+    case "property_size":
+    case "size":
+    case "floor_area":
+    case "building_area":
+    case "land_size":
+      return Maximize;
+
+    case "parking":
+    case "parking_spaces":
+    case "parking_space":
+    case "garage":
+      return ParkingSquare;
+
+    case "floors":
+    case "floor_count":
+    case "building_floors":
+      return Layers3;
+
+    case "floor":
+      return Building2;
+
+    case "year_built":
+    case "built_year":
+    case "construction_year":
+      return CalendarDays;
+
+    case "rooms":
+    case "room_count":
+      return DoorOpen;
+
+    // Property type / structure
+    case "property_type":
+    case "building_type":
+    case "house_type":
+      return Home;
+
+    case "furnished":
+    case "furnishing":
+      return Sofa;
+
+    // Land
+    case "land_use":
+    case "zoning":
+      return Map;
+
+    case "topography":
+      return Trees;
+
+    // Utilities
+    case "electricity":
+    case "power":
+      return Zap;
+
+    case "water":
+    case "water_supply":
+      return Droplets;
+
+    // Security / verification
+    case "security":
+    case "security_level":
+      return ShieldCheck;
+
+    default:
+      return CircleDot;
+  }
 }
 
 export function ListingFacts({
   metadata,
 }: ListingFactsProps) {
-  const facts = [
-    metadata.bedrooms !== undefined && {
-      label: "Bedrooms",
-      value: metadata.bedrooms,
-      icon: BedDouble,
-    },
-
-    metadata.bathrooms !== undefined && {
-      label: "Bathrooms",
-      value: metadata.bathrooms,
-      icon: Bath,
-    },
-
-    metadata.area !== undefined && {
-      label: "Area",
-      value: `${metadata.area} m²`,
-      icon: Maximize,
-    },
-
-    metadata.parkingSpaces !==
-      undefined && {
-      label: "Parking",
-      value: metadata.parkingSpaces,
-      icon: Car,
-    },
-
-    metadata.floors !== undefined && {
-      label: "Floors",
-      value: metadata.floors,
-      icon: Layers3,
-    },
-
-    metadata.yearBuilt !== undefined && {
-      label: "Built",
-      value: metadata.yearBuilt,
-      icon: CalendarDays,
-    },
-  ].filter(Boolean) as {
-    label: string;
-    value: string | number;
-    icon: typeof BedDouble;
-  }[];
+  if (!metadata || metadata.length === 0) {
+    return null;
+  }
 
   return (
     <section className="px-4 pt-6 sm:px-0">
@@ -74,12 +140,12 @@ export function ListingFacts({
           sm:grid-cols-3
         "
       >
-        {facts.map((fact) => {
-          const Icon = fact.icon;
+        {metadata.map((item, index) => {
+          const Icon = resolveMetadataIcon(item.key);
 
           return (
             <div
-              key={fact.label}
+              key={`${item.key}-${index}`}
               className="
                 rounded-2xl
                 border
@@ -107,11 +173,17 @@ export function ListingFacts({
                   dark:text-white
                 "
               >
-                {fact.value}
+                {item.value}
               </p>
 
-              <p className="mt-0.5 text-[10px] text-gray-400">
-                {fact.label}
+              <p
+                className="
+                  mt-0.5
+                  text-[10px]
+                  text-gray-400
+                "
+              >
+                {item.name}
               </p>
             </div>
           );

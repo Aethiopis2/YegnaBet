@@ -29,5 +29,22 @@ namespace YegnaBet.API.Modules.Users.Services
                 })
                 .FirstAsync();
         } // end Get
+
+        public async Task<ListingEmployeeDto> GetUserById(int id)
+        {
+            var lst = await _db.Users
+                .AsNoTracking()
+                .Where(u => u.Id == id)
+                .Select(u => new ListingEmployeeDto
+                {
+                    Id = u.Id,
+                    Name = u.FullName,
+                    Avatar = u.Avatar,
+                    Phone = u.PhoneNumber
+                })
+                .ToListAsync();
+
+            return lst.First();
+        }
     } // end UserService
 } // end namespace

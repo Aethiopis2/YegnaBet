@@ -35,7 +35,7 @@ export function Explorer({
   config,
 }: ExplorerProps) {
   const navigate = useNavigate();
-
+  
   const [mode, setMode] =
     useState<ListingMode>(
       config.mode ?? "all"
@@ -113,7 +113,7 @@ export function Explorer({
                 place-items-center
                 rounded-xl
                 border
-                border-black/[0.06]
+                border-black/6
                 bg-white
                 text-gray-600
                 dark:border-white/[0.07]

@@ -59,37 +59,6 @@ export function BottomNavigation() {
         ))}
 
         <QuickActionSheet />
-{/* 
-        <button
-          type="button"
-          aria-label="Create request"
-          className="
-            absolute left-1/2 top-1/2
-            grid size-14 -translate-x-1/2 -translate-y-[70%]
-            place-items-center
-            rounded-full
-            border-[5px] border-white
-            bg-yegna-700
-            text-white
-            shadow-lg shadow-yegna-900/20
-            transition-all duration-200
-            hover:scale-105
-            active:scale-95
-            dark:border-[#121914]
-          "
-        >
-          <Plus className="size-6" />
-        </button>
-
-        
-        <div className="w-14" />
-
-        {navigation.slice(2).map((item) => (
-          <NavigationItem
-            key={item.href}
-            {...item}
-          />
-        ))} */}
       </div>
     </nav>
   );

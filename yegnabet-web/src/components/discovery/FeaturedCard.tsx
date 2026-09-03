@@ -1,17 +1,15 @@
 import {
-  Bath,
   BedDouble,
   Heart,
   MapPin,
-  Maximize,
-  ParkingSquare,
 } from "lucide-react";
 import { useState } from "react";
 
-import type { Listing, ListingMetadata } from "../../types/listings";
+import type { Listing } from "../../types/listings";
 import { formatArea, formatPrice } from "../../lib/formatters";
 import { cn } from "../../lib/cn";
-import { ASSET_URL } from "../../types/api";
+import { resolveIcon } from "../../lib/IconResolver";
+import { useNavigate } from "react-router-dom";
 
 interface FeaturedCardProps {
   listing: Listing;
@@ -22,12 +20,15 @@ export function FeaturedCard({
   listing,
   className,
 }: FeaturedCardProps) {
+  const navigate = useNavigate();
+  
   const [saved, setSaved] = useState(
     listing.saved ?? false
   );
 
   return (
     <article
+      onClick={() => navigate(`/listing/${listing.id}`)}
       className={cn(
         "group overflow-hidden",
         "rounded-2xl",
@@ -42,7 +43,7 @@ export function FeaturedCard({
     >
       <div className="relative aspect-[1.35/1] overflow-hidden">
         <img
-          src={ASSET_URL + listing.images[0]}
+          src={listing.images[0]}
           alt={listing.title}
           className="
             size-full object-cover
@@ -122,7 +123,7 @@ export function FeaturedCard({
               <MapPin className="size-3.5" />
 
               <span className="truncate">
-                {listing.location.area},{" "}
+                {formatArea(Number(listing.location.area) || 0)},{" "}
                 {listing.location.city}
               </span>
             </div>
@@ -137,43 +138,9 @@ export function FeaturedCard({
         </div>
 
         <div className="mt-3 flex items-center gap-3 text-[10px] text-gray-500 dark:text-gray-400">
-          {/* {listing.metadata.bedrooms !==
-            undefined && (
-            <Feature
-              icon={BedDouble}
-              value={`${listing.metadata.bedrooms} Bed`}
-            />
-          )}
-
-          {listing.metadata.bathrooms !==
-            undefined && (
-            <Feature
-              icon={Bath}
-              value={`${listing.metadata.bathrooms} Bath`}
-            />
-          )}
-
-          {listing.metadata.area !==
-            undefined && (
-            <Feature
-              icon={Maximize}
-              value={formatArea(
-                listing.metadata.area
-              )}
-            />
-          )}
-
-          {listing.metadata.parking !==
-            undefined && (
-            <Feature
-              icon={ParkingSquare}
-              value={`${listing.metadata.parking}`}
-            />
-          )} */}
-          
           {listing.metadata.map(v => (
             <Feature key={v.name}
-              icon={Bath}
+              icon={resolveIcon(v.name)}
               value={v.value}
             />
           ))

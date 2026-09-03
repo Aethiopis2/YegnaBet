@@ -12,6 +12,7 @@ namespace YegnaBet.Domain.Entities
 
         public bool IsVerified { get; set; }
         public bool IsActive { get; set; } = true;
+        public string? Avatar { get; set;}
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     }

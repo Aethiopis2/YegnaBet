@@ -13,7 +13,7 @@ using YegnaBet.Infrastructure.Persistence;
 namespace YegnaBet.Infrastructure.Migrations
 {
     [DbContext(typeof(BrokerDbContext))]
-    [Migration("20260829222642_InitialCreate")]
+    [Migration("20260902235833_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -535,6 +535,9 @@ namespace YegnaBet.Infrastructure.Migrations
                         .HasColumnType("bigint");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("Avatar")
+                        .HasColumnType("text");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");

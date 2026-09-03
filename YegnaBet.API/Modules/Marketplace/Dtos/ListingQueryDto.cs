@@ -6,6 +6,7 @@ namespace YegnaBet.API.Modules.Marketplace.Dtos
     {
         public int Page { get; set; } = 0;
         public int PageSize { get; set; } = 5;
+        public long? Id { get; set; } = -1;
         public ListingMethod? Method { get; set; }
         public string? Category { get; set; }
         public string? Location { get; set; }

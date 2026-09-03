@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using YegnaBet.API.Modules.Brokers.Dtos;
+using YegnaBet.API.Modules.Marketplace.Services;
 using YegnaBet.API.Modules.Realtime;
 using YegnaBet.Domain.Entities;
 using YegnaBet.Domain.Enums;
@@ -15,12 +16,111 @@ namespace YegnaBet.API.Modules.Brokers.Services
         private readonly BrokerDbContext _db;
         private readonly IHubContext<BrokerHub> _hub;
         private readonly AuditService _audit;
+        private readonly EmployeeAssignmentService _employeeAssignmentService;
 
-        public BrokerService(BrokerDbContext db,  IHubContext<BrokerHub> hub, AuditService audit)
+        public BrokerService(BrokerDbContext db,  IHubContext<BrokerHub> hub, AuditService audit,
+            EmployeeAssignmentService employeeAssignmentService)
         {
             _db = db;
             _hub = hub;
             _audit = audit;
+            _employeeAssignmentService = employeeAssignmentService;
+        }
+
+        public async Task<InquiryDto?> CreateAsync(CreateInquiryDto request, CancellationToken cancellationToken = default)
+        { 
+            /* 
+             * Make sure the listing exists and is still available. 
+             */
+            var listingExists = await _db.Listings.AsNoTracking()
+                .AnyAsync(x => x.Id == request.ListingId && 
+                (x.ListingStatus == ListingStatus.Active || x.ListingStatus == ListingStatus.Pending), 
+                cancellationToken); 
+            
+            if (!listingExists) 
+                return null; 
+            
+            /* 
+             * Resolve the employee from the in-memory 
+             * assignment session. 
+             * 
+             * The frontend does NOT choose the employee. 
+             */ 
+            var employee = _employeeAssignmentService.GetAssignment(request.AssignmentId); 
+            
+            if (employee == null) 
+                throw new InvalidOperationException("The listing assignment is no longer valid.");
+
+            var cust = await _db.Users.AsNoTracking()
+                .AnyAsync(x => x.Id == request.CustomerId || x.PhoneNumber == request.CustomerPhone, 
+                cancellationToken);
+
+            if (!cust)
+            {
+                // register this new customer and use its Id
+                if (request.CustomerPhone != null && request.CustomerName != null)
+                {
+                    User customer = new User
+                    {
+                        FullName = request.CustomerName,
+                        PhoneNumber = request.CustomerPhone,
+                        IsActive = false,
+                        IsVerified = false,
+                        Role = UserRole.Customer
+                    };
+
+                    _db.Users.Add(customer);
+                    request.CustomerId = customer.Id;
+                }
+            }
+
+            /* 
+             * Verify that this assignment belongs to 
+             * the listing being requested. 
+             * 
+             * This requires the assignment to know which 
+             * listing it was created for.
+             */ 
+            if (employee.ListingId != request.ListingId) 
+                throw new InvalidOperationException("The assignment does not belong to this listing."); 
+            
+            var inquiry = new Inquiry
+            {
+                ListingId = request.ListingId,
+                EmployeeId = employee.EmployeeId,
+                CustomerId = request.CustomerId,
+                CustomerName = request.CustomerName,
+                CustomerPhone = request.CustomerPhone,
+                InquiryStatus = InquiryStatus.New,
+                CreatedAt = DateTime.UtcNow
+            }; 
+            
+            _db.Inquiries.Add(inquiry);
+
+            var listing = await _db.Listings.FindAsync(request.ListingId);
+            if (listing != null)
+                listing.InquiresCount++;
+
+            await _hub.Clients.All.SendAsync("InquiryCreated", new
+            {
+                inquiry.Id,
+                request.CustomerName,
+                request.ListingId
+            });
+
+            await _db.SaveChangesAsync(cancellationToken);
+
+            return new InquiryDto
+            {
+                Id = inquiry.Id,
+                ListingId = inquiry.ListingId,
+                EmployeeId = inquiry.EmployeeId,
+                CustomerId = inquiry.CustomerId,
+                CustomerName = inquiry.CustomerName,
+                CustomerPhone = inquiry.CustomerPhone,
+                Status = inquiry.InquiryStatus.ToString(),
+                CreatedAt = inquiry.CreatedAt
+            };
         }
 
         public async Task<long> CreateInquiryAsync(CreateInquiryDto dto)
