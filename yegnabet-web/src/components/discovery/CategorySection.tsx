@@ -5,31 +5,32 @@ import { CategoryCard } from "./CategoryCard";
 import { API, ASSET_URL } from "../../types/api";
 import type { Category } from "../../types/category";
 import { AppShell } from "../layout/AppShell";
+import type { ListingMode } from "../../types/listings";
 
-export function CategorySection() {
+export function CategorySection({listingMode}: { listingMode: ListingMode }) {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-        API.get(`/categories/`)
-          .then((r) => {
-            // correct image url if since its always relative
-            setLoading(true);
-            r.data.forEach((cat:Category) => {
-              if (cat.image) {
-                cat.image = ASSET_URL + cat.image;
-              }
-            })
- 
-            setCategories(r.data);
-          })
-          .catch((error) => {
-            console.error("Failed to load listing", error);
-            setCategories([]);
-          })
-          .finally(() => {
-            setLoading(false);
-          });
+    API.get(`/categories/`)
+      .then((r) => {
+        // correct image url if since its always relative
+        setLoading(true);
+        r.data.forEach((cat:Category) => {
+          if (cat.image) {
+            cat.image = ASSET_URL + cat.image;
+          }
+        })
+        
+        setCategories(r.data);
+      })
+      .catch((error) => {
+        console.error("Failed to load listing", error);
+        setCategories([]);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
     }, []);
 
   if (loading) {
@@ -47,7 +48,7 @@ export function CategorySection() {
       <SectionHeader
         title="Browse by Category"
         actionLabel="View all"
-        actionHref="/categories"
+        actionHref={`/categories?mode=${listingMode}`}
       />
 
       <div
@@ -63,6 +64,7 @@ export function CategorySection() {
           <CategoryCard
             key={category.id}
             category={category}
+            listingMode={listingMode}
           />
         ))}
 

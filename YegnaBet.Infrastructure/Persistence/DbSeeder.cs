@@ -684,8 +684,8 @@ namespace YegnaBet.Infrastructure.Persistence
 
                     listing.Method =
                         i % 2 == 0
-                            ? ListingMethod.Sales
-                            : ListingMethod.Contract;
+                            ? ListingMethod.Buy
+                            : random.Next() % 3 == 0 ? ListingMethod.Contract : ListingMethod.Rent;
                     listing.ListingStatus = ListingStatus.Active;
 
                     listing.Images = new List<ListingImage>
@@ -723,7 +723,7 @@ namespace YegnaBet.Infrastructure.Persistence
 
                     listing.Method =
                         i % 2 == 0
-                            ? ListingMethod.Sales
+                            ? ListingMethod.Buy
                             : ListingMethod.Rent;
 
                     listing.Images = new List<ListingImage>
@@ -763,7 +763,7 @@ namespace YegnaBet.Infrastructure.Persistence
 
                     listing.Method =
                         i % 2 == 0
-                            ? ListingMethod.Sales
+                            ? ListingMethod.Buy
                             : ListingMethod.Rent;
 
                     listing.Images = new List<ListingImage>
@@ -802,7 +802,7 @@ namespace YegnaBet.Infrastructure.Persistence
 
                     listing.Method =
                         i % 2 == 0
-                            ? ListingMethod.Sales
+                            ? ListingMethod.Buy
                             : ListingMethod.Rent;
 
                     listing.Images = new List<ListingImage>
@@ -840,7 +840,7 @@ namespace YegnaBet.Infrastructure.Persistence
 
                     listing.Method =
                         i % 2 == 0
-                            ? ListingMethod.Sales
+                            ? ListingMethod.Buy
                             : ListingMethod.Rent;
 
                     listing.Images = new List<ListingImage>

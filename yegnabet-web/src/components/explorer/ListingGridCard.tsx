@@ -89,10 +89,7 @@ export function ListingGridCard({
 
         {listing.images?.length > 0 && (
           <img
-            src={
-              ASSET_URL +
-              listing.images[0]
-            }
+            src={listing.images[0]}
             alt={listing.title}
             className="
               size-full

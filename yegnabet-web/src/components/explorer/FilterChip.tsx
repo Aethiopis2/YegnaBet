@@ -59,17 +59,9 @@ export function FilterChip({
 
       {removable ? (
         <span
-          role="button"
-          tabIndex={0}
           onClick={(event) => {
             event.stopPropagation();
             onRemove?.();
-          }}
-          onKeyDown={(event) => {
-            if (event.key === "Enter") {
-              event.stopPropagation();
-              onRemove?.();
-            }
           }}
           className="
             grid size-4 place-items-center

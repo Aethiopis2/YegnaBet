@@ -6,16 +6,16 @@ import {
 
 import type {
   ListingFilters,
-  ListingMode,
   ListingSort,
 } from "../../types/explorer";
 
 import type {
   Listing,
+  ListingMode,
   ListingPage,
 } from "../../types/listings";
 
-import { API } from "../../types/api";
+import { API, ASSET_URL } from "../../types/api";
 
 
 const PAGE_SIZE = 5;
@@ -69,12 +69,16 @@ export function useInfiniteListings({
      * Sale / Rent
      */
 
-    if (mode !== "all") {
+    if (mode !== "All") {
       params.set(
         "method",
-        mode === "sale"
-          ? "Sales"
-          : "Rent"
+        mode === "Buy"
+          ? "Buy"
+          : mode === "Rent"
+            ? "Rent"
+            : mode === "Contract"
+              ? "Contract"
+              : "Service"
       );
     }
 
@@ -231,6 +235,13 @@ export function useInfiniteListings({
         const data =
           response.data;
 
+        // fix the relative url image address for listings
+        data.items.forEach(listing => {
+          listing.images =
+            listing.images.map(
+              image => ASSET_URL + image
+            );
+        });
 
         setItems(current =>
           reset

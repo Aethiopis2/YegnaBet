@@ -1,25 +1,16 @@
-import { useParams } from "react-router-dom";
+import { useParams, useSearchParams } from "react-router-dom";
 
 import { AppShell } from "../../components/layout/AppShell";
 import { Explorer } from "../../components/explorer/Explorer";
+import type { ListingMode } from "../../types/listings";
 
-const categoryNames: Record<
-  string,
-  string
-> = {
-  houses: "Houses",
-  apartments: "Apartments",
-  land: "Land",
-  commercial: "Commercial",
-  services: "Services",
-};
 
 export function CategoryPage() {
   const { category } = useParams();
+  const [searchParam] = useSearchParams();
+  const mode = searchParam.get("mode") ?? "Buy";
 
-  const title =
-    categoryNames[category ?? ""] ??
-    "Listings";
+  const title = category ?? "Listings";
 
   return (
     <AppShell>
@@ -34,6 +25,8 @@ export function CategoryPage() {
                 ? "house"
                 : category,
           },
+          mode: mode as ListingMode,
+          showMode: false,
           showPopularLocations: false,
           showModeTabs:
             category !== "services",

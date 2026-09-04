@@ -1,11 +1,8 @@
-import type { Listing } from "./listings";
+import type { Listing, ListingMode } from "./listings";
 
 export type ListingView = "grid" | "list";
 
-export type ListingMode =
-  | "all"
-  | "sale"
-  | "rent";
+
 
 export interface ListingFilters {
   location?: string;
@@ -33,6 +30,7 @@ export interface ExplorerConfig {
 
   filters?: ListingFilters;
 
+  showMode?: boolean;
   showPopularLocations?: boolean;
   showModeTabs?: boolean;
   showFilters?: boolean;

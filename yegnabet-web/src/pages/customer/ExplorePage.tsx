@@ -7,6 +7,9 @@ export function ExplorePage() {
   const isFeatured = searchParam.get("featured") === "true";
   const isTrending = searchParam.get("trending") === "trending";
   const isVerified = searchParam.get("verified") === "true";
+  const mode = searchParam.get("mode");
+  const location = searchParam.get("location");
+
 
   return (
     <AppShell>
@@ -23,7 +26,10 @@ export function ExplorePage() {
             featured: isFeatured,
             trending: isTrending,
             verified: isVerified,
+            location: location ?? undefined,
           },
+          mode: mode as "Buy" | "Rent" | "All" | "Contract" | "Service",
+          showMode: false,
         }}
       />
     </AppShell>

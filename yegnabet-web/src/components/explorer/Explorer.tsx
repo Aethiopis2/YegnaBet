@@ -3,13 +3,12 @@ import {
   Heart,
   SlidersHorizontal,
 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import type {
   ExplorerConfig,
   ListingFilters,
-  ListingMode,
   ListingSort,
   ListingView,
 } from "../../types/explorer";
@@ -26,6 +25,8 @@ import { ExplorerToolbar } from "./ExplorerToolbar";
 import { ListingGrid } from "./ListingGrid";
 import { ListingList } from "./ListingList";
 import { LoadMoreSentinel } from "./LoadMoreSentinel";
+import type { ListingMode } from "../../types/listings";
+import { TransactionMode } from "../discovery/TransactionMode";
 
 interface ExplorerProps {
   config: ExplorerConfig;
@@ -38,7 +39,7 @@ export function Explorer({
   
   const [mode, setMode] =
     useState<ListingMode>(
-      config.mode ?? "all"
+      config.mode ?? "All"
     );
 
   const [filters, setFilters] =
@@ -71,7 +72,12 @@ export function Explorer({
     () => config.title,
     [config.title]
   );
+  
+  useEffect(() => {
+    setFilters(config.filters ?? {});
+  }, [config.filters]);
 
+  
   return (
     <div className="min-h-screen">
       <PageContainer>
@@ -146,6 +152,14 @@ export function Explorer({
         <div className="mt-5">
           <SearchBar />
         </div>
+
+        {/* Sale / rent */}
+        {config.showMode !== false && (
+          <TransactionMode
+            value={mode}
+            onChange={setMode}
+          />
+        )}
 
         {/* Sale / rent */}
         {config.showModeTabs !== false && (

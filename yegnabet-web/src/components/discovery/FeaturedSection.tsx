@@ -1,17 +1,17 @@
 import { useEffect, useState } from "react";
 import { SectionHeader } from "../ui/SectionHeader";
 import { FeaturedCard } from "./FeaturedCard";
-import type { Listing } from "../../types/listings";
+import type { Listing, ListingMode } from "../../types/listings";
 import { API, ASSET_URL } from "../../types/api";
 import { AppShell } from "../layout/AppShell";
 
-export function FeaturedSection() {
+export function FeaturedSection({ listingMode }: { listingMode: ListingMode }) {
   const [listings, setListings] = useState<Listing[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     setLoading(true);
-    API.get(`/listings/featured-listings?page=0&pageSize=5`)
+    API.get(`/listings/get-listings?featured=true&method=${listingMode}`)
       .then((res) => {
         // correct image url if since its always relative
         if (res.data) {
@@ -30,7 +30,7 @@ export function FeaturedSection() {
       .finally(() => {
         setLoading(false);
       });
-  }, []);
+  }, [listingMode]);
 
   const featured = listings.filter(
     (listing) => listing.featured
@@ -51,7 +51,7 @@ export function FeaturedSection() {
       <SectionHeader
         title="Featured Properties"
         actionLabel="View all"
-        actionHref="/explore?featured=true"
+        actionHref={`/explore?featured=true&mode=${listingMode}`}
       />
 
       <div

@@ -106,7 +106,7 @@ namespace YegnaBet.API.Modules.Marketplace.Services
                 {
                     Id = x.Id,
                     Title = x.Title,
-                    Type = x.Method == ListingMethod.Sales ? "Sales" :
+                    Type = x.Method == ListingMethod.Buy ? "Buy" :
                         x.Method == ListingMethod.Rent ? "Rent" :
                         x.Method == ListingMethod.Contract ? "Contract" : "Service",
                     Price = x.Price,
@@ -137,8 +137,8 @@ namespace YegnaBet.API.Modules.Marketplace.Services
                 Price = x.Price,
                 Currency = "ETB",
 
-                Status = x.Method == ListingMethod.Sales
-                    ? "sale"
+                Status = x.Method == ListingMethod.Buy
+                    ? "buy"
                     : "rent",
 
                 Location = new
@@ -303,8 +303,8 @@ namespace YegnaBet.API.Modules.Marketplace.Services
                     Price = x.Price,
                     Currency = "ETB",
                     Status =
-                        x.Method == ListingMethod.Sales
-                            ? "sale"
+                        x.Method == ListingMethod.Buy
+                            ? "buy"
                             : "rent",
                     Location = new ListingLocationDto
                     {

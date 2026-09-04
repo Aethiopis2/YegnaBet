@@ -1,4 +1,4 @@
-import type { ListingMode } from "../../types/explorer";
+import type { ListingMode } from "../../types/listings";
 import { cn } from "../../lib/cn";
 
 interface ListingTabsProps {
@@ -11,23 +11,33 @@ const tabs: {
   label: string;
 }[] = [
   {
-    value: "sale",
+    value: "Buy",
     label: "For Sale",
   },
   {
-    value: "rent",
+    value: "Rent",
     label: "For Rent",
   },
   {
-    value: "all",
-    label: "All Houses",
+    value: "Contract",
+    label: "Contract work",
+  },
+  {
+    value: "All",
+    label: "All Listings",
+  },
+  {
+    value: "Service",
+    label: "Service Providers",
   },
 ];
+
 
 export function ListingTabs({
   value,
   onChange,
 }: ListingTabsProps) {
+
   return (
     <div className="mt-4 flex gap-2">
       {tabs.map((tab) => (

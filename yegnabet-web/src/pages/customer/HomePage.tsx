@@ -6,19 +6,26 @@ import { CategorySection } from "../../components/discovery/CategorySection";
 import { FeaturedSection } from "../../components/discovery/FeaturedSection";
 import { HeroSection } from "../../components/discovery/HeroSection";
 import { HowItWorks } from "../../components/discovery/HowItWorks";
-import { PreferenceSection } from "../../components/discovery/PreferenceSection";
+import { TransactionMode, } from "../../components/discovery/TransactionMode";
+import { useState } from "react";
+import type { ListingMode } from "../../types/listings";
 
 export default function HomePage() {
+  const [listingMode, setListingMode] = useState<ListingMode>("Buy");
+
   return (
     <AppShell>
       <PageContainer>
         <HeroSection />
 
-        <PreferenceSection />
+        <TransactionMode 
+          value={listingMode}
+          onChange={setListingMode}
+        />
 
-        <CategorySection />
+        <CategorySection listingMode={listingMode} />
 
-        <FeaturedSection />
+        <FeaturedSection listingMode={listingMode} />
 
         <AdvertisementCarousel />
 

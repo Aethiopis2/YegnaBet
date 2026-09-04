@@ -10,9 +10,9 @@ namespace YegnaBet.Domain.Enums
     /// </summary>
     public enum ListingMethod
     {
-        Sales,
+        Buy,
         Rent,
         Contract,
-        Service
+        Service,
     } // end ListingMethod
 } // end namespace

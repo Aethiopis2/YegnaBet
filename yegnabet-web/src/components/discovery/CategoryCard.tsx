@@ -2,22 +2,25 @@ import { useNavigate } from "react-router-dom";
 
 import { cn } from "../../lib/cn";
 import type { Category } from "../../types/category";
+import type { ListingMode } from "../../types/listings";
 
 interface CategoryCardProps {
   category: Category;
   className?: string;
+  listingMode?: ListingMode;
 }
 
 export function CategoryCard({
   category,
   className,
+  listingMode,
 }: CategoryCardProps) {
   const navigate = useNavigate();
 
   return (
     <button
       type="button"
-      onClick={() => navigate(category.route)}
+      onClick={() => navigate(category.route + `?mode=${listingMode}`)}
       className={cn(
         "group w-20.5 shrink-0",
         "text-center",

@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
+using System.Text.Json.Serialization;
 using YegnaBet.API.Modules.Brokers.Services;
 using YegnaBet.API.Modules.Finance.Services;
 using YegnaBet.API.Modules.Marketplace.Services;
@@ -18,7 +19,16 @@ builder.Services.AddScoped<BrokerService>();
 builder.Services.AddScoped<AuditService>();
 builder.Services.AddScoped<FinanceService>();
 builder.Services.AddScoped<UserService>();
-builder.Services.AddControllers();
+
+builder.Services
+    .AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.Converters.Add(
+            new JsonStringEnumConverter()
+            );
+    });
+
 builder.Services.AddSignalR();
 
 // CORS

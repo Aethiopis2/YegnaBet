@@ -70,7 +70,9 @@ namespace YegnaBet.API.Modules.Brokers.Services
                     };
 
                     _db.Users.Add(customer);
-                    request.CustomerId = customer.Id;
+                    await _db.SaveChangesAsync(); 
+                        
+                    request.CustomerId = _db.Users.First(x => x.PhoneNumber == customer.PhoneNumber).Id;
                 }
             }
 

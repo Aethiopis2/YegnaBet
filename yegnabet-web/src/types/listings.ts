@@ -46,7 +46,7 @@ export interface Listing {
     description?: string;
     price: number;
     currency?: string;
-    status: ListingStatus;
+    status: number;
     location: ListingLocation;
     images: string[];
     featured?: boolean;
@@ -62,3 +62,5 @@ export interface Listing {
     assignmentId?: string;
     assignmentExpiresAt?: string;
 }
+
+export type ListingMode = "Buy" | "Rent" | "Contract" | "Service" | "All";
