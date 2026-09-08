@@ -14,8 +14,6 @@ import {
 
 import { cn } from "../../lib/cn";
 
-import { ASSET_URL } from "../../types/api";
-
 import { resolveIcon } from "../../lib/IconResolver";
 
 

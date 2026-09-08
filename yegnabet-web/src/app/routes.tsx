@@ -15,6 +15,8 @@ import { TaxonomiesPage } from "../pages/employee/TaxonomiesPage";
 import { EmployeeDashboardPage } from "../pages/employee/EmployeeDashboardPage";
 import OwnerDashboard from "../pages/owner/OwnerDashboard";
 import ProviderDashboard from "../pages/provider/ProviderDashboard";
+import CreateListingPage from "../pages/provider/CreateListingPage";
+import EditListingPage from "../pages/provider/EditListingPage";
 
 export function AppRoutes() {
   return (
@@ -92,6 +94,16 @@ export function AppRoutes() {
       <Route
         path="/provider"
         element={<ProviderDashboard />}
+      />
+
+      <Route
+        path="/provider/listings/create"
+        element={<CreateListingPage />}
+      />
+
+      <Route
+        path="/provider/listings/:id/edit"
+        element={<EditListingPage />}
       />
     </Routes>
   );

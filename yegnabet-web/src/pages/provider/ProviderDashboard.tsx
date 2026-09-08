@@ -16,12 +16,91 @@ import { ProviderHealth } from "../../components/provider/ProviderHealth";
 import { ProviderStatCard } from "../../components/provider/ProviderStatCard";
 import { ProviderListingPreview } from "../../components/provider/ProviderListingPreview";
 import { ProviderOpportunityList } from "../../components/provider/ProviderOpportunityList";
+import type { ProviderData } from "./providerData";
+import { useEffect, useState } from "react";
+import { API, ASSET_URL } from "../../types/api";
+import { ListingForm } from "../../components/provider/ListingForm";
+import { useNavigate } from "react-router-dom";
 
-import { providerData } from "./providerData";
+// import { providerData } from "./providerData";
 
 export default function ProviderDashboard() {
-  const provider = providerData.provider;
+  const navigate = useNavigate();
 
+  //const provider = providerData.provider;
+  const providerId = 80; // Replace with the actual provider ID
+
+  const [showListingForm, setShowListingForm] = useState(false);
+  const [provider, setProvider] = useState<ProviderData | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+      API.get(`/provider/${providerId}`)
+        .then((r) => {
+          setLoading(true);
+
+          // correct image url if since its always relative
+          r.data.listings.forEach((listing: any) => {
+            if (listing.image && !listing.image.startsWith("http")) {
+              listing.image = ASSET_URL + listing.image;
+            }
+          });
+
+          setProvider(r.data);
+        })
+        .catch((error) => {
+          console.error("Failed to load listing", error);
+          setProvider(null);
+        })
+        .finally(() => {
+          setLoading(false);
+        });
+      }, []);
+  
+    if (loading) {
+      return (
+        <AppShell>
+          <div className="flex items-center justify-center py-10">
+            <div className="h-6 w-6 animate-spin rounded-full border-2 border-gray-300 border-t-orange-500" />
+          </div>
+        </AppShell>
+      );
+    }
+
+    if (showListingForm) {
+      return (
+        <ListingForm
+          onClose={() =>
+            setShowListingForm(false)
+          }
+          onSaved={() => {
+            /*
+            * Reload provider dashboard after
+            * successfully creating a listing.
+            */
+            API.get(`/provider/${providerId}`)
+              .then((r) => {
+                r.data.listings.forEach(
+                  (listing: any) => {
+                    if (
+                      listing.image &&
+                      !listing.image.startsWith("http")
+                    ) {
+                      listing.image =
+                        ASSET_URL +
+                        listing.image;
+                    }
+                  }
+                );
+
+                setProvider(r.data);
+              })
+              .catch(console.error);
+          }}
+        />
+      );
+    }
+  
   return (
     <AppShell>
       <PageContainer>
@@ -53,7 +132,7 @@ export default function ProviderDashboard() {
                     Provider Studio
                   </span>
 
-                  {provider.verified && (
+                  {provider?.provider.verified && (
                     <span className="text-xs text-emerald-600 dark:text-orange-400">
                       ✓ Verified
                     </span>
@@ -61,7 +140,7 @@ export default function ProviderDashboard() {
                 </div>
 
                 <h1 className="mt-3 text-3xl font-bold tracking-tight text-slate-900 dark:text-white">
-                  Good morning, {provider.name.split(" ")[0]} 👋
+                  Good morning, {provider?.provider.name.split(" ")[0]} 👋
                 </h1>
 
                 <p className="mt-2 text-sm leading-6 text-slate-500 dark:text-slate-400">
@@ -71,6 +150,7 @@ export default function ProviderDashboard() {
 
               <button
                 type="button"
+                onClick={() => navigate("/provider/listings/create")}
                 className="
                   inline-flex
                   items-center
@@ -103,7 +183,7 @@ export default function ProviderDashboard() {
           {/* ======================================================== */}
 
           <div className="mb-6">
-            <ProviderHealth score={provider.health} />
+            <ProviderHealth score={Number(provider?.provider.businessHealth)} />
           </div>
 
           {/* ======================================================== */}
@@ -115,28 +195,28 @@ export default function ProviderDashboard() {
 
               <ProviderStatCard
                 label="Active listings"
-                value={providerData.stats.activeListings}
+                value={Number(provider?.status.activeListings)}
                 change="+2"
                 icon={BriefcaseBusiness}
               />
 
               <ProviderStatCard
                 label="Listing views"
-                value={providerData.stats.totalViews}
+                value={Number(provider?.status.totalViews)}
                 change="+18%"
                 icon={Eye}
               />
 
               <ProviderStatCard
                 label="Customer enquiries"
-                value={providerData.stats.enquiries}
+                value={Number(provider?.status.inquiries)}
                 change="+12%"
                 icon={MessageCircle}
               />
 
               <ProviderStatCard
                 label="Deals"
-                value={providerData.stats.deals}
+                value={Number(provider?.status.deals)}
                 change="+33%"
                 icon={BarChart3}
               />
@@ -181,13 +261,11 @@ export default function ProviderDashboard() {
             </div>
 
             <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
-              {providerData.listings.map((listing) => (
+              {provider?.listings.map((listing) => (
                 <ProviderListingPreview
                   key={listing.id}
                   listing={listing}
-                  onEdit={(item) =>
-                    console.log("Edit listing", item.id)
-                  }
+                  onEdit={(item) => navigate(`/provider/listings/${item.id}/edit`)}
                   onOpen={(item) =>
                     console.log("Open listing", item.id)
                   }
@@ -198,6 +276,7 @@ export default function ProviderDashboard() {
 
               <button
                 type="button"
+                onClick={() => navigate("/provider/listings/create")}
                 className="
                   group
                   flex
@@ -360,7 +439,7 @@ export default function ProviderDashboard() {
               </div>
 
               <div className="divide-y divide-slate-100 dark:divide-white/5">
-                {providerData.requests.map((request) => (
+                {provider?.requests.map((request) => (
                   <button
                     key={request.id}
                     type="button"
@@ -401,7 +480,7 @@ export default function ProviderDashboard() {
                           {request.customer}
                         </span>
 
-                        {request.status === "new" && (
+                        {request.status === "New" && (
                           <span
                             className="
                               rounded-full
@@ -462,7 +541,7 @@ export default function ProviderDashboard() {
 
           <div className="mt-6">
             <ProviderOpportunityList
-              items={providerData.opportunities}
+              items={provider?.opportunities ?? []}
               onSelect={(item) =>
                 console.log("Opportunity", item.id)
               }

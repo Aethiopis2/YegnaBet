@@ -151,7 +151,7 @@ export function ProviderListingPreview({
               dark:hover:bg-white/5
             "
           >
-            {listing.status === "active" ? (
+            {listing.status === "Active" ? (
               <>
                 <Pause size={14} />
                 Pause
@@ -198,7 +198,19 @@ function StatusBadge({
       className:
         "bg-slate-500/90 text-white",
     },
-  }[status];
+    cancelled: {
+      label: "Cancelled",
+      className:
+        "bg-red-500/90 text-white",
+    },
+
+    closed: {
+      label: "Closed",
+      className:
+        "bg-slate-700/90 text-white",
+    },
+  }[status.toLowerCase() as
+    "active" | "draft" | "pending" | "paused" | "cancelled" | "closed"];
 
   return (
     <span
