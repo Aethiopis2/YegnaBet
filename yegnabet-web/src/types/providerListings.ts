@@ -1,7 +1,4 @@
-import type {
-  ProviderLocation,
-  ProviderTaxonomy,
-} from "./provider";
+import type { ProviderLocation } from "./provider";
 
 export interface ListingPhotoDraft {
   id?: number;
@@ -31,7 +28,9 @@ export interface ListingDraft {
   method: string;
 
   taxonomyId: number | null;
-  locationId: number | null;
+  city: string;
+  area: string;
+  subArea?: string;
 
   attributes: Record<string, ListingAttributeValue>;
 
@@ -100,7 +99,6 @@ export const LISTING_WIZARD_STEPS: ListingWizardStepDefinition[] = [
 export interface ListingWizardProps {
   initialData?: Partial<ListingDraft>;
 
-  taxonomy: ProviderTaxonomy[];
   locations: ProviderLocation[];
 
   onSubmit: (listing: ListingDraft) => Promise<void>;
@@ -122,7 +120,10 @@ export function createEmptyListingDraft(): ListingDraft {
     method: "",
 
     taxonomyId: null,
-    locationId: null,
+    // locationId: null,
+    city: "",
+    area: "",
+    subArea: "",
 
     attributes: {},
 

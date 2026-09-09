@@ -10,6 +10,5 @@
         DateTime,
         Choice,
         MultiChoice,
-        Money
     }
 }

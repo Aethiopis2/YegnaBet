@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using YegnaBet.API.Modules.Provider.Dtos;
 using YegnaBet.API.Modules.Provider.Services;
 
 namespace YegnaBet.API.Modules.Provider.Controllers
@@ -25,6 +26,30 @@ namespace YegnaBet.API.Modules.Provider.Controllers
         public async Task<IActionResult> Get()
         {
             return Ok(await _service.GetProviderTaxonomyAsync());
+        }
+
+        [HttpGet("get-taxonomyNodeAtrributes")]
+        public async Task<IActionResult> GetTaxonomyNodeAttributes([FromQuery] long nodeId)
+        {
+            return Ok(await _service.GetNodeAttributes(nodeId));
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> CreateListing([FromForm] ListingDraftDto draft)
+        {
+            foreach (var photo in draft.Photos)
+            {
+                if (photo.File is not null)
+                {
+                    var file = photo.File;
+
+                    Console.WriteLine($"Name: {file.FileName}");
+                    Console.WriteLine($"Size: {file.Length}");
+                    Console.WriteLine($"Type: {file.ContentType}");
+                }
+            }
+
+            return Ok();
         }
     }
 }

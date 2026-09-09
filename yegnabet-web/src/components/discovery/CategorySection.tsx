@@ -4,8 +4,8 @@ import { SectionHeader } from "../ui/SectionHeader";
 import { CategoryCard } from "./CategoryCard";
 import { API, ASSET_URL } from "../../types/api";
 import type { Category } from "../../types/category";
-import { AppShell } from "../layout/AppShell";
 import type { ListingMode } from "../../types/listings";
+import Loading from "../ui/Loading";
 
 export function CategorySection({listingMode}: { listingMode: ListingMode }) {
   const [categories, setCategories] = useState<Category[]>([]);
@@ -35,11 +35,7 @@ export function CategorySection({listingMode}: { listingMode: ListingMode }) {
 
   if (loading) {
       return (
-        <AppShell>
-          <div className="flex items-center justify-center py-10">
-            <div className="h-6 w-6 animate-spin rounded-full border-2 border-gray-300 border-t-orange-500" />
-          </div>
-        </AppShell>
+        <Loading />
       );
     }
 

@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using System.Runtime.InteropServices;
 using YegnaBet.API.Modules.Provider.Dtos;
+using YegnaBet.Domain.Entities;
 using YegnaBet.Domain.Enums;
 using YegnaBet.Infrastructure.Persistence;
 
@@ -198,6 +199,53 @@ namespace YegnaBet.API.Modules.Provider.Services
             }
 
             return roots;
+        }
+
+        public async Task<object> GetNodeAttributes(long nodeId)
+        {
+            var attrbs = await _db.TaxonomyNode
+                .AsNoTracking()
+                .Where(n => n.Id == nodeId)
+                .SelectMany(n => n.Attributes)
+                .Select(a => new ProviderTaxonomyNodeAttributeDto
+                {
+                    Id = a.AttributeDefinition.Id,
+                    Key = a.AttributeDefinition.Name.ToLower(),
+                    Label = a.AttributeDefinition.Name,
+                    Type = a.AttributeDefinition.DataType.ToString()
+                })
+                .ToListAsync();
+
+            return attrbs;
+        }
+
+        public async Task<long> CreateListing(ListingDraftDto draft)
+        {
+            Location location = new Location
+            {
+                City = draft.City,
+                Area = draft.Area,
+                SubArea = draft.SubArea,
+                Latitude = draft.Latitude,
+                Longitude = draft.Longitude
+            };
+
+            await _db.Locations.AddAsync(location);
+            await _db.SaveChangesAsync();
+
+            Listing listing = new Listing
+            {
+                Title = draft.Title,
+                Description = draft.Description,
+                LocationId = location.Id,
+                Price = draft.Price,
+                PriceUnit = draft.PriceUnit,
+                Method = draft.Method == "For sale" ? ListingMethod.Buy :
+                    draft.Method == "For rent" ? ListingMethod.Rent :
+                    draft.Method == "Service" ? ListingMethod.Service : ListingMethod.Contract,
+                ListingStatus = ListingStatus.Draft,
+                ProviderId = draft.ProviderId,
+            };
         }
     }
 }
