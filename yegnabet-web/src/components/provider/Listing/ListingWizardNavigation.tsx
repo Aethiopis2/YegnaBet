@@ -6,7 +6,7 @@ import {
 
 import type {
   ListingWizardStep,
-} from "../../../types/providerListings";
+} from "../../../types/provider/providerTypes";
 
 interface Props {
   step: ListingWizardStep;

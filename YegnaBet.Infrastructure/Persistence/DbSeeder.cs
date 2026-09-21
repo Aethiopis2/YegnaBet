@@ -9,8 +9,8 @@ namespace YegnaBet.Infrastructure.Persistence
 {
     public static class DbSeeder
     {
-        private const int NUM_USERS = 100;
-        private const int NUM_LISTINGS = 1000;
+        private const int NUM_USERS = 1000;
+        private const int NUM_LISTINGS = 100000;
 
         private static readonly string[] cities_list =
         {

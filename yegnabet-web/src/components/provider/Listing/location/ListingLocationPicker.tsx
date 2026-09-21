@@ -73,7 +73,6 @@ export function ListingLocationPicker({
       preciseLocation: boolean;
     }>
   ) {
-    console.log(changes);
     onChange({
       city,
       area,

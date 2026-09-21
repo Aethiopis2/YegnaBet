@@ -123,7 +123,6 @@ export function MatchIntro({
           "
         >
           Find My Match
-
           <ArrowRight className="size-4" />
         </button>
       </div>

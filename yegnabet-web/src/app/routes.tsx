@@ -17,6 +17,8 @@ import OwnerDashboard from "../pages/owner/OwnerDashboard";
 import ProviderDashboard from "../pages/provider/ProviderDashboard";
 import CreateListingPage from "../pages/provider/CreateListingPage";
 import EditListingPage from "../pages/provider/EditListingPage";
+import CategorySectionPage from "../pages/customer/CategorySectionPage";
+import LocationsSectitonPage from "../pages/customer/LocationsSectitonPage";
 
 export function AppRoutes() {
   return (
@@ -29,6 +31,16 @@ export function AppRoutes() {
       <Route
         path="/explore"
         element={<ExplorePage />}
+      />
+
+      <Route
+        path="/categories"
+        element={<CategorySectionPage />}
+      />
+
+      <Route
+        path="/locations"
+        element={<LocationsSectitonPage />}
       />
 
       <Route

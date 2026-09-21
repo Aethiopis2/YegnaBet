@@ -1,12 +1,23 @@
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 
 import { AppShell } from "../../components/layout/AppShell";
 import { PageContainer } from "../../components/layout/PageContainer";
 import { ListingWizard } from "../../components/provider/Listing/ListingWizard";
+import type { ListingDraft } from "../../types/provider/providerTypes";
 
 export default function EditListingPage() {
+  const providerId = 887;
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
 
+  // function fetchListingDraft() : ListingDraft {
+
+  // }
+
+  function handleSubmit(daft) {
+
+  }
+  console.log(id);
   if (!id) {
     return (
       <AppShell>
@@ -30,7 +41,11 @@ export default function EditListingPage() {
       <PageContainer>
         <ListingWizard
           mode="edit"
+          providerId={providerId}
           listingId={Number(id)}
+          locations={[]}
+          onSubmit={async (draft) => await handleSubmit(draft)}
+          onCancel={async () => navigate('/provider')}
         />
       </PageContainer>
     </AppShell>

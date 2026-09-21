@@ -67,7 +67,7 @@ namespace YegnaBet.Infrastructure.Migrations
                     b.HasIndex("Key")
                         .IsUnique();
 
-                    b.ToTable("AttributeDeinition", "public");
+                    b.ToTable("AttributeDefinition", "public");
                 });
 
             modelBuilder.Entity("YegnaBet.Domain.Entities.AuditLog", b =>
@@ -289,8 +289,8 @@ namespace YegnaBet.Infrastructure.Migrations
                     b.Property<bool>("IsVerified")
                         .HasColumnType("boolean");
 
-                    b.Property<decimal?>("Latitude")
-                        .HasColumnType("numeric");
+                    b.Property<double?>("Latitude")
+                        .HasColumnType("double precision");
 
                     b.Property<int>("ListingStatus")
                         .HasColumnType("integer");
@@ -298,8 +298,8 @@ namespace YegnaBet.Infrastructure.Migrations
                     b.Property<long>("LocationId")
                         .HasColumnType("bigint");
 
-                    b.Property<decimal?>("Longitude")
-                        .HasColumnType("numeric");
+                    b.Property<double?>("Longitude")
+                        .HasColumnType("double precision");
 
                     b.Property<int>("Method")
                         .HasColumnType("integer");
@@ -423,12 +423,6 @@ namespace YegnaBet.Infrastructure.Migrations
                         .IsRequired()
                         .HasMaxLength(128)
                         .HasColumnType("character varying(128)");
-
-                    b.Property<double?>("Latitude")
-                        .HasColumnType("double precision");
-
-                    b.Property<double?>("Longitude")
-                        .HasColumnType("double precision");
 
                     b.Property<string>("SubArea")
                         .HasMaxLength(256)

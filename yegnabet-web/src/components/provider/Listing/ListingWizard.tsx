@@ -1,13 +1,11 @@
 import { useEffect, useState } from "react";
-
+import { createEmptyListingDraft } from "../../../lib/provider/providerManagement";
 import type { ProviderTaxonomy, } from "../../../types/provider";
-
 import {
-createEmptyListingDraft,
 LISTING_WIZARD_STEPS,
 type ListingDraft,
 type ListingWizardProps,
-} from "../../../types/providerListings";
+} from "../../../types/provider/providerTypes";
 
 import { ListingWizardHeader } from "../listing/ListingWizardHeader";
 import { ListingWizardNavigation } from "../listing/ListingWizardNavigation";
@@ -21,13 +19,14 @@ import { ListingMediaStep } from "../listing/steps/ListingMediaStep";
 import { ListingDetailsStep } from "../listing/steps/ListingDetailsStep";
 import { ListingReviewStep } from "../listing/steps/ListingReviewStep";
 import { API } from "../../../types/api";
-import Loading from "../../ui/Loading";
+import Loading from "../../ui/common/Loading";
 
 export function ListingWizard({
     initialData,
     locations,
     onSubmit,
     onCancel,
+    providerId,
     mode = "create",
   }: ListingWizardProps) {
 
@@ -38,7 +37,7 @@ export function ListingWizard({
   const [stepIndex, setStepIndex] = useState(0);
 
   const [draft, setDraft] = useState<ListingDraft>(() => ({
-    ...createEmptyListingDraft(), ...initialData,}));
+    ...createEmptyListingDraft(Number(providerId)), ...initialData,}));
 
   const step =LISTING_WIZARD_STEPS[stepIndex];
 

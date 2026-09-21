@@ -1,4 +1,4 @@
-import type { ListingMode } from "../../types/listings";
+import type { ListingMode } from "../../types/customer/listings";
 import { cn } from "../../lib/cn";
 
 interface ListingTabsProps {

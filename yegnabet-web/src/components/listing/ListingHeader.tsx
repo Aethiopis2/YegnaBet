@@ -4,7 +4,7 @@ import {
   TrendingUp,
 } from "lucide-react";
 
-import type { Listing } from "../../types/listings";
+import type { Listing } from "../../types/customer/listings";
 
 import {
   formatPrice,

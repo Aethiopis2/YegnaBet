@@ -1,4 +1,4 @@
-import { AppShell } from "../layout/AppShell"
+import { AppShell } from "../../layout/AppShell"
 
 const Loading = () => {
   return (

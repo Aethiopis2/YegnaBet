@@ -3,7 +3,7 @@ import { useRef } from "react";
 
 import type {
 ListingPhotoDraft,
-} from "../../../../types/providerListings";
+} from "../../../../types/provider/providerTypes";
 
 interface Props {
 photos: ListingPhotoDraft[];

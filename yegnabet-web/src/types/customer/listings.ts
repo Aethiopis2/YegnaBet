@@ -1,3 +1,11 @@
+export interface ListingPage {
+  items: Listing[];
+  page: number;
+  pageSize: number;
+  hasMore: boolean;
+}
+
+
 export type ListingType =  "land" | "house" | "apartment" | "commercial" | "service";
 export type ListingStatus = | "sale" | "rent" | "contract" | "available";
 
@@ -29,6 +37,7 @@ export interface ListingPage {
   pageSize: number;
   hasMore: boolean;
 }
+
 
 export interface ListingEmployee {
   id: number;

@@ -2,7 +2,7 @@ import { Plus, Trash2 } from "lucide-react";
 
 import type {
 ListingVideoDraft,
-} from "../../../../types/providerListings";
+} from "../../../../types/provider/providerTypes";
 
 interface Props {
 videos: ListingVideoDraft[];

@@ -8,294 +8,19 @@ import {
   Wrench,
 } from "lucide-react";
 
-import { useMemo, useState } from "react";
-
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { EmployeeShell } from "../../components/employee/EmployeeShell";
-
 import { TaxonomySidebar } from "../../components/employee/taxonomy/TaxonomySidebar";
-import { TaxonomyTree } from "../../components/employee/taxonomy/TaxonomyTree";
+import { flattenTree, TaxonomyTree } from "../../components/employee/taxonomy/TaxonomyTree";
 import { TaxonomyDetails } from "../../components/employee/taxonomy/TaxonomyDetails";
 import { TaxonomyAttributes } from "../../components/employee/taxonomy/TaxonomyAttributes";
 import { TaxonomyAttributeDetails } from "../../components/employee/taxonomy/TaxonomyAttributeDetails";
-
-import type {
-  TaxonomyAttribute,
-  TaxonomyNode,
-} from "../../components/employee/taxonomy/TaxonomyTypes";
+import type { TaxonomyNodeFront } from "../../types/common/taxonomy";
+import { mapTaxonomyTree } from "../../types/eployee/taxonomyMapper";
+import { createTaxonomyNode, getTaxonomyTree } from "../../lib/employee/taxonomyApi";
 
 
-const initialTree: TaxonomyNode[] = [
-  {
-    id: "listing",
-    name: "Listing",
-    slug: "listing",
-    description:
-      "Root classification for all listings.",
-    icon: Folder,
-    active: true,
-    parentId: null,
-    sortOrder: 0,
-    listingCount: 1248,
-    attributes: [],
-    children: [
-      {
-        id: "property",
-        name: "Property",
-        slug: "property",
-        description:
-          "Real estate and physical property listings.",
-        icon: Building2,
-        active: true,
-        parentId: "listing",
-        sortOrder: 1,
-        listingCount: 942,
-        attributes: [],
-        children: [
-          {
-            id: "house",
-            name: "House",
-            slug: "house",
-            description:
-              "Standalone residential houses.",
-            icon: Home,
-            active: true,
-            parentId: "property",
-            sortOrder: 1,
-            listingCount: 312,
-            attributes: [
-              {
-                id: "area",
-                name: "Area (m²)",
-                key: "area",
-                type: "decimal",
-                required: true,
-                searchable: true,
-                filterable: true,
-              },
-              {
-                id: "bedrooms",
-                name: "Bedrooms",
-                key: "bedrooms",
-                type: "integer",
-                required: true,
-                searchable: true,
-                filterable: true,
-                minValue: 0,
-                maxValue: 20,
-              },
-              {
-                id: "bathrooms",
-                name: "Bathrooms",
-                key: "bathrooms",
-                type: "integer",
-                required: true,
-                searchable: true,
-                filterable: true,
-                minValue: 0,
-                maxValue: 20,
-              },
-              {
-                id: "floor",
-                name: "Floor",
-                key: "floor",
-                type: "integer",
-                required: false,
-                searchable: true,
-                filterable: true,
-              },
-              {
-                id: "furnished",
-                name: "Furnished",
-                key: "furnished",
-                type: "boolean",
-                required: false,
-                searchable: true,
-                filterable: true,
-              },
-            ],
-            children: [
-              {
-                id: "apartment",
-                name: "Apartment",
-                slug: "apartment",
-                description:
-                  "Independent residential unit within a building.",
-                icon: Building2,
-                active: true,
-                parentId: "house",
-                sortOrder: 1,
-                listingCount: 248,
-                attributes: [],
-                children: [],
-              },
-              {
-                id: "villa",
-                name: "Villa",
-                slug: "villa",
-                description:
-                  "Detached premium residential property.",
-                icon: Home,
-                active: true,
-                parentId: "house",
-                sortOrder: 2,
-                listingCount: 64,
-                attributes: [],
-                children: [],
-              },
-            ],
-          },
-
-          {
-            id: "office",
-            name: "Office",
-            slug: "office",
-            icon: BriefcaseBusiness,
-            active: true,
-            parentId: "property",
-            sortOrder: 2,
-            listingCount: 94,
-            attributes: [],
-            children: [],
-          },
-
-          {
-            id: "shop",
-            name: "Shop",
-            slug: "shop",
-            icon: Building2,
-            active: true,
-            parentId: "property",
-            sortOrder: 3,
-            listingCount: 82,
-            attributes: [],
-            children: [],
-          },
-        ],
-      },
-
-      {
-        id: "land",
-        name: "Land",
-        slug: "land",
-        description:
-          "Land and land-related listings.",
-        icon: LandPlot,
-        active: true,
-        parentId: "listing",
-        sortOrder: 2,
-        listingCount: 217,
-        attributes: [],
-        children: [
-          {
-            id: "farm",
-            name: "Farm",
-            slug: "farm",
-            icon: LandPlot,
-            active: true,
-            parentId: "land",
-            sortOrder: 1,
-            listingCount: 37,
-            attributes: [],
-            children: [],
-          },
-        ],
-      },
-
-      {
-        id: "service",
-        name: "Service",
-        slug: "service",
-        icon: Wrench,
-        active: true,
-        parentId: "listing",
-        sortOrder: 3,
-        listingCount: 307,
-        attributes: [],
-        children: [
-          {
-            id: "professional",
-            name: "Professional",
-            slug: "professional",
-            icon: UserRound,
-            active: true,
-            parentId: "service",
-            sortOrder: 1,
-            listingCount: 192,
-            attributes: [],
-            children: [
-              {
-                id: "accountant",
-                name: "Accountant",
-                slug: "accountant",
-                icon: UserRound,
-                active: true,
-                parentId: "professional",
-                sortOrder: 1,
-                listingCount: 28,
-                attributes: [],
-                children: [],
-              },
-              {
-                id: "lawyer",
-                name: "Lawyer",
-                slug: "lawyer",
-                icon: UserRound,
-                active: true,
-                parentId: "professional",
-                sortOrder: 2,
-                listingCount: 19,
-                attributes: [],
-                children: [],
-              },
-            ],
-          },
-
-          {
-            id: "labour",
-            name: "Labour",
-            slug: "labour",
-            icon: Wrench,
-            active: true,
-            parentId: "service",
-            sortOrder: 2,
-            listingCount: 115,
-            attributes: [],
-            children: [
-              {
-                id: "cleaner",
-                name: "Cleaner",
-                slug: "cleaner",
-                icon: UserRound,
-                active: true,
-                parentId: "labour",
-                sortOrder: 1,
-                listingCount: 38,
-                attributes: [],
-                children: [],
-              },
-              {
-                id: "painter",
-                name: "Painter",
-                slug: "painter",
-                icon: UserRound,
-                active: true,
-                parentId: "labour",
-                sortOrder: 2,
-                listingCount: 31,
-                attributes: [],
-                children: [],
-              },
-            ],
-          },
-        ],
-      },
-    ],
-  },
-];
-
-function cloneTree(
-  nodes: TaxonomyNode[]
-): TaxonomyNode[] {
+function cloneTree(nodes: TaxonomyNodeFront[]): TaxonomyNodeFront[] {
   return nodes.map((node) => ({
     ...node,
     children: cloneTree(node.children),
@@ -303,10 +28,7 @@ function cloneTree(
   }));
 }
 
-function findNode(
-  nodes: TaxonomyNode[],
-  id: string
-): TaxonomyNode | null {
+function findNode(nodes: TaxonomyNodeFront[], id: string): TaxonomyNodeFront | null {
   for (const node of nodes) {
     if (node.id === id) {
       return node;
@@ -322,10 +44,7 @@ function findNode(
   return null;
 }
 
-function removeNode(
-  nodes: TaxonomyNode[],
-  id: string
-): TaxonomyNode | null {
+function removeNode(nodes: TaxonomyNodeFront[], id: string): TaxonomyNodeFront | null {
   for (let i = 0; i < nodes.length; i++) {
     if (nodes[i].id === id) {
       return nodes.splice(i, 1)[0];
@@ -344,10 +63,7 @@ function removeNode(
   return null;
 }
 
-function containsNode(
-  node: TaxonomyNode,
-  id: string
-): boolean {
+function containsNode(node: TaxonomyNodeFront, id: string): boolean {
   if (node.id === id) {
     return true;
   }
@@ -357,19 +73,44 @@ function containsNode(
   );
 }
 
+const taxonomyIds: Record<string, number> = {
+  "listing-types": 1,
+  "professional-specializations": 2,
+  "business-types": 3,
+  "property-features": 4,
+  "service-categories": 5,
+};
 
 export function TaxonomiesPage() {
-  const [taxonomy, setTaxonomy] =
-    useState("listing-types");
+  const [taxonomy, setTaxonomy] = useState("listing-types");
+  const [tree, setTree] =useState<TaxonomyNodeFront[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [selectedAttributeId, setSelectedAttributeId] = useState<string | null>(null);
 
-  const [tree, setTree] =
-    useState<TaxonomyNode[]>(initialTree);
+  const allNodes = useMemo(
+    () => flattenTree(tree),
+    [tree]
+  );
+  
+  useEffect(() => {
+    const taxonomyId = taxonomyIds[taxonomy];
 
-  const [selectedId, setSelectedId] =
-    useState<string | null>("apartment");
+    if (!taxonomyId) {
+      setTree([]);
+      setError("Unknown taxonomy.");
+      setLoading(false);
+      return;
+    }
 
-  const [selectedAttributeId, setSelectedAttributeId] =
-    useState<string | null>("bedrooms");
+    let cancelled = false;
+
+    loadTree();
+    return () => {
+      cancelled = true;
+    };
+  }, [taxonomy]);
 
   const selectedNode = useMemo(
     () =>
@@ -447,44 +188,70 @@ export function TaxonomiesPage() {
     });
   }
 
-  function handleAddChild(parentId: string) {
-    const id =
-      `new-${Date.now()}`;
+  async function createNode(parentId: string | null) {
+    const taxonomyId = taxonomyIds[taxonomy];
 
-    const newNode: TaxonomyNode = {
-      id,
-      name: "New Category",
-      slug: "new-category",
-      description: "",
-      icon: Folder,
-      active: true,
-      parentId,
-      sortOrder: 0,
-      listingCount: 0,
-      attributes: [],
-      children: [],
-    };
+    if (!taxonomyId)
+      throw new Error("Unknown taxonomy.");
 
-    setTree((current) => {
-      const next = cloneTree(current);
-
-      const parent = findNode(
-        next,
-        parentId
-      );
-
-      if (parent) {
-        newNode.sortOrder =
-          parent.children.length + 1;
-
-        parent.children.push(newNode);
+    const node = await createTaxonomyNode(
+      taxonomyId,
+      {
+        name: "New Category",
+        parentId: parentId
+          ? Number(parentId)
+          : null,
       }
+    );
 
-      return next;
-    });
+    await loadTree();
 
-    setSelectedId(id);
+    setSelectedId(String(node.id));
+    setSelectedAttributeId(null);
   }
+
+  const handleAddChild = async (parentId: string) => {
+    try {
+      await createNode(parentId);
+    }
+    catch (error) {
+      // We'll replace this with the YegnaBet toast later.
+      console.error(error);
+    }
+  };
+
+  const loadTree = useCallback(async () => {
+    const taxonomyId = taxonomyIds[taxonomy];
+
+    if (!taxonomyId) {
+      setTree([]);
+      setError("Unknown taxonomy.");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setError(null);
+
+      const result = await getTaxonomyTree(taxonomyId);
+
+      setTree(mapTaxonomyTree(result));
+    }
+    catch (error) {
+      console.error(error);
+
+      setTree([]);
+
+      setError(
+        error instanceof Error
+          ? error.message
+          : "Failed to load taxonomy."
+      );
+    }
+    finally {
+      setLoading(false);
+    }
+  }, [taxonomy]);
 
   return (
     <EmployeeShell>
@@ -609,6 +376,9 @@ export function TaxonomiesPage() {
 
                       dark:text-yegna-400
                     "
+                    onClick={() => {
+                      void createNode(null);
+                    }}
                   >
                     + Add Root Category
                   </button>
@@ -627,15 +397,32 @@ export function TaxonomiesPage() {
             </header>
 
             <div className="p-3">
-              <TaxonomyTree
-                nodes={tree}
-                selectedId={selectedId}
-                onSelect={(node) =>
-                  setSelectedId(node.id)
-                }
-                onMove={handleMove}
-                onAddChild={handleAddChild}
-              />
+              {loading ? (
+                <div className="flex items-center justify-center py-12">
+                  <div className="text-sm text-zinc-500 dark:text-zinc-400">
+                    Loading taxonomy...
+                  </div>
+                </div>
+              ) : error ? (
+                <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700 dark:border-red-900/40 dark:bg-red-950/20 dark:text-red-300">
+                  {error}
+                </div>
+              ) : tree.length === 0 ? (
+                <div className="rounded-xl border border-dashed border-zinc-300 p-8 text-center text-sm text-zinc-500 dark:border-zinc-700 dark:text-zinc-400">
+                  This taxonomy has no categories yet.
+                </div>
+              ) : (
+                <TaxonomyTree
+                  nodes={tree}
+                  selectedId={selectedId}
+                  onSelect={(node) => {
+                    setSelectedId(node.id);
+                    setSelectedAttributeId(null);
+                  }}
+                  onMove={handleMove}
+                  onAddChild={handleAddChild}
+                />
+              )}
             </div>
           </section>
 
@@ -643,6 +430,9 @@ export function TaxonomiesPage() {
 
           <TaxonomyDetails
             node={selectedNode}
+            allNodes={allNodes}
+            onSaved={loadTree}
+            onDelete={()=> {}}  /*handleDeleteNode*/
           />
         </div>
 
@@ -683,7 +473,7 @@ function PlusIcon() {
 function CategoryPath({
   node,
 }: {
-  node: TaxonomyNode;
+  node: TaxonomyNodeFront;
 }) {
   return (
     <section

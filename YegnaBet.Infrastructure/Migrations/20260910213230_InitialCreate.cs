@@ -17,7 +17,7 @@ namespace YegnaBet.Infrastructure.Migrations
                 name: "public");
 
             migrationBuilder.CreateTable(
-                name: "AttributeDeinition",
+                name: "AttributeDefinition",
                 schema: "public",
                 columns: table => new
                 {
@@ -34,7 +34,7 @@ namespace YegnaBet.Infrastructure.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_AttributeDeinition", x => x.Id);
+                    table.PrimaryKey("PK_AttributeDefinition", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -223,10 +223,10 @@ namespace YegnaBet.Infrastructure.Migrations
                 {
                     table.PrimaryKey("PK_NodeAttributeDefinition", x => new { x.TaxonomyNodeId, x.AttributeDefinitionId });
                     table.ForeignKey(
-                        name: "FK_NodeAttributeDefinition_AttributeDeinition_AttributeDefinit~",
+                        name: "FK_NodeAttributeDefinition_AttributeDefinition_AttributeDefini~",
                         column: x => x.AttributeDefinitionId,
                         principalSchema: "public",
-                        principalTable: "AttributeDeinition",
+                        principalTable: "AttributeDefinition",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
@@ -291,10 +291,10 @@ namespace YegnaBet.Infrastructure.Migrations
                 {
                     table.PrimaryKey("PK_ListingAttributeValue", x => new { x.ListingId, x.AttributeDefinitionId });
                     table.ForeignKey(
-                        name: "FK_ListingAttributeValue_AttributeDeinition_AttributeDefinitio~",
+                        name: "FK_ListingAttributeValue_AttributeDefinition_AttributeDefiniti~",
                         column: x => x.AttributeDefinitionId,
                         principalSchema: "public",
-                        principalTable: "AttributeDeinition",
+                        principalTable: "AttributeDefinition",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
@@ -425,9 +425,9 @@ namespace YegnaBet.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_AttributeDeinition_Key",
+                name: "IX_AttributeDefinition_Key",
                 schema: "public",
-                table: "AttributeDeinition",
+                table: "AttributeDefinition",
                 column: "Key",
                 unique: true);
 
@@ -578,7 +578,7 @@ namespace YegnaBet.Infrastructure.Migrations
                 schema: "public");
 
             migrationBuilder.DropTable(
-                name: "AttributeDeinition",
+                name: "AttributeDefinition",
                 schema: "public");
 
             migrationBuilder.DropTable(

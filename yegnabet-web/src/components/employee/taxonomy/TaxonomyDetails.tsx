@@ -5,13 +5,102 @@ import {
   Trash2,
 } from "lucide-react";
 
-import type { TaxonomyNode } from "./TaxonomyTypes";
+import type { TaxonomyNodeFront } from "../../../types/common/taxonomy";
+import { useEffect, useMemo, useState } from "react";
+import { getDescendantIds } from "./TaxonomyTree";
+import { updateTaxonomyNode } from "../../../lib/employee/taxonomyApi";
 
 interface Props {
-  node: TaxonomyNode | null;
+  node: TaxonomyNodeFront | null;
+  allNodes: TaxonomyNodeFront[];
+  onSaved: () => Promise<void>;
+  onDelete: (node: TaxonomyNodeFront) => void;
 }
 
-export function TaxonomyDetails({ node }: Props) {
+export function TaxonomyDetails({ 
+  node,
+  allNodes,
+  onSaved,
+  onDelete,
+ }: Props) {
+  const [name, setName] = useState("");
+  const [slug, setSlug] = useState("");
+  const [description, setDescription] = useState("");
+  const [parentId, setParentId] = useState<string | null>(null);
+  const [sortOrder, setSortOrder] = useState(0);
+  const [active, setActive] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!node) {
+      setName("");
+      setSlug("");
+      setDescription("");
+      setParentId(null);
+      setSortOrder(0);
+      setActive(true);
+      return;
+    }
+
+    setName(node.name);
+    setSlug(node.slug);
+    setDescription(node.description ?? "");
+    setParentId(node.parentId);
+    setSortOrder(node.sortOrder);
+    setActive(node.active);
+  }, [node]);
+
+  const validParents = useMemo(() => {
+    if (!node)
+      return [];
+
+    const descendantIds = getDescendantIds(node);
+
+    return allNodes.filter(candidate =>
+      candidate.id !== node.id &&
+      !descendantIds.has(candidate.id)
+    );
+  }, [node, allNodes]);
+
+  async function handleSave() {
+    if (!node)
+      return;
+
+    if (!name.trim()) {
+      setError("Category name is required.");
+      return;
+    }
+
+    try {
+      setSaving(true);
+      setError(null);
+
+      await updateTaxonomyNode(node.id, {
+        name: name.trim(),
+        slug: slug.trim() || undefined,
+        description: description.trim() || undefined,
+        parentId: parentId
+          ? Number(parentId)
+          : null,
+        sortOrder,
+        isActive: active,
+      });
+
+      await onSaved();
+    }
+    catch (error) {
+      setError(
+        error instanceof Error
+          ? error.message
+          : "Failed to save category."
+      );
+    }
+    finally {
+      setSaving(false);
+    }
+  }
+  
   if (!node) {
     return (
       <section
@@ -167,41 +256,108 @@ export function TaxonomyDetails({ node }: Props) {
         <Field
           label="Name"
           value={node.name}
-          required
+          onChange={setName}
         />
 
         <Field
           label="Slug"
           value={node.slug}
-          required
+          onChange={setSlug}
         />
 
-        <Field
-          label="Description"
-          value={node.description ?? ""}
-        />
+        <div className="space-y-1.5">
+          <label className="text-xs font-medium text-zinc-500 dark:text-zinc-400">
+            Description
+          </label>
 
-        <Field
-          label="Parent Category"
-          value={
-            node.parentId
-              ? "Selected parent"
-              : "Root category"
-          }
-          select
-        />
+          <textarea
+            value={description}
+            onChange={event =>
+              setDescription(event.target.value)
+            }
+            rows={4}
+            className="
+              w-full resize-none rounded-xl border border-zinc-200
+              bg-white px-3 py-2.5 text-sm text-zinc-900
+              outline-none transition
+              focus:border-orange-400 focus:ring-2
+              focus:ring-orange-500/10
+              dark:border-zinc-700 dark:bg-zinc-900
+              dark:text-zinc-100
+            "
+          />
+        </div>
+
+        <div className="space-y-1.5">
+          <label className="text-xs font-medium text-zinc-500 dark:text-zinc-400">
+            Parent Category
+          </label>
+
+          <select
+            value={parentId ?? ""}
+            onChange={event =>
+              setParentId(
+                event.target.value === ""
+                  ? null
+                  : event.target.value
+              )
+            }
+            className="
+              w-full rounded-xl border border-zinc-200
+              bg-white px-3 py-2.5 text-sm text-zinc-900
+              outline-none transition
+              focus:border-orange-400 focus:ring-2
+              focus:ring-orange-500/10
+              dark:border-zinc-700 dark:bg-zinc-900
+              dark:text-zinc-100
+            "
+          >
+            <option value="">
+              Root Category
+            </option>
+
+            {validParents.map(parent => (
+              <option
+                key={parent.id}
+                value={parent.id}
+              >
+                {parent.name}
+              </option>
+            ))}
+          </select>
+        </div>
 
         <div className="grid grid-cols-2 gap-3">
-          <Field
-            label="Sort Order"
-            value={String(node.sortOrder)}
+          <input
+            type="number"
+            value={sortOrder}
+            onChange={event =>
+              setSortOrder(Number(event.target.value))
+            }
           />
 
-          <Field
-            label="Status"
-            value={node.active ? "Active" : "Inactive"}
-            select
-          />
+          <button
+            type="button"
+            onClick={() => setActive(value => !value)}
+            className={`
+              relative h-6 w-11 rounded-full
+              transition
+              ${active
+                ? "bg-orange-500"
+                : "bg-zinc-300 dark:bg-zinc-700"}
+            `}
+          >
+            <span
+              className={`
+                absolute top-1 h-4 w-4 rounded-full
+                bg-white shadow-sm transition
+                ${active ? "left-6" : "left-1"}
+              `}
+            />
+          </button>
+          <span className="text-sm text-zinc-700 dark:text-zinc-300">
+            {active ? "Active" : "Inactive"}
+          </span>
         </div>
 
         <div className="flex items-center justify-between rounded-xl bg-gray-50 px-3 py-3 dark:bg-white/[0.035]">
@@ -222,85 +378,70 @@ export function TaxonomyDetails({ node }: Props) {
 
         <button
           type="button"
+          onClick={handleSave}
+          disabled={saving}
           className="
-            flex
-            w-full
-            items-center
-            justify-center
-            gap-2
-            rounded-xl
-            bg-yegna-700
-            py-2.5
-            text-[10px]
-            font-semibold
-            text-white
-            transition
-            hover:bg-yegna-800
-          "
+            inline-flex items-center gap-2 rounded-xl
+            bg-orange-500 px-4 py-2.5 text-sm font-medium
+            text-white shadow-sm transition
+            hover:bg-orange-600
+            disabled:cursor-not-allowed
+            disabled:opacity-60
+        "
         >
-          <Save className="size-3.5" />
-          Save Changes
+          <Save className="h-4 w-4" />
+
+          {saving ? "Saving..." : "Save Changes"}
         </button>
       </div>
+      
+      {error && (
+        <div className="
+          rounded-xl border border-red-200
+          bg-red-50 px-3 py-2.5 text-sm text-red-700
+          dark:border-red-900/40 dark:bg-red-950/20
+          dark:text-red-300
+        ">
+          {error}
+        </div>
+      )}
     </section>
   );
+}
+
+interface FieldProps {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  placeholder?: string;
 }
 
 function Field({
   label,
   value,
-  required = false,
-  select = false,
-}: {
-  label: string;
-  value: string;
-  required?: boolean;
-  select?: boolean;
-}) {
+  onChange,
+  placeholder,
+}: FieldProps) {
   return (
-    <label className="block">
-      <span className="mb-1.5 block text-[9px] font-semibold text-gray-500 dark:text-gray-400">
+    <div className="space-y-1.5">
+      <label className="text-xs font-medium text-zinc-500 dark:text-zinc-400">
         {label}
-        {required && (
-          <span className="ml-0.5 text-red-500">*</span>
-        )}
-      </span>
+      </label>
 
-      <div className="relative">
-        <input
-          value={value}
-          readOnly
-          className="
-            h-9
-            w-full
-            rounded-lg
-            border
-            border-black/[0.07]
-            bg-white
-            px-3
-            text-[10px]
-            outline-none
-
-            dark:border-white/[0.07]
-            dark:bg-white/[0.025]
-            dark:text-white
-          "
-        />
-
-        {select && (
-          <ChevronDown
-            className="
-              pointer-events-none
-              absolute
-              right-3
-              top-1/2
-              size-3
-              -translate-y-1/2
-              text-gray-400
-            "
-          />
-        )}
-      </div>
-    </label>
+      <input
+        value={value}
+        onChange={event => onChange(event.target.value)}
+        placeholder={placeholder}
+        className="
+          w-full rounded-xl border border-zinc-200
+          bg-white px-3 py-2.5 text-sm text-zinc-900
+          outline-none transition
+          focus:border-orange-400 focus:ring-2
+          focus:ring-orange-500/10
+          dark:border-zinc-700 dark:bg-zinc-900
+          dark:text-zinc-100
+        "
+      />
+    </div>
   );
 }

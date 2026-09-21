@@ -46,21 +46,17 @@ namespace YegnaBet.API.Modules.Marketplace.Controllers
             return Ok(listing);
         }
 
-        [HttpGet("featured-listings")]
-        public async Task<IActionResult> GetFeaturedListings([FromQuery] int page = 0, [FromQuery] int pageSize = 1000,
-            [FromQuery] ListingMethod method = ListingMethod.Buy)
-        {
-            return Ok(await _service.GetFeaturedListings(page, pageSize));
-        }
-
         [HttpGet("get-listings")]
-        public async Task<ActionResult<ListingPageDto>> GetListings(
-            [FromQuery] ListingQueryDto request)
+        public async Task<ActionResult<ListingPageDto>> GetListings([FromQuery] ListingQueryDto request)
         {
-            var result =
-                await _service.GetListings(request);
+            return Ok(await _service.getListings(request));
+        } // end GetListings
 
-            return Ok(result);
-        }
+
+        [HttpGet("get-listing-locations")]
+        public async Task<IActionResult> GetListingLocations([FromQuery] long? id)
+        {
+            return Ok(await _service.getLocations(id));
+        } // end GetListingLocations
     }
 }

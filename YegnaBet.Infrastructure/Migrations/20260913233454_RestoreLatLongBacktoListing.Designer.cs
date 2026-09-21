@@ -13,8 +13,8 @@ using YegnaBet.Infrastructure.Persistence;
 namespace YegnaBet.Infrastructure.Migrations
 {
     [DbContext(typeof(BrokerDbContext))]
-    [Migration("20260902235833_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20260913233454_RestoreLatLongBacktoListing")]
+    partial class RestoreLatLongBacktoListing
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -70,7 +70,7 @@ namespace YegnaBet.Infrastructure.Migrations
                     b.HasIndex("Key")
                         .IsUnique();
 
-                    b.ToTable("AttributeDeinition", "public");
+                    b.ToTable("AttributeDefinition", "public");
                 });
 
             modelBuilder.Entity("YegnaBet.Domain.Entities.AuditLog", b =>
@@ -292,11 +292,17 @@ namespace YegnaBet.Infrastructure.Migrations
                     b.Property<bool>("IsVerified")
                         .HasColumnType("boolean");
 
+                    b.Property<double?>("Latitude")
+                        .HasColumnType("double precision");
+
                     b.Property<int>("ListingStatus")
                         .HasColumnType("integer");
 
                     b.Property<long>("LocationId")
                         .HasColumnType("bigint");
+
+                    b.Property<double?>("Longitude")
+                        .HasColumnType("double precision");
 
                     b.Property<int>("Method")
                         .HasColumnType("integer");
@@ -420,12 +426,6 @@ namespace YegnaBet.Infrastructure.Migrations
                         .IsRequired()
                         .HasMaxLength(128)
                         .HasColumnType("character varying(128)");
-
-                    b.Property<double?>("Latitude")
-                        .HasColumnType("double precision");
-
-                    b.Property<double?>("Longitude")
-                        .HasColumnType("double precision");
 
                     b.Property<string>("SubArea")
                         .HasMaxLength(256)

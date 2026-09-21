@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using System.Runtime.InteropServices;
+using System.Text.Json;
 using YegnaBet.API.Modules.Provider.Dtos;
 using YegnaBet.Domain.Entities;
 using YegnaBet.Domain.Enums;
@@ -10,11 +11,15 @@ namespace YegnaBet.API.Modules.Provider.Services
     public class ProviderService
     {
         private readonly BrokerDbContext _db;
+
+        private readonly IWebHostEnvironment _environment;
+
         private Random random = new Random();
 
-        public ProviderService(BrokerDbContext db)
+        public ProviderService(BrokerDbContext db, IWebHostEnvironment environment)
         {
             _db = db;
+            _environment = environment;
         }
 
         public async Task<ProviderDataDto> Get(long id)
@@ -221,31 +226,388 @@ namespace YegnaBet.API.Modules.Provider.Services
 
         public async Task<long> CreateListing(ListingDraftDto draft)
         {
-            Location location = new Location
+            // Create location
+            var location = new Location
             {
                 City = draft.City,
                 Area = draft.Area,
                 SubArea = draft.SubArea,
-                Latitude = draft.Latitude,
-                Longitude = draft.Longitude
             };
 
             await _db.Locations.AddAsync(location);
             await _db.SaveChangesAsync();
 
-            Listing listing = new Listing
+            // Upload new photos and get the generated filenames back
+            var uploadedPhotos = await UploadPhotos(draft);
+
+            // Load taxonomy node
+            var taxonomyNode = await _db.TaxonomyNode
+                .AsNoTracking()
+                .FirstOrDefaultAsync(x => x.Id == draft.TaxonomyId);
+
+            if (taxonomyNode is null)
+                throw new InvalidOperationException(
+                    $"Taxonomy node {draft.TaxonomyId} was not found."
+                );
+
+            // Load all attribute definitions in one query
+            var attributeNames = draft.Attributes
+                .Select(x => x.Name)
+                .Distinct()
+                .ToList();
+
+            var attributeDefinitions = await _db.AttributeDefinition
+                .AsNoTracking()
+                .Where(x => attributeNames.Contains(x.Name))
+                .ToDictionaryAsync(x => x.Name);
+
+            // Create listing
+            var listing = new Listing
             {
                 Title = draft.Title,
                 Description = draft.Description,
                 LocationId = location.Id,
                 Price = draft.Price,
                 PriceUnit = draft.PriceUnit,
-                Method = draft.Method == "For sale" ? ListingMethod.Buy :
-                    draft.Method == "For rent" ? ListingMethod.Rent :
-                    draft.Method == "Service" ? ListingMethod.Service : ListingMethod.Contract,
+                Latitude = draft.Latitude,
+                Longitude = draft.Longitude,
+
+                Method = draft.Method switch
+                {
+                    "For sale" => ListingMethod.Buy,
+                    "For rent" => ListingMethod.Rent,
+                    "Service" => ListingMethod.Service,
+                    _ => ListingMethod.Contract
+                },
+
                 ListingStatus = ListingStatus.Draft,
                 ProviderId = draft.ProviderId,
+
+                Images = uploadedPhotos
+                    .Select(x => new ListingImage
+                    {
+                        ImageUrl = $"/uploads/listings/{x.FileName}",
+                        IsPrimary = x.IsPrimary,
+                        Kind = ImageKind.Photo
+                    })
+                    .ToList(),
+
+                AttributeValues = draft.Attributes
+                    .Select(attr =>
+                    {
+                        if (!attributeDefinitions.TryGetValue(
+                                attr.Name,
+                                out var definition))
+                        {
+                            throw new InvalidOperationException(
+                                $"Attribute definition '{attr.Name}' was not found."
+                            );
+                        }
+
+                        return new ListingAttributeValue
+                        {
+                            AttributeDefinition = definition,
+                            Value = attr.Value
+                        };
+                    })
+                    .ToList()
             };
+
+            await _db.Listings.AddAsync(listing);
+            await _db.SaveChangesAsync();
+
+            return listing.Id;
+        }
+
+        public async Task<long> UpdateListing(long id, ListingDraftDto draft)
+        {
+            var listing = await _db.Listings
+                .Include(x => x.Images)
+                .Include(x => x.AttributeValues)
+                    .ThenInclude(x => x.AttributeDefinition)
+                .Include(x => x.TaxonomyNodes)
+                .Include(x => x.Location)
+                .FirstOrDefaultAsync(x => x.Id == id);
+
+            if (listing is null)
+                throw new InvalidOperationException(
+                    $"Listing {id} was not found."
+                );
+
+            // ---------------------------------------------------------
+            // 1. Scalar fields
+            // ---------------------------------------------------------
+
+            if (listing.Title != draft.Title)
+                listing.Title = draft.Title;
+
+            if (listing.Description != draft.Description)
+                listing.Description = draft.Description;
+
+            if (listing.Price != draft.Price)
+                listing.Price = draft.Price;
+
+            if (listing.PriceUnit != draft.PriceUnit)
+                listing.PriceUnit = draft.PriceUnit;
+
+            if (draft.Latitude != null && listing.Latitude != draft.Latitude)
+                listing.Latitude = draft.Latitude;
+
+            if (draft.Longitude != null && listing.Longitude != draft.Longitude)
+                listing.Longitude = draft.Longitude;
+
+            var method = draft.Method switch
+            {
+                "For sale" => ListingMethod.Buy,
+                "For rent" => ListingMethod.Rent,
+                "Service" => ListingMethod.Service,
+                _ => ListingMethod.Contract
+            };
+
+            if (listing.Method != method)
+                listing.Method = method;
+
+
+            // ---------------------------------------------------------
+            // 2. Location
+            // ---------------------------------------------------------
+
+            if (listing.Location is null)
+            {
+                listing.Location = new Location
+                {
+                    City = draft.City,
+                    Area = draft.Area,
+                    SubArea = draft.SubArea
+                };
+            }
+            else
+            {
+                if (listing.Location.City != draft.City)
+                    listing.Location.City = draft.City;
+
+                if (listing.Location.Area != draft.Area)
+                    listing.Location.Area = draft.Area;
+
+                if (listing.Location.SubArea != draft.SubArea)
+                    listing.Location.SubArea = draft.SubArea;
+            }
+
+
+            // ---------------------------------------------------------
+            // 3. Taxonomy
+            // ---------------------------------------------------------
+
+            var currentTaxonomy = listing.TaxonomyNodes
+                .FirstOrDefault();
+
+            var currentTaxonomyId = currentTaxonomy?.TaxonomyNodeId;
+
+            if (currentTaxonomyId != draft.TaxonomyId)
+            {
+                var taxonomyNode = await _db.TaxonomyNode
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(x => x.Id == draft.TaxonomyId);
+
+                if (taxonomyNode is null)
+                    throw new InvalidOperationException(
+                        $"Taxonomy node {draft.TaxonomyId} was not found."
+                    );
+
+                listing.TaxonomyNodes.Clear();
+
+                listing.TaxonomyNodes.Add(
+                    new ListingTaxonomyNode
+                    {
+                        TaxonomyNode = taxonomyNode
+                    }
+                );
+            }
+
+
+            // ---------------------------------------------------------
+            // 4. Attributes
+            // ---------------------------------------------------------
+
+            var attributeNames = draft.Attributes
+                .Select(x => x.Name)
+                .Distinct()
+                .ToList();
+
+            var definitions = await _db.AttributeDefinition
+                .AsNoTracking()
+                .Where(x => attributeNames.Contains(x.Name))
+                .ToDictionaryAsync(x => x.Name);
+
+            var incomingAttributes = draft.Attributes
+                .ToDictionary(x => x.Name, x => x.Value);
+
+            // Remove attributes no longer present
+            var attributesToRemove = listing.AttributeValues
+                .Where(x => !incomingAttributes.ContainsKey(
+                    x.AttributeDefinition.Name))
+                .ToList();
+
+            foreach (var attribute in attributesToRemove)
+            {
+                listing.AttributeValues.Remove(attribute);
+            }
+
+            // Update existing / add new
+            foreach (var attribute in incomingAttributes)
+            {
+                if (!definitions.TryGetValue(
+                        attribute.Key,
+                        out var definition))
+                {
+                    throw new InvalidOperationException(
+                        $"Attribute definition '{attribute.Key}' was not found."
+                    );
+                }
+
+                var existing = listing.AttributeValues
+                    .FirstOrDefault(x =>
+                        x.AttributeDefinitionId == definition.Id);
+
+                if (existing is not null)
+                {
+                    if (existing.Value != attribute.Value)
+                        existing.Value = attribute.Value;
+                }
+                else
+                {
+                    listing.AttributeValues.Add(
+                        new ListingAttributeValue
+                        {
+                            AttributeDefinition = definition,
+                            Value = attribute.Value
+                        }
+                    );
+                }
+            }
+
+
+            // ---------------------------------------------------------
+            // 5. Photos
+            // ---------------------------------------------------------
+
+            var incomingExistingPhotoIds = draft.Photos
+                .Where(x => x.Id.HasValue)
+                .Select(x => x.Id!.Value)
+                .ToHashSet();
+
+            // Existing photos omitted from the draft = deleted
+            var photosToRemove = listing.Images
+                .Where(x =>
+                    x.Kind == ImageKind.Photo &&
+                    !incomingExistingPhotoIds.Contains(x.Id))
+                .ToList();
+
+            foreach (var photo in photosToRemove)
+            {
+                // Delete physical file
+                DeleteListingImage(photo.ImageUrl);
+
+                listing.Images.Remove(photo);
+            }
+
+            // Upload new photos
+            var newPhotos = await UploadPhotos(draft);
+
+            foreach (var photo in newPhotos)
+            {
+                listing.Images.Add(
+                    new ListingImage
+                    {
+                        ImageUrl = $"/uploads/images/{photo.FileName}",
+                        IsPrimary = photo.IsPrimary,
+                        Kind = ImageKind.Photo
+                    }
+                );
+            }
+
+            // Update IsPrimary for existing photos
+            foreach (var existingPhoto in listing.Images)
+            {
+                var draftPhoto = draft.Photos
+                    .FirstOrDefault(x => x.Id == existingPhoto.Id);
+
+                if (draftPhoto is not null)
+                {
+                    existingPhoto.IsPrimary = draftPhoto.IsPrimary;
+                }
+            }
+
+
+            // ---------------------------------------------------------
+            // 6. Save everything
+            // ---------------------------------------------------------
+
+            await _db.SaveChangesAsync();
+
+            return listing.Id;
+        }
+
+        private void DeleteListingImage(string? imageUrl)
+        {
+            if (string.IsNullOrWhiteSpace(imageUrl))
+                return;
+
+            var relativePath = imageUrl
+                .TrimStart('/')
+                .Replace('/', Path.DirectorySeparatorChar);
+
+            var filePath = Path.Combine(
+                _environment.WebRootPath,
+                relativePath
+            );
+
+            if (File.Exists(filePath))
+                File.Delete(filePath);
+        }
+
+
+        private async Task<List<(string FileName, bool IsPrimary)>> UploadPhotos(
+            ListingDraftDto dto)
+        {
+            var uploadDirectory = Path.Combine(
+                _environment.WebRootPath,
+                "uploads",
+                "images"
+            );
+
+            Directory.CreateDirectory(uploadDirectory);
+
+            var uploadedPhotos = new List<(string FileName, bool IsPrimary)>();
+
+            foreach (var photo in dto.Photos)
+            {
+                // Existing photos / photos without a new file are skipped.
+                if (photo.File is null || photo.File.Length == 0)
+                    continue;
+
+                var extension = Path.GetExtension(photo.File.FileName);
+
+                var fileName = $"{Guid.NewGuid():N}{extension}";
+
+                var filePath = Path.Combine(
+                    uploadDirectory,
+                    fileName
+                );
+
+                await using var stream = new FileStream(
+                    filePath,
+                    FileMode.Create
+                );
+
+                await photo.File.CopyToAsync(stream);
+
+                uploadedPhotos.Add(
+                    (fileName, photo.IsPrimary)
+                );
+            }
+
+            return uploadedPhotos;
         }
     }
 }

@@ -1,4 +1,4 @@
-import type { ListingDraft } from "../../../../types/providerListings";
+import type { ListingDraft } from "../../../../types/provider/providerTypes";
 
 import { ListingSelect } from "../fields/ListingSelect";
 import { ListingTextField } from "../fields/ListingTextField";

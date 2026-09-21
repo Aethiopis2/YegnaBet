@@ -2,7 +2,7 @@ import { useParams, useSearchParams } from "react-router-dom";
 
 import { AppShell } from "../../components/layout/AppShell";
 import { Explorer } from "../../components/explorer/Explorer";
-import type { ListingMode } from "../../types/listings";
+import type { ListingMode } from "../../types/customer/listings";
 
 
 export function CategoryPage() {
@@ -10,7 +10,7 @@ export function CategoryPage() {
   const [searchParam] = useSearchParams();
   const mode = searchParam.get("mode") ?? "Buy";
 
-  const title = category ?? "Listings";
+  const title = category ?? "All";
 
   return (
     <AppShell>
@@ -27,7 +27,7 @@ export function CategoryPage() {
           },
           mode: mode as ListingMode,
           showMode: false,
-          showPopularLocations: false,
+          showPopularLocations: true,
           showModeTabs:
             category !== "services",
           showFilters: true,

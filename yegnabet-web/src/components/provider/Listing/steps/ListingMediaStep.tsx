@@ -1,7 +1,7 @@
 import type {
 ListingPhotoDraft,
 ListingVideoDraft,
-} from "../../../../types/providerListings";
+} from "../../../../types/provider/providerTypes";
 
 import { ListingPhotoGrid } from "../media/ListingPhotoGrid";
 import { ListingPhotoUploader } from "../media/ListingPhotoUploader";

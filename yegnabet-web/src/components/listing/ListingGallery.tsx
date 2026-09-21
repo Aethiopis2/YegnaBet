@@ -9,7 +9,7 @@ import {
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-import type { Listing } from "../../types/listings";
+import type { Listing } from "../../types/customer/listings";
 
 import { cn } from "../../lib/cn";
 

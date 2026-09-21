@@ -1,10 +1,3 @@
-export interface PopularLocation {
-  id: string;
-  name: string;
-  count: number;
-  image: string;
-}
-
 export const popularLocations: PopularLocation[] = [
   {
     id: "cmc",

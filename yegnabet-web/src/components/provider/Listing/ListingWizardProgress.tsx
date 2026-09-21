@@ -1,7 +1,7 @@
 import type {
   ListingWizardStep,
   ListingWizardStepDefinition,
-} from "../../../types/providerListings";
+} from "../../../types/provider/providerTypes";
 
 interface Props {
   steps: ListingWizardStepDefinition[];

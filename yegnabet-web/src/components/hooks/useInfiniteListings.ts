@@ -13,7 +13,7 @@ import type {
   Listing,
   ListingMode,
   ListingPage,
-} from "../../types/listings";
+} from "../../types/customer/listings";
 
 import { API, ASSET_URL } from "../../types/api";
 

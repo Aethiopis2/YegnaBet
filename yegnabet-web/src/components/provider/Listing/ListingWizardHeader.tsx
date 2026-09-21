@@ -1,8 +1,5 @@
 import { ArrowLeft } from "lucide-react";
-
-import type {
-  ListingWizardStep,
-} from "../../../types/providerListings";
+import type { ListingWizardStep } from "../../../types/provider/providerTypes";
 
 interface Props {
   mode: "create" | "edit";
@@ -10,11 +7,7 @@ interface Props {
   onCancel?: () => void;
 }
 
-export function ListingWizardHeader({
-  mode,
-  step,
-  onCancel,
-}: Props) {
+export function ListingWizardHeader({ mode, step, onCancel }: Props) {
   return (
     <div className="flex items-start justify-between gap-4">
       <div>

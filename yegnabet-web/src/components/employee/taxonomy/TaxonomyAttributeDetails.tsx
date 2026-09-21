@@ -2,8 +2,8 @@ import {
   Check,
   Trash2,
 } from "lucide-react";
+import type { TaxonomyAttribute } from "../../../types/common/taxonomy";
 
-import type { TaxonomyAttribute } from "./TaxonomyTypes";
 
 interface Props {
   attribute: TaxonomyAttribute | null;

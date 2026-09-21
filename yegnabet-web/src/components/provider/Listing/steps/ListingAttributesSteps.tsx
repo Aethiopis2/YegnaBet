@@ -4,9 +4,9 @@ import {
 } from "react";
 
 import { API } from "../../../../types/api";
-import type { ListingAttributeValue } from "../../../../types/providerListings";
+import type { ListingAttributeValue } from "../../../../types/provider/providerTypes";
 import type { TNodeAttributeDefinition } from "../../../../types/provider/attributeDefinition";
-import Loading from "../../../ui/Loading";
+import Loading from "../../../ui/common/Loading";
 import { ListingTextField } from "../fields/ListingTextField";
 import { ListingIntegerField } from "../../common/ListingIntegerField";
 import { ListingDecimalField } from "../../common/ListingDecimalField";

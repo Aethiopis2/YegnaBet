@@ -1,4 +1,4 @@
-import type { Listing } from "../../types/listings";
+import type { Listing } from "../../types/customer/listings";
 import type { MatchResult } from "../../types/match";
 
 import { ListingGridCard } from "../explorer/ListingGridCard";

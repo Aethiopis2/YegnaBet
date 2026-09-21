@@ -14,9 +14,7 @@ import { BedroomFilterDialog } from "./BedroomFilterDialog";
 
 interface FilterBarProps {
   filters: ListingFilters;
-  onFiltersChange: (
-    filters: ListingFilters
-  ) => void;
+  onFiltersChange: (filters: ListingFilters) => void;
 }
 
 export function FilterBar({

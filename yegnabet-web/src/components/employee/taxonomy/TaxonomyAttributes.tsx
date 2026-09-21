@@ -4,14 +4,11 @@ import {
   Plus,
   XCircle,
 } from "lucide-react";
+import type { TaxonomyNodeFront, TaxonomyAttribute } from "../../../types/common/taxonomy";
 
-import type {
-  TaxonomyAttribute,
-  TaxonomyNode,
-} from "./TaxonomyTypes";
 
 interface Props {
-  node: TaxonomyNode | null;
+  node: TaxonomyNodeFront | null;
   onSelectAttribute: (
     attribute: TaxonomyAttribute
   ) => void;

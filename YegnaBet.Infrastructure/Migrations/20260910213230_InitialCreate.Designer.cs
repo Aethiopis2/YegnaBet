@@ -13,8 +13,8 @@ using YegnaBet.Infrastructure.Persistence;
 namespace YegnaBet.Infrastructure.Migrations
 {
     [DbContext(typeof(BrokerDbContext))]
-    [Migration("20260905221407_AddPreciseLisitingLocation")]
-    partial class AddPreciseLisitingLocation
+    [Migration("20260910213230_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -70,7 +70,7 @@ namespace YegnaBet.Infrastructure.Migrations
                     b.HasIndex("Key")
                         .IsUnique();
 
-                    b.ToTable("AttributeDeinition", "public");
+                    b.ToTable("AttributeDefinition", "public");
                 });
 
             modelBuilder.Entity("YegnaBet.Domain.Entities.AuditLog", b =>
@@ -292,17 +292,11 @@ namespace YegnaBet.Infrastructure.Migrations
                     b.Property<bool>("IsVerified")
                         .HasColumnType("boolean");
 
-                    b.Property<decimal?>("Latitude")
-                        .HasColumnType("numeric");
-
                     b.Property<int>("ListingStatus")
                         .HasColumnType("integer");
 
                     b.Property<long>("LocationId")
                         .HasColumnType("bigint");
-
-                    b.Property<decimal?>("Longitude")
-                        .HasColumnType("numeric");
 
                     b.Property<int>("Method")
                         .HasColumnType("integer");

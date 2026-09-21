@@ -7,7 +7,7 @@ import { AppShell } from "../../components/layout/AppShell";
 import { ListingDetail } from "../../components/listing/ListingDetails";
 import { API, ASSET_URL } from "../../types/api";
 import { useState, useEffect } from "react";
-import type { Listing } from "../../types/listings";
+import type { Listing } from "../../types/customer/listings";
 
 export function ListingDetailPage() {
   const { id } = useParams();

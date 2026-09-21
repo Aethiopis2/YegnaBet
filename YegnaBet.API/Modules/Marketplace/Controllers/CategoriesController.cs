@@ -1,7 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Mvc;
-using YegnaBet.Infrastructure.Persistence;
-using YegnaBet.API.Modules.Marketplace.Dtos;
+﻿using Microsoft.AspNetCore.Mvc;
+using YegnaBet.API.Modules.Marketplace.Services;
 
 namespace YegnaBet.API.Modules.Marketplace.Controllers
 {
@@ -9,32 +7,17 @@ namespace YegnaBet.API.Modules.Marketplace.Controllers
     [ApiController]
     public class CategoriesController : ControllerBase
     {
-        private readonly BrokerDbContext _db;
+        private readonly CategoryService _service;
         
-        public CategoriesController(BrokerDbContext db)
+        public CategoriesController(CategoryService service)
         {
-            _db = db;
+            _service = service;
         }
 
         [HttpGet] 
         public async Task<IActionResult> Get()
         {
-            var data = await _db.TaxonomyNode
-                .Include(x => x.Parent)
-                .Where(x => x.ParentId != null &&
-                            x.Parent!.ParentId != null)
-                .OrderBy(x => x.Parent!.Id)
-                .ThenBy(x => x.Name)
-                .Select(x => new HomeCategoryDto {
-                    Id = x.Slug,
-                    Name = x.Name,
-                    Description = x.Description,
-                    Image = x.Image,
-                    Type = x.Name,
-                    Route = $"/categories/{x.Name}"
-                }).ToListAsync();
-            
-            return Ok(data);
-        }
-    }
-}
+            return Ok(await _service.getTaxonomyTree());
+        } // end get /category
+    } // end CategoriesController
+} // end namespace

@@ -1,4 +1,4 @@
-import type { ProviderLocation } from "./provider";
+import type { ProviderLocation } from "../provider";
 
 export interface ListingPhotoDraft {
   id?: number;
@@ -17,8 +17,15 @@ export type ListingAttributeValue =
   | number
   | boolean;
 
+export interface ListingAttribute {
+  name: string;
+  value: string;
+}
+
+
 export interface ListingDraft {
   id?: number;
+  providerId: number;
 
   title: string;
   description: string;
@@ -108,31 +115,4 @@ export interface ListingWizardProps {
   mode?: "create" | "edit";
   providerId?: number;
   listingId?: number;
-}
-
-export function createEmptyListingDraft(): ListingDraft {
-  return {
-    title: "",
-    description: "",
-
-    price: "",
-    priceUnit: "",
-    method: "",
-
-    taxonomyId: null,
-    // locationId: null,
-    city: "",
-    area: "",
-    subArea: "",
-
-    attributes: {},
-
-    photos: [],
-    videos: [],
-
-    latitude: null,
-    longitude: null,
-
-    preciseLocation: false,
-  };
 }

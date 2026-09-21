@@ -9,16 +9,16 @@ import {
   Trash2,
 } from "lucide-react";
 import { useState } from "react";
+import type { TaxonomyNodeFront } from "../../../types/common/taxonomy";
 
-import type { TaxonomyNode } from "./TaxonomyTypes";
 
 interface Props {
-  node: TaxonomyNode;
+  node: TaxonomyNodeFront;
   depth: number;
 
   selectedId: string | null;
 
-  onSelect: (node: TaxonomyNode) => void;
+  onSelect: (node: TaxonomyNodeFront) => void;
 
   onMove: (
     draggedId: string,

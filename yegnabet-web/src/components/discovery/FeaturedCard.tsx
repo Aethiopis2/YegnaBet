@@ -5,7 +5,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 
-import type { Listing } from "../../types/listings";
+import type { Listing } from "../../types/customer/listings";
 import { formatArea, formatPrice } from "../../lib/formatters";
 import { cn } from "../../lib/cn";
 import { resolveIcon } from "../../lib/IconResolver";

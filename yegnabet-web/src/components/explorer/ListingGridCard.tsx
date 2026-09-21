@@ -1,20 +1,11 @@
-import {
-  Heart,
-  MapPin,
-} from "lucide-react";
-
+import { Heart, MapPin, } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
-
-import type { Listing } from "../../types/listings";
-
-import {
-  formatPrice,
-} from "../../lib/formatters";
-
+import type { Listing } from "../../types/customer/listings";
+import { formatPrice, } from "../../lib/formatters";
 import { cn } from "../../lib/cn";
-
 import { resolveIcon } from "../../lib/IconResolver";
+import VerifiedTag from "../common/VerifiedTag";
 
 
 interface ListingGridCardProps {
@@ -124,7 +115,11 @@ export function ListingGridCard({
           </span>
         )}
 
-
+        {/* Verified */}
+        {listing.verified && (
+          <VerifiedTag />
+        )}
+        
         {/* Save */}
 
         <button

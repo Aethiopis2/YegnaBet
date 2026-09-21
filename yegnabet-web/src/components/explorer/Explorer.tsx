@@ -25,8 +25,9 @@ import { ExplorerToolbar } from "./ExplorerToolbar";
 import { ListingGrid } from "./ListingGrid";
 import { ListingList } from "./ListingList";
 import { LoadMoreSentinel } from "./LoadMoreSentinel";
-import type { ListingMode } from "../../types/listings";
-import { TransactionMode } from "../discovery/TransactionMode";
+import type { ListingMode } from "../../types/customer/listings";
+import { TransactionMode } from "./listing/TransactionMode";
+import { OkDialog } from "../ui/common/okDialog";
 
 interface ExplorerProps {
   config: ExplorerConfig;
@@ -56,6 +57,11 @@ export function Explorer({
     useState<ListingView>(
       config.initialView ?? "grid"
     );
+
+  const [dialog, setDialog] = useState({
+    open: false,
+    message: ""
+  });
 
   const {
     items,
@@ -179,7 +185,10 @@ export function Explorer({
 
         {/* Popular locations */}
         {config.showPopularLocations && (
-          <PopularLocations />
+          <PopularLocations
+            filters={filters}
+            setFilters={setFilters}
+            setDialog={setDialog} />
         )}
 
         {/* Toolbar */}
@@ -205,6 +214,17 @@ export function Explorer({
           onLoadMore={loadMore}
         />
       </PageContainer>
+
+      <OkDialog
+        open={dialog.open}
+        message={dialog.message}
+        onOk={() =>
+          setDialog({
+            open: false,
+            message: "",
+          })
+        }
+      />
     </div>
   );
 }

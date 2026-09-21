@@ -2,7 +2,7 @@ import { Star, Trash2 } from "lucide-react";
 
 import type {
 ListingPhotoDraft,
-} from "../../../../types/providerListings";
+} from "../../../../types/provider/providerTypes";
 
 interface Props {
 photos: ListingPhotoDraft[];

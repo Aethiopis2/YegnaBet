@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-import type { Listing } from "../../types/listings";
+import type { Listing } from "../../types/customer/listings";
 
 import { ListingGallery } from "./ListingGallery";
 import { ListingHeader } from "./ListingHeader";
@@ -85,7 +85,7 @@ export function ListingDetail({
 
 
       const response = await fetch(
-        ASSET_URL + "api/inquiries",
+        ASSET_URL + "/api/inquiries",
         {
           method: "POST",
           headers: {

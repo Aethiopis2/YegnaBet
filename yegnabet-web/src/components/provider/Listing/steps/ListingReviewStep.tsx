@@ -1,5 +1,5 @@
 import { CheckCircle2, Image as ImageIcon, MapPin, Tag, } from "lucide-react";
-import type { ListingDraft, } from "../../../../types/providerListings";
+import type { ListingDraft, } from "../../../../types/provider/providerTypes";
 import type { ProviderLocation, ProviderTaxonomy, } from "../../../../types/provider";
 
 interface Props {

@@ -21,7 +21,7 @@ namespace YegnaBet.Infrastructure.Persistence
         public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
         public DbSet<Taxonomy> Taxonomy => Set<Taxonomy>();
         public DbSet<TaxonomyNode> TaxonomyNode => Set<TaxonomyNode>();
-        public DbSet<AttributeDefinition> AttributeDeinition => Set<AttributeDefinition>();
+        public DbSet<AttributeDefinition> AttributeDefinition => Set<AttributeDefinition>();
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)

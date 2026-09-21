@@ -1,36 +1,39 @@
 import { useEffect, useState } from "react";
 import { SectionHeader } from "../ui/SectionHeader";
 import { FeaturedCard } from "./FeaturedCard";
-import type { Listing, ListingMode } from "../../types/listings";
-import { API, ASSET_URL } from "../../types/api";
-import { AppShell } from "../layout/AppShell";
+import type { Listing, ListingMode } from "../../types/customer/listings";
+import { ASSET_URL } from "../../types/api";
+import { Fetch } from "../../lib/common/network";
+import type { ListingPage } from "../../types/customer/listings";
+import Loading from "../ui/common/Loading";
 
-export function FeaturedSection({ listingMode }: { listingMode: ListingMode }) {
+interface FeaturedSectionProps {
+  listingMode: ListingMode;
+  setDialog: any;
+}
+
+export function FeaturedSection({ listingMode, setDialog }: FeaturedSectionProps) {
   const [listings, setListings] = useState<Listing[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const onSuccess = (listingPage: ListingPage) => {
+    listingPage.items.forEach((listing: Listing) => {
+        if (listing.images) {
+          listing.images = listing.images.map((img: string) => ASSET_URL + img);
+        }
+      });
+    
+    setListings(listingPage.items);
+  };
+  
   useEffect(() => {
     setLoading(true);
-    API.get(`/listings/get-listings?featured=true&method=${listingMode}`)
-      .then((res) => {
-        // correct image url if since its always relative
-        if (res.data) {
-          res.data.items.forEach((listing: Listing) => {
-            if (listing.images) {
-              listing.images = listing.images.map((img: string) => ASSET_URL + img);
-            }
-          });
-          setListings(res.data.items);
-        }
-      })
-      .catch((error) => {
-        console.error("Failed to load listing", error);
-        setListings([]);
-      })
-      .finally(() => {
-        setLoading(false);
-      });
-  }, [listingMode]);
+    Fetch(`/listings/get-listings?featured=true&method=${listingMode}`,
+      onSuccess,
+      setLoading,
+      setDialog
+    )
+  }, [listingMode])
 
   const featured = listings.filter(
     (listing) => listing.featured
@@ -38,11 +41,7 @@ export function FeaturedSection({ listingMode }: { listingMode: ListingMode }) {
 
   if (loading) {
     return (
-      <AppShell>
-        <div className="flex items-center justify-center py-10">
-          <div className="h-6 w-6 animate-spin rounded-full border-2 border-gray-300 border-t-orange-500" />
-        </div>
-      </AppShell>
+      <Loading />
     );
   }
   

@@ -19,7 +19,7 @@ import {
   CircleDot,
 } from "lucide-react";
 
-import type { ListingMetadata } from "../../types/listings";
+import type { ListingMetadata } from "../../types/customer/listings";
 
 interface ListingFactsProps {
   metadata: ListingMetadata[];

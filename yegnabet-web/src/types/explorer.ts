@@ -1,4 +1,4 @@
-import type { Listing, ListingMode } from "./listings";
+import type { ListingMode } from "./customer/listings";
 
 export type ListingView = "grid" | "list";
 
@@ -40,9 +40,3 @@ export interface ExplorerConfig {
   sort?: ListingSort;
 }
 
-export interface ListingPage {
-  items: Listing[];
-  page: number;
-  pageSize: number;
-  hasMore: boolean;
-}

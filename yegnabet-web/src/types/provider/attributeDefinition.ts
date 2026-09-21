@@ -1,4 +1,4 @@
-import type { ListingAttributeValue } from "../../types/providerListings";
+import type { ListingAttributeValue } from "./providerTypes";
 
 export type AttributeType =
   | "Text"

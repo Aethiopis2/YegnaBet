@@ -14,7 +14,7 @@
         public string City { get; set; } = null!;
         public string Area { get; set; } = null!;
         public string? SubArea { get; set; }
-        public Dictionary<string, string> Attributes { get; set; } = [];
+        public List<ListingAttributeDto> Attributes { get; set; } = [];
         public List<ListingPhotoDraftDto> Photos { get; set; } = [];
         public List<ListingVideoDraftDto> Videos { get; set; } = [];
         public double? Latitude { get; set; }

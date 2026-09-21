@@ -37,19 +37,7 @@ namespace YegnaBet.API.Modules.Provider.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateListing([FromForm] ListingDraftDto draft)
         {
-            foreach (var photo in draft.Photos)
-            {
-                if (photo.File is not null)
-                {
-                    var file = photo.File;
-
-                    Console.WriteLine($"Name: {file.FileName}");
-                    Console.WriteLine($"Size: {file.Length}");
-                    Console.WriteLine($"Type: {file.ContentType}");
-                }
-            }
-
-            return Ok();
+            return Ok(await _service.CreateListing(draft));
         }
     }
 }

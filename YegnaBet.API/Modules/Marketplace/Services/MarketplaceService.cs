@@ -44,7 +44,7 @@ namespace YegnaBet.API.Modules.Marketplace.Services
 
         public async Task<ListingDto?> GetListingAsync(long id)
         {
-            var res = await GetListings(
+            var res = await getListings(
                 new ListingQueryDto
                 {
                     Id = id
@@ -119,73 +119,7 @@ namespace YegnaBet.API.Modules.Marketplace.Services
                 .ToListAsync();
         } // end GetProviderLisitings
 
-        public async Task<object> GetFeaturedListings(int page = 0, int pageSize = 1000)
-        {
-            var results = await _db.Listings
-            .Where(x =>
-                x.IsFeatured &&
-                (x.ListingStatus == ListingStatus.Active ||
-                 x.ListingStatus == ListingStatus.Pending))
-            .OrderBy(x => x.Id)
-            .Skip(page * pageSize)
-            .Take(pageSize + 1)
-            .Select(x => new
-            {
-                Id = x.Id,
-                Title = x.Title,
-                Description = x.Description,
-                Price = x.Price,
-                Currency = "ETB",
-
-                Status = x.Method == ListingMethod.Buy
-                    ? "buy"
-                    : "rent",
-
-                Location = new
-                {
-                    City = x.Location.City,
-                    Area = x.Location.Area
-                },
-
-                Images = x.Images
-                    .Select(y => y.ImageUrl)
-                    .ToArray(),
-
-                Featured = x.IsFeatured,
-                Verified = x.IsVerified,
-
-                // Temporary until you have real trending logic
-                Trending = true,
-
-                // These should eventually come from the current user
-                Saved = false,
-
-                Metadata = x.AttributeValues
-                    .Select(i => new
-                    {
-                        Name = i.AttributeDefinition.Name,
-                        Value = i.Value
-                    })
-                    .ToList()
-            })
-            .ToListAsync();
-
-            var hasMore = results.Count > pageSize;
-
-            var items = results
-                .Take(pageSize)
-                .ToList();
-
-            return new
-            {
-                Items = items,
-                Page = page,
-                PageSize = pageSize,
-                HasMore = hasMore
-            };
-        }
-
-        public async Task<ListingPageDto> GetListings(ListingQueryDto request)
+        public async Task<ListingPageDto> getListings(ListingQueryDto request)
         {
             var page = Math.Max(request.Page, 0);
             var pageSize = Math.Clamp(request.PageSize, 1, 50);
@@ -349,6 +283,34 @@ namespace YegnaBet.API.Modules.Marketplace.Services
                 PageSize = pageSize,
                 HasMore = hasMore
             };
-        }
-    }
-}
+        } // end getListings
+
+
+        /// <summary>
+        /// returns the location info from the database using the id parameter if
+        /// supplied or the entire locations distinctly if not.
+        /// </summary>
+        /// <param name="id">an optional nullable id param that can be used to filter locations viz id</param>
+        /// <returns>List of locationDto's</returns>
+        public async Task<List<ListingLocationDto>> getLocations(long? id)
+        {
+            var query = _db.Locations
+                .AsNoTracking();
+
+            if (id.HasValue)
+                query = query.Where(l => l.Id == id.Value);
+
+            return await query.Select(x => new ListingLocationDto
+            {
+                Id = x.Id,
+                Country = x.Country,
+                City = x.City,
+                Area = x.Area,
+                SubArea = x.SubArea,
+                Count = _db.Listings
+                    .AsNoTracking()
+                    .Count(y => y.LocationId == x.Id)
+            }).OrderBy(x => x.Count).Distinct().ToListAsync();
+        } // end getLocations
+    } // end MarketplaceService
+} // end namespace

@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Npgsql;
 using System.Text.Json.Serialization;
 using YegnaBet.API.Modules.Brokers.Services;
+using YegnaBet.API.Modules.Employee.Services;
 using YegnaBet.API.Modules.Finance.Services;
 using YegnaBet.API.Modules.Marketplace.Services;
 using YegnaBet.API.Modules.Provider.Services;
@@ -15,12 +16,14 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<BrokerDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("Default")));
 
+builder.Services.AddScoped<CategoryService>();
 builder.Services.AddScoped<MarketplaceService>();
 builder.Services.AddScoped<BrokerService>();
 builder.Services.AddScoped<AuditService>();
 builder.Services.AddScoped<FinanceService>();
 builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<ProviderService>();
+builder.Services.AddScoped<IEmployeeTaxonomyService, EmployeeTaxonomyService>();
 
 builder.Services
     .AddControllers()
@@ -43,17 +46,10 @@ builder.Services.AddCors(options =>
         .AllowCredentials());
 });
 
-builder.Services.AddSingleton<
-    EmployeeAssignmentState>();
-
-builder.Services.AddSingleton<
-    EmployeeAssignmentService>();
-
-builder.Services.AddSingleton<
-    EmployeeAssignmentInitializer>();
-
-builder.Services.AddHostedService<
-    EmployeeAssignmentCleanupService>();
+builder.Services.AddSingleton<EmployeeAssignmentState>();
+builder.Services.AddSingleton<EmployeeAssignmentService>();
+builder.Services.AddSingleton<EmployeeAssignmentInitializer>();
+builder.Services.AddHostedService<EmployeeAssignmentCleanupService>();
 
 var app = builder.Build();
 

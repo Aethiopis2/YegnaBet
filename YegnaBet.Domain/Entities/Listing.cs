@@ -20,11 +20,10 @@ namespace YegnaBet.Domain.Entities
         public int ViewsCount { get; set; }
         public int InquiresCount { get; set; }
         public int SuccessfulDeals {  get; set; }
+        public double? Latitude { get; set; }
+        public double? Longitude { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime ApprovedDate { get; set; } = DateTime.UtcNow;
-
-        public decimal? Latitude { get; set; }
-        public decimal? Longitude { get; set; }
 
         public User Provider { get; set; } = null!;
         public Location Location { get; set; } = null!;
