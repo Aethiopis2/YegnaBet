@@ -11,7 +11,7 @@ import type {
   ListingFilters,
   ListingSort,
   ListingView,
-} from "../../types/explorer";
+} from "../../types/customer/explorer";
 
 import { useInfiniteListings } from "../hooks/useInfiniteListings";
 
@@ -33,9 +33,7 @@ interface ExplorerProps {
   config: ExplorerConfig;
 }
 
-export function Explorer({
-  config,
-}: ExplorerProps) {
+export function Explorer({ config }: ExplorerProps) {
   const navigate = useNavigate();
   
   const [mode, setMode] =
@@ -72,6 +70,7 @@ export function Explorer({
     mode,
     filters,
     sort,
+    currentUser: config.currentUser,
   });
 
   const title = useMemo(
@@ -188,7 +187,8 @@ export function Explorer({
           <PopularLocations
             filters={filters}
             setFilters={setFilters}
-            setDialog={setDialog} />
+            currentUser={config.currentUser ?? null}
+            mode={config.mode} />
         )}
 
         {/* Toolbar */}
@@ -202,9 +202,9 @@ export function Explorer({
 
         {/* Listings */}
         {view === "grid" ? (
-          <ListingGrid listings={items} />
+          <ListingGrid listings={items} currentUser={config.currentUser ?? null} />
         ) : (
-          <ListingList listings={items} />
+          <ListingList listings={items} currentUser={config.currentUser ?? null} />
         )}
 
         {/* Infinite scroll */}

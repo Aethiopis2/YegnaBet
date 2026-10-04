@@ -2,19 +2,25 @@ import { useNavigate } from "react-router-dom";
 import { cn } from "../../lib/cn";
 import type { ListingMode } from "../../types/customer/listings";
 import type { TaxonomyNode } from "../../types/common/taxonomy";
+import type { UserProfile } from "../../types/customer/profile";
 
 interface CategoryCardProps {
   category: TaxonomyNode;
   route: string;
   className?: string;
   listingMode?: ListingMode;
+  currentUser: UserProfile | null;
 }
 
-export function CategoryCard({ category, route, className, listingMode }: CategoryCardProps) {
+export function CategoryCard({ category, route, className, listingMode, currentUser }: CategoryCardProps) {
   const navigate = useNavigate();
 
   return (
-    <button type="button" onClick={() => navigate(route + `?mode=${listingMode}`)}
+    <button type="button" onClick={() => navigate(route + `?mode=${listingMode}`, {
+      state: {
+        currentUser
+      }
+    })}
       className={cn("group w-20.5 shrink-0", "text-center", className)}>
         
       <div className="relative aspect-square overflow-hidden rounded-2xl bg-gray-100 dark:bg-white/5">

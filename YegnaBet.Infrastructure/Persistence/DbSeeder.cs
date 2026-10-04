@@ -1,7 +1,6 @@
-﻿using Microsoft.EntityFrameworkCore;
-using System.Globalization;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using System.Text.Json;
-using System.Text.Json.Nodes;
 using YegnaBet.Domain.Entities;
 using YegnaBet.Domain.Enums;
 
@@ -10,7 +9,8 @@ namespace YegnaBet.Infrastructure.Persistence
     public static class DbSeeder
     {
         private const int NUM_USERS = 1000;
-        private const int NUM_LISTINGS = 100000;
+        private const int NUM_LISTINGS = 1_000_000;
+        private static IPasswordHasher<User> passwordHasher;
 
         private static readonly string[] cities_list =
         {
@@ -205,12 +205,15 @@ namespace YegnaBet.Infrastructure.Persistence
         /// <summary>
         /// Populates the database with canned and random values for testing purposes.
         /// </summary>
-        public static async Task SeedAsync(BrokerDbContext db)
+        public static async Task SeedAsync(BrokerDbContext db, IPasswordHasher<User> pH)
         {
+            passwordHasher = pH;
             await SeedRoots(db);
-
+            
             List<Location> locations = SeedLocations(db);
             Dictionary<UserRole, List<User>> users = SeedUsers(db);
+
+            SeedDevelopmentUsers(db);
 
             await db.SaveChangesAsync();
 
@@ -593,13 +596,18 @@ namespace YegnaBet.Infrastructure.Persistence
                         names_list[random.Next(names_list.Length)],
 
                     Role = role,
-
+                    
                     PhoneNumber =
                         "09" + i.ToString("00000000"),
-
+                    Email = "fullname@" + role.ToString() + ".com",
                     IsVerified = true,
                     Avatar = $"/assets/images/avatar/{i % 10}.jpg"
                 };
+
+                //user.PasswordHash = passwordHasher.HashPassword(user, "123");
+                var v = passwordHasher.HashPassword(user, "123");
+                Console.WriteLine(v);
+                user.PasswordHash = v;
 
                 db.Users.Add(user);
                 users[role].Add(user);
@@ -1003,6 +1011,81 @@ namespace YegnaBet.Infrastructure.Persistence
 
                 _ => "service"
             };
+        }
+
+        private static void CreateDevelopmentUser(
+    BrokerDbContext db,
+    string phoneNumber,
+    string fullName,
+    string password,
+    UserRole role)
+        {
+            var user = db.Users
+                .SingleOrDefault(x => x.PhoneNumber == phoneNumber);
+
+            if (user == null)
+            {
+                user = new User
+                {
+                    FullName = fullName,
+                    PhoneNumber = phoneNumber,
+                    Email = $"{role.ToString().ToLowerInvariant()}@yegnabet.local",
+                    Role = role,
+                    IsVerified = true,
+                    IsActive = true,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
+                };
+
+                user.PasswordHash =
+                    passwordHasher.HashPassword(user, password);
+
+                db.Users.Add(user);
+
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(user.PasswordHash))
+            {
+                user.PasswordHash =
+                    passwordHasher.HashPassword(user, password);
+            }
+
+            user.Role = role;
+            user.IsVerified = true;
+            user.IsActive = true;
+            user.UpdatedAt = DateTime.UtcNow;
+        }
+
+        private static void SeedDevelopmentUsers(BrokerDbContext db)
+        {
+            CreateDevelopmentUser(
+                db,
+                "0911000001",
+                "Development Customer",
+                "Customer123!",
+                UserRole.Customer);
+
+            CreateDevelopmentUser(
+                db,
+                "0911000000",
+                "Development Provider",
+                "Provider123!",
+                UserRole.Provider);
+
+            CreateDevelopmentUser(
+                db,
+                "0911000002",
+                "Development Employee",
+                "Employee123!",
+                UserRole.Employee);
+
+            CreateDevelopmentUser(
+                db,
+                "0911000003",
+                "Development Owner",
+                "Owner123!",
+                UserRole.Owner);
         }
     }
 } // end namespace

@@ -53,6 +53,15 @@ export interface EmployeeTaxonomyNodeDto {
 }
 
 
+export type TaxonomyAttributeType = "string"
+    | "integer"
+    | "decimal"
+    | "boolean"
+    | "date"
+    | "datetime"
+    | "choice";
+
+
 /**
  * @description Each taxonomy has withit a set of attributes that describe
  *  its properties.
@@ -62,14 +71,8 @@ export interface TaxonomyAttribute {
   name: string;
   key: string;
 
-  type:
-    | "string"
-    | "integer"
-    | "decimal"
-    | "boolean"
-    | "date"
-    | "datetime"
-    | "choice";
+  type: TaxonomyAttributeType
+    
 
   required: boolean;
   searchable: boolean;
@@ -103,4 +106,36 @@ export interface CreateTaxonomyNodeRequest {
   description?: string;
   image?: string;
   parentId: number | null;
+}
+
+
+export interface CreateTaxonomyAttributeRequest {
+  name: string;
+  key: string;
+  type: TaxonomyAttributeType;
+  required: boolean;
+  searchable: boolean;
+  filterable: boolean;
+  minValue?: number;
+  maxValue?: number;
+  options?: string[];
+}
+
+export interface UpdateTaxonomyAttributeRequest
+  extends CreateTaxonomyAttributeRequest {}
+
+
+export interface UpdateTaxonomyAttributeRequest {
+  name: string;
+  key: string;
+  type: TaxonomyAttributeType;
+
+  required: boolean;
+  searchable: boolean;
+  filterable: boolean;
+
+  minValue?: number;
+  maxValue?: number;
+
+  options?: string[];
 }

@@ -1,12 +1,17 @@
-﻿using YegnaBet.Domain.Enums;
-
-namespace YegnaBet.API.Modules.Users.Dtos
+﻿namespace YegnaBet.API.Modules.Users.Dtos
 {
-    public class UserProfileDto
+    public sealed class UserProfileDto
     {
         public long Id { get; set; }
-        public string Role { get; set; } = null!;
         public string FullName { get; set; } = null!;
-        public bool IsActive { get; set; }
+        public string PhoneNumber { get; set; } = null!;
+        public string Role { get; set; } = null!;
+        public string? Email { get; set; }
+        public string? AvatarUrl { get; set; }
+        public string? Country { get; set; }
+        public string? City { get; set; }
+        public string? Area { get; set; }
+        public string? SubArea { get; set; }
+        public bool Verified { get; set; }
     }
 }

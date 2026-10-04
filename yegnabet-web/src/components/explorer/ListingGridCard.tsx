@@ -1,30 +1,57 @@
-import { Heart, MapPin, } from "lucide-react";
+import { Heart, MapPin, LucideFileExclamationPoint } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import type { Listing } from "../../types/customer/listings";
-import { formatPrice, } from "../../lib/formatters";
+import { formatArea, formatPrice, } from "../../lib/formatters";
 import { cn } from "../../lib/cn";
 import { resolveIcon } from "../../lib/IconResolver";
 import VerifiedTag from "../common/VerifiedTag";
+import type { UserProfile } from "../../types/customer/profile";
+import { updateSavedListing } from "../../lib/customer/customerApi";
 
 
 interface ListingGridCardProps {
   listing: Listing;
+  currentUser: UserProfile | null;
 }
 
 
 export function ListingGridCard({
   listing,
+  currentUser,
 }: ListingGridCardProps) {
   const navigate = useNavigate();
 
-  const [saved, setSaved] = useState(
-    listing.saved ?? false
-  );
+  const [saved, setSaved] = useState(listing.saved ?? false);
+  const [error, setError] = useState<string>("");
 
+  const saveListing = async () => {
+    if (!currentUser)
+      return;
 
+    try {
+      const savedListing = {
+        userId: Number(currentUser.id),
+        listingId: listing.id,
+        saved: !saved,
+      };
+
+      await updateSavedListing(savedListing);
+
+      setSaved(!saved);
+    } catch (err) {
+      console.error(err);
+      setError(String(err || "An error occurred while saving the listing."));
+    }
+  };
+  
   const openListing = () => {
-    navigate(`/listing/${listing.id}`);
+    navigate(`/listing/${listing.id}`, {
+      state: {
+        listing,
+        currentUser,
+      },
+    });
   };
 
 
@@ -132,10 +159,7 @@ export function ListingGridCard({
           aria-pressed={saved}
           onClick={(event) => {
             event.stopPropagation();
-
-            setSaved(
-              (value) => !value
-            );
+            saveListing();
           }}
           className="
             absolute
@@ -155,13 +179,14 @@ export function ListingGridCard({
             dark:text-white
           "
         >
-          <Heart
+          {!error && <Heart
             className={cn(
               "size-4.25 transition-all",
               saved &&
                 "fill-red-500 stroke-red-500"
             )}
-          />
+          />}
+          {error && <LucideFileExclamationPoint className="size-4.25 text-red-500" />}
         </button>
 
       </div>
@@ -272,9 +297,10 @@ export function ListingGridCard({
                       "
                     >
                       <Icon className="size-3.5" />
+                      {metadata.name} :
 
                       <span>
-                        {metadata.value}
+                        {metadata.name === "Area" ? formatArea(Number(metadata.value)) : metadata.value}
                       </span>
                     </span>
                   );

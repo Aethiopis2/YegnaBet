@@ -1,13 +1,3 @@
-import {
-  Building2,
-  BriefcaseBusiness,
-  Folder,
-  Home,
-  LandPlot,
-  UserRound,
-  Wrench,
-} from "lucide-react";
-
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { EmployeeShell } from "../../components/employee/EmployeeShell";
 import { TaxonomySidebar } from "../../components/employee/taxonomy/TaxonomySidebar";
@@ -15,10 +5,15 @@ import { flattenTree, TaxonomyTree } from "../../components/employee/taxonomy/Ta
 import { TaxonomyDetails } from "../../components/employee/taxonomy/TaxonomyDetails";
 import { TaxonomyAttributes } from "../../components/employee/taxonomy/TaxonomyAttributes";
 import { TaxonomyAttributeDetails } from "../../components/employee/taxonomy/TaxonomyAttributeDetails";
-import type { TaxonomyNodeFront } from "../../types/common/taxonomy";
+import type { TaxonomyAttribute, TaxonomyAttributeType, TaxonomyNodeFront } from "../../types/common/taxonomy";
 import { mapTaxonomyTree } from "../../types/eployee/taxonomyMapper";
-import { createTaxonomyNode, getTaxonomyTree } from "../../lib/employee/taxonomyApi";
+import { createTaxonomyAttribute, createTaxonomyNode, getTaxonomyAttributes, getTaxonomyTree, moveTaxonomyNode } from "../../lib/employee/taxonomyApi";
+import { ConfirmDialog } from "../../components/common/ConfrimationDialog";
 
+interface PendingMove {
+  draggedId: string;
+  targetId: string;
+}
 
 function cloneTree(nodes: TaxonomyNodeFront[]): TaxonomyNodeFront[] {
   return nodes.map((node) => ({
@@ -89,11 +84,113 @@ export function TaxonomiesPage() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [selectedAttributeId, setSelectedAttributeId] = useState<string | null>(null);
 
+  const [pendingMove, setPendingMove] = useState<PendingMove | null>(null);
+  const [moveSnapshot, setMoveSnapshot] = useState<TaxonomyNodeFront[] | null>(null);
+  const [mutationLoading, setMutationLoading] = useState(false);
+
+  const [attributes, setAttributes] = useState<TaxonomyAttribute[]>([]);
+  const [attributesLoading, setAttributesLoading] = useState(false);
+
+
   const allNodes = useMemo(
     () => flattenTree(tree),
     [tree]
   );
   
+  const handleAddAttribute = async () => {
+    if (!selectedNode) return;
+
+    try {
+      const created = await createTaxonomyAttribute(
+        selectedNode.id,
+        {
+          name: "New Attribute",
+          key: `attribute_${Date.now()}`,
+          type: "string",
+          required: false,
+          searchable: false,
+          filterable: false,
+          options: [],
+        }
+      );
+
+      const attribute: TaxonomyAttribute = {
+        id: String(created.id),
+        name: created.name,
+        key: created.key,
+        type: created.type.toLowerCase() as TaxonomyAttributeType,
+        required: created.required,
+        searchable: created.searchable,
+        filterable: created.filterable,
+        minValue: created.minValue ?? undefined,
+        maxValue: created.maxValue ?? undefined,
+        options: created.options ?? [],
+      };
+
+      setAttributes((current) => [...current, attribute]);
+      setSelectedAttributeId(attribute.id);
+    } catch (error) {
+      console.error(error);
+      setError("Failed to create attribute.");
+    }
+  };
+
+  useEffect(() => {
+    if (!selectedNode) {
+      setAttributes([]);
+      setSelectedAttributeId(null);
+      return;
+    }
+
+    let cancelled = false;
+
+    const loadAttributes = async () => {
+      setAttributesLoading(true);
+
+      try {
+        const dto = await getTaxonomyAttributes(selectedNode.id);
+
+        if (cancelled) return;
+
+        setAttributes(
+          dto.map((x) => ({
+            id: String(x.id),
+            name: x.name,
+            key: x.key,
+            type: x.type.toLowerCase() as TaxonomyAttributeType,
+            required: x.required,
+            searchable: x.searchable,
+            filterable: x.filterable,
+            minValue: x.minValue ?? undefined,
+            maxValue: x.maxValue ?? undefined,
+            options: x.options ?? [],
+          }))
+        );
+
+        setSelectedAttributeId(null);
+      } catch (error) {
+        console.error(error);
+
+        if (!cancelled) {
+          setAttributes([]);
+          setSelectedAttributeId(null);
+        }
+      } finally {
+        if (!cancelled) {
+          setAttributesLoading(false);
+        }
+      }
+    };
+
+    loadAttributes();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedId]);
+
+
+
   useEffect(() => {
     const taxonomyId = taxonomyIds[taxonomy];
 
@@ -136,57 +233,99 @@ export function TaxonomiesPage() {
     selectedAttributeId,
   ]);
 
-  function handleMove(
+  const handleMove = (
     draggedId: string,
     targetId: string
-  ) {
-    setTree((current) => {
-      const next = cloneTree(current);
+  ) => {
+    setMoveSnapshot(tree);
 
-      const dragged = findNode(
-        next,
-        draggedId
-      );
+    // Your existing local clone/move logic.
+    const nextTree = cloneTree(tree);
 
-      if (!dragged) {
-        return current;
-      }
+    const dragged = findNode(nextTree, draggedId);
+    const target = findNode(nextTree, targetId);
 
-      /*
-       * Prevent dropping a node
-       * inside itself or one of its children.
-       */
-      if (containsNode(dragged, targetId)) {
-        return current;
-      }
+    if (!dragged || !target)
+      return;
 
-      const removed = removeNode(
-        next,
-        draggedId
-      );
+    // Prevent circular hierarchy.
+    if (
+      draggedId === targetId ||
+      containsNode(dragged, targetId)
+    ) {
+      return;
+    }
 
-      if (!removed) {
-        return current;
-      }
+    const removed = removeNode(
+      nextTree,
+      draggedId
+    );
 
-      const target = findNode(
-        next,
-        targetId
-      );
+    if (!removed)
+      return;
 
-      if (!target) {
-        return current;
-      }
+    removed.parentId = targetId;
+    removed.sortOrder =
+      target.children.length + 1;
 
-      removed.parentId = target.id;
-      removed.sortOrder =
-        target.children.length + 1;
+    target.children.push(removed);
 
-      target.children.push(removed);
+    setTree(nextTree);
 
-      return next;
+    setPendingMove({
+      draggedId,
+      targetId,
     });
-  }
+  };
+
+  const confirmMove = async () => {
+    if (!pendingMove)
+      return;
+
+    try {
+      setMutationLoading(true);
+
+      await moveTaxonomyNode(
+        pendingMove.draggedId,
+        pendingMove.targetId
+      );
+
+      setPendingMove(null);
+      setMoveSnapshot(null);
+
+      await loadTree();
+    }
+    catch (error) {
+      console.error(error);
+
+      if (moveSnapshot) {
+        setTree(moveSnapshot);
+      }
+
+      setPendingMove(null);
+      setMoveSnapshot(null);
+
+      setError(
+        error instanceof Error
+          ? error.message
+          : "Failed to move category."
+      );
+    }
+    finally {
+      setMutationLoading(false);
+    }
+  };
+
+
+  const cancelMove = () => {
+    if (moveSnapshot) {
+      setTree(moveSnapshot);
+    }
+
+    setPendingMove(null);
+    setMoveSnapshot(null);
+  };
+
 
   async function createNode(parentId: string | null) {
     const taxonomyId = taxonomyIds[taxonomy];
@@ -441,13 +580,31 @@ export function TaxonomiesPage() {
         <div className="grid gap-4 xl:grid-cols-[1.35fr_0.65fr]">
           <TaxonomyAttributes
             node={selectedNode}
+            attributes={attributes}
+            loading={attributesLoading}
             onSelectAttribute={(attribute) =>
               setSelectedAttributeId(attribute.id)
             }
+            onAddAttribute={handleAddAttribute}
           />
 
           <TaxonomyAttributeDetails
+            nodeId={selectedId}
             attribute={selectedAttribute}
+            onSaved={(updated) => {
+              setAttributes((current) =>
+                current.map((x) =>
+                  x.id === updated.id ? updated : x
+                )
+              );
+            }}
+            onDeleted={(attributeId) => {
+              setAttributes((current) =>
+                current.filter((x) => x.id !== attributeId)
+              );
+
+              setSelectedAttributeId(null);
+            }}
           />
         </div>
 
@@ -457,6 +614,32 @@ export function TaxonomiesPage() {
           <CategoryPath node={selectedNode} />
         )}
       </div>
+
+      <ConfirmDialog
+        open={pendingMove !== null}
+        title="Move category?"
+        message={
+          pendingMove
+            ? (() => {
+                const dragged =
+                  findNode(tree, pendingMove.draggedId);
+
+                const target =
+                  findNode(tree, pendingMove.targetId);
+
+                if (!dragged || !target)
+                  return "Move this category?";
+
+                return `Move "${dragged.name}" under "${target.name}"?`;
+              })()
+            : ""
+        }
+        confirmText="Move"
+        cancelText="Cancel"
+        onConfirm={confirmMove}
+        onCancel={cancelMove}
+        busy={mutationLoading}
+      />
     </EmployeeShell>
   );
 }

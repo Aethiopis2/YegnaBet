@@ -1,7 +1,9 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using System.Net.NetworkInformation;
+using YegnaBet.API.Modules.Authentication;
 using YegnaBet.API.Modules.Marketplace.Dtos;
 using YegnaBet.API.Modules.Users.Dtos;
+using YegnaBet.Domain.Entities;
 using YegnaBet.Domain.Enums;
 using YegnaBet.Infrastructure.Persistence;
 
@@ -135,6 +137,16 @@ namespace YegnaBet.API.Modules.Marketplace.Services
                 query = query.Where(x => x.Id == request.Id);
             }
 
+            if (request.Saved.HasValue && request.UserId.HasValue)
+            {
+                var saved = await _db.SavedListings
+                    .AsNoTracking()
+                    .Where(x => x.UserId == request.UserId)
+                    .ToListAsync();
+                    
+                query = query.Where(x => saved.All(y => y.ListingId == x.Id));
+            }
+
             if (request.Method.HasValue)
             {
                 query = query.Where(x =>
@@ -251,7 +263,9 @@ namespace YegnaBet.API.Modules.Marketplace.Services
                     Featured = x.IsFeatured,
                     Verified = x.IsVerified,
                     Trending = false,
-                    Saved = false,
+                    Saved = _db.SavedListings
+                        .AsNoTracking()
+                        .Count(y => y.UserId == request.UserId && y.ListingId == x.Id && !y.IsDeleted) > 0,
 
                     Metadata = x.AttributeValues
                         .Select(a => new ListingMetadataDto
@@ -312,5 +326,39 @@ namespace YegnaBet.API.Modules.Marketplace.Services
                     .Count(y => y.LocationId == x.Id)
             }).OrderBy(x => x.Count).Distinct().ToListAsync();
         } // end getLocations
+
+
+        public async Task<long> InsertUpdateSaved(AddUpdateSavedListingDto dto)
+        {
+            var listing = await _db.SavedListings
+                .AsNoTracking()
+                .Where(x => x.UserId == dto.UserId && x.ListingId == dto.ListingId)
+                .FirstOrDefaultAsync();
+
+            if (listing == null)
+            {
+                _db.SavedListings.Add(new SavedListings
+                {
+                    UserId = dto.UserId,
+                    ListingId = dto.ListingId,
+                });
+            } // end if
+            else
+            {
+                if (!dto.Saved)
+                {
+                    listing.IsDeleted = true;
+                } // end if not saved
+                else
+                {
+                    listing.IsDeleted = false;
+                    
+                } // end else
+                _db.SavedListings.Update(listing);
+            } // end else
+
+            var saved = await _db.SaveChangesAsync();
+            return saved;
+        } // InsertUpdateSaved
     } // end MarketplaceService
 } // end namespace

@@ -1,62 +1,75 @@
-import { Navigate, Outlet, useLocation } from "react-router-dom";
-import { useAuth } from "./AuthContext";
-import type { UserRole } from "./authTypes";
+import {
+  Navigate,
+  Outlet,
+  useLocation,
+} from "react-router-dom";
+
+import { useAuth } from "../types/auth/authContext";
+import type { UserRole } from "../types/auth/authTypes"
 
 interface RequireAuthProps {
-    roles?: UserRole[];
+  roles?: UserRole[];
 }
 
-function getRoleHome(role: UserRole) {
-    switch (role) {
-        case "Provider":
-            return "/provider";
+function getHomeForRole(role: UserRole): string {
+  switch (role) {
+    case "Provider":
+      return "/provider";
 
-        case "Employee":
-            return "/employee";
+    case "Employee":
+      return "/employee";
 
-        case "Owner":
-            return "/owner";
+    case "Owner":
+      return "/owner";
 
-        case "Customer":
-        default:
-            return "/";
-    }
+    case "Customer":
+    default:
+      return "/";
+  }
 }
 
-export function RequireAuth({ roles }: RequireAuthProps) {
-    const { isAuthenticated, isLoading, user } = useAuth();
-    const location = useLocation();
+export function RequireAuth({
+  roles,
+}: RequireAuthProps) {
+  const {
+    user,
+    isAuthenticated,
+    isLoading,
+  } = useAuth();
 
-    if (isLoading) {
-        return (
-            <div className="min-h-screen flex items-center justify-center">
-                <div className="h-8 w-8 animate-spin rounded-full border-2 border-current border-t-transparent" />
-            </div>
-        );
-    }
+  const location = useLocation();
 
-    if (!isAuthenticated || !user) {
-        const returnUrl =
-            location.pathname +
-            location.search +
-            location.hash;
+  if (isLoading) {
+    return null;
+  }
 
-        return (
-            <Navigate
-                to={`/login?returnUrl=${encodeURIComponent(returnUrl)}`}
-                replace
-            />
-        );
-    }
+  if (!isAuthenticated || !user) {
+    const returnUrl =
+      location.pathname +
+      location.search +
+      location.hash;
 
-    if (roles && !roles.includes(user.role)) {
-        return (
-            <Navigate
-                to={getRoleHome(user.role)}
-                replace
-            />
-        );
-    }
+    return (
+      <Navigate
+        to={`/login?returnUrl=${encodeURIComponent(
+          returnUrl
+        )}`}
+        replace
+      />
+    );
+  }
 
-    return <Outlet />;
+  if (
+    roles &&
+    !roles.includes(user.role)
+  ) {
+    return (
+      <Navigate
+        to={getHomeForRole(user.role)}
+        replace
+      />
+    );
+  }
+
+  return <Outlet />;
 }

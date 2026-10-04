@@ -10,6 +10,6 @@
         Customer,
         Provider,
         Employee,
-        Admin
+        Owner
     }
 }

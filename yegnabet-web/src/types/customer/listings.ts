@@ -9,13 +9,28 @@ export interface ListingPage {
 export type ListingType =  "land" | "house" | "apartment" | "commercial" | "service";
 export type ListingStatus = | "sale" | "rent" | "contract" | "available";
 
+// export interface ListingLocation {
+//     city: string;
+//     area: string;
+//     neighborhood?: string;
+//     latitude?: number;
+//     longitude?: number;
+// }
+
+/**
+ * @description an interface used to fetch location information to/from
+ *  a backend service. A location is but a string of unique names for every listing
+ *  that exists and avoid duplication when handling listings with similar locations.
+ */
 export interface ListingLocation {
+    id: number;
+    country: string;
     city: string;
     area: string;
-    neighborhood?: string;
-    latitude?: number;
-    longitude?: number;
+    subArea?: string;
+    count: number;
 }
+
 
 export interface ListingProvider {
     id: number;
@@ -73,3 +88,10 @@ export interface Listing {
 }
 
 export type ListingMode = "Buy" | "Rent" | "Contract" | "Service" | "All";
+
+
+export interface AddUpdateSavedListing {
+  userId: number;
+  listingId: number;
+  saved: boolean;
+}

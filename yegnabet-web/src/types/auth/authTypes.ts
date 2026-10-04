@@ -7,10 +7,9 @@ export type UserRole =
 export interface AuthUser {
   id: number;
   fullName: string;
-  phoneNumber?: string;
+  phoneNumber: string;
   role: UserRole;
-  avatarUrl?: string;
-  isVerified?: boolean;
+  isVerified: boolean;
 }
 
 export interface LoginRequest {
@@ -19,6 +18,7 @@ export interface LoginRequest {
 }
 
 export interface LoginResponse {
-  sessionId: string;
+  accessToken: string;
+  expiresAt: string;
   user: AuthUser;
 }

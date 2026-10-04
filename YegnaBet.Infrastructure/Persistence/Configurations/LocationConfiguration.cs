@@ -9,6 +9,7 @@ namespace YegnaBet.Infrastructure.Persistence.Configurations
         public void Configure(EntityTypeBuilder<Location> entity)
         {
             entity.HasKey(x => x.Id);
+
             entity.Property(x => x.Id)
                 .UseIdentityByDefaultColumn();
 
@@ -26,6 +27,16 @@ namespace YegnaBet.Infrastructure.Persistence.Configurations
 
             entity.Property(x => x.SubArea)
                 .HasMaxLength(256);
+
+            entity.HasIndex(x => new
+            {
+                x.Country,
+                x.City,
+                x.Area,
+                x.SubArea
+            })
+                .IsUnique()
+                .HasAnnotation("Npgsql:NullsDistinct", false);
         }
     }
 }

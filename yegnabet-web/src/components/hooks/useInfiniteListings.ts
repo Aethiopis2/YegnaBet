@@ -7,7 +7,7 @@ import {
 import type {
   ListingFilters,
   ListingSort,
-} from "../../types/explorer";
+} from "../../types/customer/explorer";
 
 import type {
   Listing,
@@ -16,6 +16,7 @@ import type {
 } from "../../types/customer/listings";
 
 import { API, ASSET_URL } from "../../types/api";
+import type { UserProfile } from "../../types/customer/profile";
 
 
 const PAGE_SIZE = 5;
@@ -25,6 +26,8 @@ interface Options {
   mode: ListingMode;
   filters: ListingFilters;
   sort: ListingSort;
+  currentUser?: UserProfile | null;
+  listingId?: number;
 }
 
 
@@ -32,6 +35,7 @@ export function useInfiniteListings({
   mode,
   filters,
   sort,
+  currentUser
 }: Options) {
 
   const [items, setItems] =
@@ -63,7 +67,6 @@ export function useInfiniteListings({
       "pageSize",
       PAGE_SIZE.toString()
     );
-
 
     /*
      * Sale / Rent
@@ -206,6 +209,17 @@ export function useInfiniteListings({
       );
     }
 
+
+    /**
+     * Current User ID
+     */
+    if (currentUser) {
+      params.set(
+        "userId",
+        currentUser.id
+      );
+    }
+
     return params.toString();
   };
 
@@ -226,10 +240,10 @@ export function useInfiniteListings({
 
         const query =
           buildQuery(pageNumber);
-
+          
         const response =
           await API.get<ListingPage>(
-            `listings/get-listings?${query}`
+            `listings?${query}`
           );
 
         const data =

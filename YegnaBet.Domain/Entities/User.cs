@@ -9,11 +9,14 @@ namespace YegnaBet.Domain.Entities
 
         public string FullName { get; set; } = null!;
         public string PhoneNumber { get; set; } = null!;
+        public string Email { get; set; } = null!;
+        public string PasswordHash { get; set; } = null!;
 
         public bool IsVerified { get; set; }
         public bool IsActive { get; set; } = true;
         public string? Avatar { get; set;}
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
     }
 }

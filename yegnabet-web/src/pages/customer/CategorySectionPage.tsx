@@ -4,48 +4,51 @@ import { AppShell } from "../../components/layout/AppShell"
 import { PageContainer } from "../../components/layout/PageContainer"
 import type { ListingMode } from "../../types/customer/listings";
 import { TransactionMode } from "../../components/explorer/listing/TransactionMode";
-import { getLeafNodes } from "../../lib/common/taxonomyFunctions";
 import type { TaxonomyNode } from "../../types/common/taxonomy";
-import { ASSET_URL } from "../../types/api";
-import { Fetch } from "../../lib/common/network";
 import Loading from "../../components/ui/common/Loading";
 import { SectionHeader } from "../../components/ui/SectionHeader";
 import { CategoryCard } from "../../components/discovery/CategoryCard";
-import { OkDialog } from "../../components/ui/common/okDialog";
+import { useLocation } from "react-router-dom";
+import { getTaxonomyLeafNodes } from "../../lib/customer/customerApi";
+import ErrorBlock from "../../components/ui/common/ErrorBlock";
 
 const CategorySectionPage = () => {
+    const location = useLocation();
+
     const [listingMode, setListingMode] = useState<ListingMode>("Buy");
-    const [dialog, setDialog] = useState({
-        open: false,
-        message: ""
-    });
-    const [categories, setCategories] = useState<TaxonomyNode[]>([]);
-    const [loading, setLoading] = useState(true);
-    const url = '/categories';    // api path
-
-    const onSuccess = (category: TaxonomyNode[]) => {
-        const nodes = getLeafNodes(category[0]);
-        
-        // fix up the images in cats relative to asset url
-        nodes.forEach(node => {
-        node.image = ASSET_URL + node.image;
-        });
-
-        setCategories(nodes);
-    };
+    const [categories, setCategories] = useState<TaxonomyNode[]>(
+        location.state?.categories || []);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState("");
 
     useEffect(() => {
-        Fetch(url, onSuccess, setLoading, setDialog);
-        }, []);
+        const getCategories = async () => {
+            try {
+                setLoading(true);
+                const taxonomy = await getTaxonomyLeafNodes();
+                setCategories(taxonomy);
+            } catch (err) {
+                console.error(err);
+                setError(String(err));
+            } finally {
+                setLoading(false);
+            }
+        }
+        
+        if (!location.state?.categories)
+            getCategories();
+    }, []);
 
     if (loading) {
-        return (
-        <Loading />
-        );
+        return <Loading />;
+    }
+
+    if (error) {
+        return <ErrorBlock message={error} />;
     }
 
     return (
-        <AppShell>
+        <AppShell currentUser={location.state?.currentUser}>
             <PageContainer>
                 <HeroSection />
                 
@@ -55,32 +58,23 @@ const CategorySectionPage = () => {
 
                 <section className="mt-8">
                     <SectionHeader
-                    title="All Categories"
-                    actionLabel=""
-                    actionHref={""} />
+                        title="All Categories"
+                        actionLabel=""
+                        actionHref={""}
+                        currentUser={location.state?.currentUser} />
             
                     <div className="mt-4 grid grid-cols-7 overflow-x-auto scrollbar-none">
                         {categories.map((category) => (
                             <CategoryCard
-                            key={category.id}
-                            category={category}
-                            route={`/categories/${category.name}`}
-                            listingMode={listingMode}
+                                key={category.id}
+                                category={category}
+                                route={`/categories/${category.name}`}
+                                listingMode={listingMode}
+                                currentUser={location.state?.currentUser}
                             />
                         ))}
                     </div>
                 </section>
-
-                <OkDialog
-                open={dialog.open}
-                message={dialog.message}
-                onOk={() =>
-                    setDialog({
-                    open: false,
-                    message: "",
-                    })
-                }
-                    />
             </PageContainer>
         </AppShell>
     )

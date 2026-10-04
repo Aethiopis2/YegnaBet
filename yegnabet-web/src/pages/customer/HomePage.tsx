@@ -6,19 +6,37 @@ import { FeaturedSection } from "../../components/discovery/FeaturedSection";
 import { HeroSection } from "../../components/discovery/HeroSection";
 import { HowItWorks } from "../../components/discovery/HowItWorks";
 import { TransactionMode, } from "../../components/explorer/listing/TransactionMode";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useAuth } from "../../types/auth/authContext";
 import type { ListingMode } from "../../types/customer/listings";
-import { OkDialog } from "../../components/ui/common/okDialog";
+import { getCustomerAuth } from "../../lib/customer/customerApi";
+import type { UserProfile } from "../../types/customer/profile";
 
 export default function HomePage() {
+  const { accessToken } = useAuth();
+
+  const [loggedUser, setLoggedUser] = useState<UserProfile | null>(null);
   const [listingMode, setListingMode] = useState<ListingMode>("Buy");
-  const [dialog, setDialog] = useState({
-      open: false,
-      message: ""
-    });
+
+  useEffect(() => {
+    if (!accessToken) {
+      return;
+    }
+
+    const loadLoggedUser = async () => {
+      try {
+        const user = await getCustomerAuth(accessToken);
+        setLoggedUser(user);
+      } catch (err) {
+        console.error(err);
+      }
+    };
+
+    loadLoggedUser();
+  }, [accessToken]);
 
   return (
-    <AppShell>
+    <AppShell currentUser={loggedUser} mode={listingMode}>
       <PageContainer>
         <HeroSection />
 
@@ -28,26 +46,15 @@ export default function HomePage() {
 
         <CategorySection 
           listingMode={listingMode}
-          setDialog={setDialog} />
+          currentUser={loggedUser} />
 
         <FeaturedSection 
           listingMode={listingMode}
-          setDialog={setDialog} />
+          currentUser={loggedUser} />
 
         <AdvertisementCarousel />
 
         <HowItWorks />
-
-        <OkDialog
-            open={dialog.open}
-            message={dialog.message}
-            onOk={() =>
-              setDialog({
-                open: false,
-                message: "",
-              })
-            }
-          />
       </PageContainer>
     </AppShell>
   );

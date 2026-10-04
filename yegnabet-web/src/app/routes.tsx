@@ -18,11 +18,18 @@ import ProviderDashboard from "../pages/provider/ProviderDashboard";
 import CreateListingPage from "../pages/provider/CreateListingPage";
 import EditListingPage from "../pages/provider/EditListingPage";
 import CategorySectionPage from "../pages/customer/CategorySectionPage";
-import LocationsSectitonPage from "../pages/customer/LocationsSectitonPage";
+import LoginPage from "../pages/auth/LoginPage";
+import { RequireAuth } from "../auth/RequireAuth";
+import LocationsSectionPage from "../pages/customer/LocationsSectionPage";
 
 export function AppRoutes() {
   return (
     <Routes>
+
+      {/* ------------------------------------------------ */}
+      {/* Public */}
+      {/* ------------------------------------------------ */}
+
       <Route
         path="/"
         element={<HomePage />}
@@ -40,7 +47,7 @@ export function AppRoutes() {
 
       <Route
         path="/locations"
-        element={<LocationsSectitonPage />}
+        element={<LocationsSectionPage />}
       />
 
       <Route
@@ -69,54 +76,90 @@ export function AppRoutes() {
       />
 
       <Route
-        path="/requests"
-        element={<MyRequestsPage />}
+        path="/login"
+        element={<LoginPage />}
       />
 
-      <Route
-        path="/requests/property"
-        element={<RequestPropertyPage />}
-      />
+      {/* ------------------------------------------------ */}
+      {/* Customer */}
+      {/* ------------------------------------------------ */}
 
-      <Route
-        path="/inbox"
-        element={<InboxPage />}
-      />
+      <Route element={<RequireAuth roles={["Customer"]} />}>
+        <Route
+          path="/requests"
+          element={<MyRequestsPage />}
+        />
 
-      <Route
-        path="/profile"
-        element={<ProfilePage />}
-      />
+        <Route
+          path="/requests/property"
+          element={<RequestPropertyPage />}
+        />
 
-      <Route
-        path="/employee"
-        element={<EmployeeDashboardPage />}
-      />
+        <Route
+          path="/inbox"
+          element={<InboxPage />}
+        />
 
-      <Route
-        path="/employee/taxonomies"
-        element={<TaxonomiesPage />}
-      />
+        <Route
+          path="/profile"
+          element={<ProfilePage />}
+        />
+      </Route>
 
-      <Route
-        path="/owner"
-        element={<OwnerDashboard />}
-      />
+      {/* ------------------------------------------------ */}
+      {/* Employee */}
+      {/* ------------------------------------------------ */}
 
-      <Route
-        path="/provider"
-        element={<ProviderDashboard />}
-      />
+      <Route element={<RequireAuth roles={["Employee"]} />}>
 
-      <Route
-        path="/provider/listings/create"
-        element={<CreateListingPage />}
-      />
+        <Route
+          path="/employee"
+          element={<EmployeeDashboardPage />}
+        />
 
-      <Route
-        path="/provider/listings/:id/edit"
-        element={<EditListingPage />}
-      />
+        <Route
+          path="/employee/taxonomies"
+          element={<TaxonomiesPage />}
+        />
+
+      </Route>
+
+      {/* ------------------------------------------------ */}
+      {/* Owner */}
+      {/* ------------------------------------------------ */}
+
+      <Route element={<RequireAuth roles={["Owner"]} />}>
+
+        <Route
+          path="/owner"
+          element={<OwnerDashboard />}
+        />
+        
+      </Route>
+
+      {/* ------------------------------------------------ */}
+      {/* Provider */}
+      {/* ------------------------------------------------ */}
+
+      <Route element={<RequireAuth roles={["Provider"]} />}>
+
+        <Route
+          path="/provider"
+          element={<ProviderDashboard />}
+        />
+
+        <Route
+          path="/provider/listings/create"
+          element={<CreateListingPage />}
+        />
+
+        <Route
+          path="/provider/listings/:id/edit"
+          element={<EditListingPage />}
+        />
+
+      </Route>
+
     </Routes>
   );
 }

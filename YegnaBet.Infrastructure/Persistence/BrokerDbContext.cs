@@ -11,6 +11,8 @@ namespace YegnaBet.Infrastructure.Persistence
         }
 
         public DbSet<User> Users => Set<User>();
+        public DbSet<UserEx> UsersEx => Set<UserEx>();
+
         public DbSet<Location> Locations => Set<Location>();
         public DbSet<Listing> Listings => Set<Listing>();
         public DbSet<ListingImage> ListingImages => Set<ListingImage>();
@@ -22,6 +24,8 @@ namespace YegnaBet.Infrastructure.Persistence
         public DbSet<Taxonomy> Taxonomy => Set<Taxonomy>();
         public DbSet<TaxonomyNode> TaxonomyNode => Set<TaxonomyNode>();
         public DbSet<AttributeDefinition> AttributeDefinition => Set<AttributeDefinition>();
+        public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
+        public DbSet<SavedListings> SavedListings => Set<SavedListings>();
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)

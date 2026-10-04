@@ -27,17 +27,17 @@ import { ProfileSection } from "../../components/profile/ProfileSection";
 
 import type {
   UserProfile,
-} from "../../types/profile";
+} from "../../types/customer/profile";
 
 import { AccountAction, PreferenceRow, ThemeToggle, Toggle }  from "../../components/profile/ProfileMisc";
 
 const initialProfile: UserProfile = {
   id: "user-1",
 
-  firstName: "Abebe",
-  lastName: "Kebede",
+  fullName: "Abebe Kebede",
 
-  phone: "+251 91 234 5678",
+  phoneNumber: "+251 91 234 5678",
+  role: "Customer",
   email: "abebe@example.com",
 
   city: "Addis Ababa",

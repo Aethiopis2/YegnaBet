@@ -1,0 +1,43 @@
+import type { ListingMode } from "./listings";
+import type { UserProfile } from "./profile";
+
+export type ListingView = "grid" | "list";
+
+
+
+export interface ListingFilters {
+  location?: string;
+  minPrice?: number;
+  maxPrice?: number;
+  bedrooms?: number;
+  category?: string;
+  verified?: boolean;
+  featured?: boolean;
+  trending?: boolean;
+  saved?: boolean;
+}
+
+export type ListingSort =
+  | "recommended"
+  | "newest"
+  | "price-low"
+  | "price-high";
+
+export interface ExplorerConfig {
+  title: string;
+  subtitle?: string;
+
+  mode?: ListingMode;
+
+  filters?: ListingFilters;
+
+  showMode?: boolean;
+  showPopularLocations?: boolean;
+  showModeTabs?: boolean;
+  showFilters?: boolean;
+
+  initialView?: ListingView;
+
+  sort?: ListingSort;
+  currentUser?: UserProfile;
+}

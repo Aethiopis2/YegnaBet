@@ -13,8 +13,8 @@ using YegnaBet.Infrastructure.Persistence;
 namespace YegnaBet.Infrastructure.Migrations
 {
     [DbContext(typeof(BrokerDbContext))]
-    [Migration("20260913233454_RestoreLatLongBacktoListing")]
-    partial class RestoreLatLongBacktoListing
+    [Migration("20260927181018_AddRefereshToken")]
+    partial class AddRefereshToken
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -49,6 +49,9 @@ namespace YegnaBet.Infrastructure.Migrations
                     b.Property<bool>("IsFilterable")
                         .HasColumnType("boolean");
 
+                    b.Property<bool>("IsRequired")
+                        .HasColumnType("boolean");
+
                     b.Property<bool>("IsSearchable")
                         .HasColumnType("boolean");
 
@@ -57,6 +60,12 @@ namespace YegnaBet.Infrastructure.Migrations
                         .HasMaxLength(150)
                         .HasColumnType("character varying(150)");
 
+                    b.Property<decimal?>("MaxValue")
+                        .HasColumnType("numeric");
+
+                    b.Property<decimal?>("MinValue")
+                        .HasColumnType("numeric");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(260)
@@ -64,6 +73,9 @@ namespace YegnaBet.Infrastructure.Migrations
 
                     b.Property<JsonDocument>("Options")
                         .HasColumnType("jsonb");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("integer");
 
                     b.HasKey("Id");
 
@@ -457,6 +469,43 @@ namespace YegnaBet.Infrastructure.Migrations
                     b.ToTable("NodeAttributeDefinition", "public");
                 });
 
+            modelBuilder.Entity("YegnaBet.Domain.Entities.RefreshToken", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("ReplacedByTokenHash")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("RevokedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("TokenHash")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<long>("UserId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TokenHash")
+                        .IsUnique();
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("RefreshTokens", "public");
+                });
+
             modelBuilder.Entity("YegnaBet.Domain.Entities.Taxonomy", b =>
                 {
                     b.Property<long>("Id")
@@ -542,6 +591,10 @@ namespace YegnaBet.Infrastructure.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<string>("FullName")
                         .IsRequired()
                         .HasColumnType("text");
@@ -552,12 +605,19 @@ namespace YegnaBet.Infrastructure.Migrations
                     b.Property<bool>("IsVerified")
                         .HasColumnType("boolean");
 
+                    b.Property<string>("PasswordHash")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<string>("PhoneNumber")
                         .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<int>("Role")
                         .HasColumnType("integer");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
 
@@ -713,6 +773,17 @@ namespace YegnaBet.Infrastructure.Migrations
                     b.Navigation("AttributeDefinition");
 
                     b.Navigation("TaxonomyNode");
+                });
+
+            modelBuilder.Entity("YegnaBet.Domain.Entities.RefreshToken", b =>
+                {
+                    b.HasOne("YegnaBet.Domain.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("YegnaBet.Domain.Entities.TaxonomyNode", b =>

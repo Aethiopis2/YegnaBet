@@ -6,13 +6,16 @@ import Providers from './app/Providers.tsx'
 import React from 'react';
 import { BrowserRouter } from 'react-router-dom';
 import "leaflet/dist/leaflet.css";
+import { AuthProvider } from './types/auth/authContext.tsx';
 
 createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <BrowserRouter>
-      <Providers>
-        <App />
-      </Providers>
+      <AuthProvider>
+        <Providers>
+          <App />
+        </Providers>
+      </AuthProvider>
     </BrowserRouter>
   </React.StrictMode>
 );

@@ -1,6 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using System.Reflection.Emit;
 using YegnaBet.Domain.Entities;
 
 namespace YegnaBet.Infrastructure.Persistence.Configurations

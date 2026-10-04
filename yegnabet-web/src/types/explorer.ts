@@ -1,42 +1,42 @@
-import type { ListingMode } from "./customer/listings";
+// import type { ListingMode } from "./customer/listings";
 
-export type ListingView = "grid" | "list";
+// export type ListingView = "grid" | "list";
 
 
 
-export interface ListingFilters {
-  location?: string;
-  minPrice?: number;
-  maxPrice?: number;
-  bedrooms?: number;
-  category?: string;
-  verified?: boolean;
-  featured?: boolean;
-  trending?: boolean;
-  saved?: boolean;
-}
+// export interface ListingFilters {
+//   location?: string;
+//   minPrice?: number;
+//   maxPrice?: number;
+//   bedrooms?: number;
+//   category?: string;
+//   verified?: boolean;
+//   featured?: boolean;
+//   trending?: boolean;
+//   saved?: boolean;
+// }
 
-export type ListingSort =
-  | "recommended"
-  | "newest"
-  | "price-low"
-  | "price-high";
+// export type ListingSort =
+//   | "recommended"
+//   | "newest"
+//   | "price-low"
+//   | "price-high";
 
-export interface ExplorerConfig {
-  title: string;
-  subtitle?: string;
+// export interface ExplorerConfig {
+//   title: string;
+//   subtitle?: string;
 
-  mode?: ListingMode;
+//   mode?: ListingMode;
 
-  filters?: ListingFilters;
+//   filters?: ListingFilters;
 
-  showMode?: boolean;
-  showPopularLocations?: boolean;
-  showModeTabs?: boolean;
-  showFilters?: boolean;
+//   showMode?: boolean;
+//   showPopularLocations?: boolean;
+//   showModeTabs?: boolean;
+//   showFilters?: boolean;
 
-  initialView?: ListingView;
+//   initialView?: ListingView;
 
-  sort?: ListingSort;
-}
+//   sort?: ListingSort;
+// }
 

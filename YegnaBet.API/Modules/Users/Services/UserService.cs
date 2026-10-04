@@ -25,7 +25,6 @@ namespace YegnaBet.API.Modules.Users.Services
                     Id = x.Id,
                     FullName = x.FullName,
                     Role = x.Role == 0 ? "Customer" : "Provider",
-                    IsActive = x.IsActive
                 })
                 .FirstAsync();
         } // end Get

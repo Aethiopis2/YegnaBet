@@ -2,37 +2,37 @@ import { useEffect, useState } from "react";
 import { SectionHeader } from "../ui/SectionHeader";
 import { FeaturedCard } from "./FeaturedCard";
 import type { Listing, ListingMode } from "../../types/customer/listings";
-import { ASSET_URL } from "../../types/api";
-import { Fetch } from "../../lib/common/network";
-import type { ListingPage } from "../../types/customer/listings";
 import Loading from "../ui/common/Loading";
+import { getFeaturedListings } from "../../lib/customer/customerApi";
+import ErrorBlock from "../ui/common/ErrorBlock";
+import type { UserProfile } from "../../types/customer/profile";
 
 interface FeaturedSectionProps {
   listingMode: ListingMode;
-  setDialog: any;
+  currentUser: UserProfile | null;
 }
 
-export function FeaturedSection({ listingMode, setDialog }: FeaturedSectionProps) {
+export function FeaturedSection({ listingMode, currentUser }: FeaturedSectionProps) {
   const [listings, setListings] = useState<Listing[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-  const onSuccess = (listingPage: ListingPage) => {
-    listingPage.items.forEach((listing: Listing) => {
-        if (listing.images) {
-          listing.images = listing.images.map((img: string) => ASSET_URL + img);
-        }
-      });
-    
-    setListings(listingPage.items);
-  };
   
   useEffect(() => {
-    setLoading(true);
-    Fetch(`/listings/get-listings?featured=true&method=${listingMode}`,
-      onSuccess,
-      setLoading,
-      setDialog
-    )
+    const getFeatured = async () => {
+      setLoading(true);
+      try {
+        const featured = await getFeaturedListings(listingMode);
+        setListings(featured);
+      } catch (err) {
+        setError(String(err));
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    } // end getFeatured
+
+    getFeatured();
   }, [listingMode])
 
   const featured = listings.filter(
@@ -40,17 +40,20 @@ export function FeaturedSection({ listingMode, setDialog }: FeaturedSectionProps
   );
 
   if (loading) {
-    return (
-      <Loading />
-    );
-  }
-  
+    return <Loading />
+  } // end if loading
+
+  if (error) {
+    return <ErrorBlock message={error} />;
+  } // end if error
+
   return (
     <section className="mt-8">
       <SectionHeader
         title="Featured Properties"
         actionLabel="View all"
         actionHref={`/explore?featured=true&mode=${listingMode}`}
+        currentUser={currentUser}
       />
 
       <div

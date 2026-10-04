@@ -30,6 +30,10 @@ namespace YegnaBet.Infrastructure.Migrations
                     IsActive = table.Column<bool>(type: "boolean", nullable: false),
                     IsSearchable = table.Column<bool>(type: "boolean", nullable: false),
                     IsFilterable = table.Column<bool>(type: "boolean", nullable: false),
+                    IsRequired = table.Column<bool>(type: "boolean", nullable: false),
+                    SortOrder = table.Column<int>(type: "integer", nullable: false),
+                    MinValue = table.Column<decimal>(type: "numeric", nullable: true),
+                    MaxValue = table.Column<decimal>(type: "numeric", nullable: true),
                     Options = table.Column<JsonDocument>(type: "jsonb", nullable: true)
                 },
                 constraints: table =>
@@ -85,9 +89,7 @@ namespace YegnaBet.Infrastructure.Migrations
                     Country = table.Column<string>(type: "character varying(128)", maxLength: 128, nullable: false),
                     City = table.Column<string>(type: "character varying(128)", maxLength: 128, nullable: false),
                     Area = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: false),
-                    SubArea = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
-                    Latitude = table.Column<double>(type: "double precision", nullable: true),
-                    Longitude = table.Column<double>(type: "double precision", nullable: true)
+                    SubArea = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true)
                 },
                 constraints: table =>
                 {
@@ -120,10 +122,13 @@ namespace YegnaBet.Infrastructure.Migrations
                     Role = table.Column<int>(type: "integer", nullable: false),
                     FullName = table.Column<string>(type: "text", nullable: false),
                     PhoneNumber = table.Column<string>(type: "text", nullable: false),
+                    Email = table.Column<string>(type: "text", nullable: false),
+                    PasswordHash = table.Column<string>(type: "text", nullable: false),
                     IsVerified = table.Column<bool>(type: "boolean", nullable: false),
                     IsActive = table.Column<bool>(type: "boolean", nullable: false),
                     Avatar = table.Column<string>(type: "text", nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -187,6 +192,8 @@ namespace YegnaBet.Infrastructure.Migrations
                     ViewsCount = table.Column<int>(type: "integer", nullable: false),
                     InquiresCount = table.Column<int>(type: "integer", nullable: false),
                     SuccessfulDeals = table.Column<int>(type: "integer", nullable: false),
+                    Latitude = table.Column<double>(type: "double precision", nullable: true),
+                    Longitude = table.Column<double>(type: "double precision", nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     ApprovedDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },

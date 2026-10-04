@@ -21,11 +21,13 @@ import { useEffect, useState } from "react";
 import { API, ASSET_URL } from "../../types/api";
 import { ListingForm } from "../../components/provider/ListingForm";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../types/auth/authContext";
 
 // import { providerData } from "./providerData";
 
 export default function ProviderDashboard() {
   const navigate = useNavigate();
+  const { accessToken } = useAuth();
 
   //const provider = providerData.provider;
   const providerId = 887; // Replace with the actual provider ID
@@ -33,29 +35,43 @@ export default function ProviderDashboard() {
   const [showListingForm, setShowListingForm] = useState(false);
   const [provider, setProvider] = useState<ProviderData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-      API.get(`/provider/${providerId}`)
-        .then((r) => {
-          setLoading(true);
+    if (!accessToken) {
+      setLoading(false);
+      return;
+    } // end if
 
-          // correct image url if since its always relative
-          r.data.listings.forEach((listing: any) => {
-            if (listing.image && !listing.image.startsWith("http")) {
-              listing.image = ASSET_URL + listing.image;
-            }
-          });
+    const loadDashboard = async () => {
+      try {
+        setLoading(true);
+        setError(null);
 
-          setProvider(r.data);
-        })
-        .catch((error) => {
-          console.error("Failed to load listing", error);
-          setProvider(null);
-        })
-        .finally(() => {
-          setLoading(false);
+        const response = await API.get('provider/me', {
+          headers: {
+            Authorization: `Bearer ${accessToken}`
+          }
         });
-      }, []);
+
+        if (response.status != 200) {
+          throw new Error(
+            `Failed to load provider dashboard (${response.status})`
+          );
+        } // end if 
+
+        console.log(response.data)
+        setProvider(await response.data);
+      } catch (err) {
+        console.log(err);
+        setError(err instanceof Error ? err.message : "Failed to load dashboard");
+      } finally {
+        setLoading(false);
+      } // end try...catch...finally block
+    } // end loadDashboard
+
+    loadDashboard();
+  }, [accessToken]);
   
     if (loading) {
       return (
@@ -63,6 +79,18 @@ export default function ProviderDashboard() {
           <div className="flex items-center justify-center py-10">
             <div className="h-6 w-6 animate-spin rounded-full border-2 border-gray-300 border-t-orange-500" />
           </div>
+        </AppShell>
+      );
+    }
+
+    if (error) {
+      return (
+        <AppShell>
+          <PageContainer>
+            <div className="rounded-2xl p-6 bg-red-500/10 text-red-500">
+              {error}
+            </div>
+          </PageContainer>
         </AppShell>
       );
     }

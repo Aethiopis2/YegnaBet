@@ -11,7 +11,6 @@ namespace YegnaBet.API.Modules.Provider.Services
     public class ProviderService
     {
         private readonly BrokerDbContext _db;
-
         private readonly IWebHostEnvironment _environment;
 
         private Random random = new Random();
@@ -224,7 +223,7 @@ namespace YegnaBet.API.Modules.Provider.Services
             return attrbs;
         }
 
-        public async Task<long> CreateListing(ListingDraftDto draft)
+        public async Task<long> CreateListing(long providerId, ListingDraftDto draft)
         {
             // Create location
             var location = new Location
@@ -281,7 +280,7 @@ namespace YegnaBet.API.Modules.Provider.Services
                 },
 
                 ListingStatus = ListingStatus.Draft,
-                ProviderId = draft.ProviderId,
+                ProviderId = providerId,
 
                 Images = uploadedPhotos
                     .Select(x => new ListingImage
@@ -319,7 +318,7 @@ namespace YegnaBet.API.Modules.Provider.Services
             return listing.Id;
         }
 
-        public async Task<long> UpdateListing(long id, ListingDraftDto draft)
+        public async Task<long> UpdateListing(long id, long providerId, ListingDraftDto draft)
         {
             var listing = await _db.Listings
                 .Include(x => x.Images)
@@ -327,12 +326,13 @@ namespace YegnaBet.API.Modules.Provider.Services
                     .ThenInclude(x => x.AttributeDefinition)
                 .Include(x => x.TaxonomyNodes)
                 .Include(x => x.Location)
-                .FirstOrDefaultAsync(x => x.Id == id);
+                .FirstOrDefaultAsync(x =>
+                    x.Id == id &&
+                    x.ProviderId == providerId);
 
             if (listing is null)
-                throw new InvalidOperationException(
-                    $"Listing {id} was not found."
-                );
+                throw new KeyNotFoundException(
+                    $"Listing {id} was not found or does not belong to this provider.");
 
             // ---------------------------------------------------------
             // 1. Scalar fields

@@ -4,39 +4,45 @@ import { CategoryCard } from "./CategoryCard";
 import { ASSET_URL } from "../../types/api";
 import type { ListingMode } from "../../types/customer/listings";
 import Loading from "../ui/common/Loading";
-import { Fetch } from "../../lib/common/network";
 import type { TaxonomyNode } from "../../types/common/taxonomy";
-import { getLeafNodes } from "../../lib/common/taxonomyFunctions";
+import { getTaxonomyLeafNodes } from "../../lib/customer/customerApi";
+import ErrorBlock from "../ui/common/ErrorBlock";
+import type { UserProfile } from "../../types/customer/profile";
 
 interface CategoryProps {
   listingMode: ListingMode;
-  setDialog: any;
+  currentUser: UserProfile | null;
 }
 
-export function CategorySection({listingMode, setDialog}: CategoryProps) {
+export function CategorySection({listingMode, currentUser}: CategoryProps) {
   const [categories, setCategories] = useState<TaxonomyNode[]>([]);
   const [loading, setLoading] = useState(true);
-  const url = '/categories';    // api path
+  const [error, setError] = useState("");
 
-  const onSuccess = (category: TaxonomyNode[]) => {
-    const nodes = getLeafNodes(category[0]);
-    
-    // fix up the images in nodes relative to asset url
-    nodes.forEach(node => {
-      node.image = ASSET_URL + node.image;
-    });
-
-    setCategories(nodes);
-  };
 
   useEffect(() => {
-    Fetch(url, onSuccess, setLoading, setDialog);
-    }, []);
+    const getCategories = async () => {
+      try {
+        setLoading(true);
+        const taxonomy = await getTaxonomyLeafNodes();
+        setCategories(taxonomy);
+      } catch (err) {
+        console.error(err);
+        setError(String(err));
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    getCategories();
+  }, []);
 
   if (loading) {
-    return (
-      <Loading />
-    );
+    return <Loading />
+  }
+
+  if (error) {
+    return <ErrorBlock message={error} />
   }
 
   return (
@@ -44,7 +50,9 @@ export function CategorySection({listingMode, setDialog}: CategoryProps) {
       <SectionHeader
         title="Browse by Category"
         actionLabel="View all"
-        actionHref={`/categories?mode=${listingMode}`} />
+        actionHref={`/categories?mode=${listingMode}`}
+        currentUser={currentUser}
+        categories={categories} />
 
       <div className="mt-4 flex gap-4 overflow-x-auto pb-1 scrollbar-none">
         {categories.slice(0, 5).map((category) => (
@@ -53,6 +61,7 @@ export function CategorySection({listingMode, setDialog}: CategoryProps) {
             category={category}
             route={`/categories/${category.name}`}
             listingMode={listingMode}
+            currentUser={currentUser}
           />
         ))}
 
@@ -66,7 +75,8 @@ export function CategorySection({listingMode, setDialog}: CategoryProps) {
             children: []
           }}
           route="/categories"
-          listingMode={listingMode} />
+          listingMode={listingMode}
+          currentUser={currentUser} />
       </div>
     </section>
   );

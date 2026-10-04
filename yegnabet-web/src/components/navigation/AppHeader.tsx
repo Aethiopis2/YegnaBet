@@ -2,14 +2,17 @@ import { useEffect, useRef, useState } from "react";
 
 import { NotificationMenu } from "./NotificationMenu";
 import { ProfileMenu } from "./ProfileMenu";
+import type { UserProfile } from "../../types/customer/profile";
 
-export function AppHeader() {
-  const [openMenu, setOpenMenu] = useState<
-    "notifications" | "profile" | null
-  >(null);
+interface Props {
+  currentUser: UserProfile | null;
+}
+
+export function AppHeader({ currentUser }: Props) {
+  const [openMenu, setOpenMenu] = useState<"notifications" | "profile" | null>(null);
 
   const headerRef = useRef<HTMLElement>(null);
-
+  
   useEffect(() => {
     function handlePointerDown(event: MouseEvent) {
       if (
@@ -40,16 +43,16 @@ export function AppHeader() {
       ref={headerRef}
       className="
         sticky top-0 z-30
-        border-b border-black/[0.04]
+        border-b border-black/4
         bg-[#f7f8f6]/90
         backdrop-blur-xl
-        dark:border-white/[0.04]
+        dark:border-white/4
         dark:bg-[#101512]/90
       "
     >
       <div
         className="
-          mx-auto flex h-[76px]
+          mx-auto flex h-19
           max-w-7xl items-center
           justify-between
           px-5 sm:px-6 lg:px-8
@@ -90,6 +93,7 @@ export function AppHeader() {
                   : "profile"
               )
             }
+            currentUser={currentUser}
           />
         </div>
       </div>

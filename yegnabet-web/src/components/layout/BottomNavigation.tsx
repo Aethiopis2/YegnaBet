@@ -2,8 +2,6 @@ import {
   Compass,
   Heart,
   Home,
-  MessageCircle,
-  Plus,
   UserRound,
 } from "lucide-react";
 
@@ -11,6 +9,8 @@ import { NavLink } from "react-router-dom";
 
 import { cn } from "../../lib/cn";
 import { QuickActionSheet } from "../quick-actions/QuickActionSheet";
+import type { UserProfile } from "../../types/customer/profile";
+import type { ListingMode } from "../../types/customer/listings";
 
 const navigation = [
   {
@@ -24,9 +24,9 @@ const navigation = [
     href: "/explore",
   },
   {
-    label: "Messages",
-    icon: MessageCircle,
-    href: "/inbox",
+    label: "Favorites",
+    icon: Heart,
+    href: "/explore?saved=true",
   },
   {
     label: "Profile",
@@ -35,7 +35,12 @@ const navigation = [
   },
 ];
 
-export function BottomNavigation() {
+interface Props {
+  currentUser: UserProfile | null;
+  mode?: ListingMode;
+}
+
+export function BottomNavigation({ currentUser, mode }: Props) {
   return (
     <nav
       className="
@@ -55,6 +60,8 @@ export function BottomNavigation() {
           <NavigationItem
             key={item.href}
             {...item}
+            currentUser={currentUser}
+            mode={mode}
           />
         ))}
 
@@ -68,16 +75,21 @@ interface NavigationItemProps {
   label: string;
   icon: typeof Home;
   href: string;
+  currentUser: UserProfile | null;
+  mode?: ListingMode;
 }
 
 function NavigationItem({
   label,
   icon: Icon,
   href,
+  currentUser,
+  mode,
 }: NavigationItemProps) {
   return (
     <NavLink
-      to={href}
+      to={href + (mode ? `?mode=${mode}` : "")}
+      state={{ currentUser: currentUser }}
       className={({ isActive }) =>
         cn(
           "flex min-w-16 flex-col items-center gap-1",
@@ -94,7 +106,7 @@ function NavigationItem({
         <>
           <Icon
             className={cn(
-              "size-[21px]",
+              "size-5.25",
               isActive && "stroke-[2.5]"
             )}
           />

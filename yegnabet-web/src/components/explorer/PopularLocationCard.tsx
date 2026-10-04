@@ -1,7 +1,6 @@
-import { useNavigate } from "react-router-dom";
 import { MapPin } from "lucide-react";
 import type { ListingLocation } from "../../types/common/location"
-import type { ListingFilters } from "../../types/explorer";
+import type { ListingFilters } from "../../types/customer/explorer";
 
 interface PopularLocationCardProps {
   location: ListingLocation;
@@ -10,8 +9,6 @@ interface PopularLocationCardProps {
 }
 
 export function PopularLocationCard({location, filters, setFilters }: PopularLocationCardProps) {
-  const navigate = useNavigate();
-
   return (
     <button type="button" 
       onClick={() => {
@@ -19,10 +16,10 @@ export function PopularLocationCard({location, filters, setFilters }: PopularLoc
         next.location = location.area;
         setFilters(next);
       }}
-      className="group relative flex h-24 w-28 shrink-0 flex-col items-center justify-center 
+      className="group relative flex mt-3 h-24 w-28 shrink-0 flex-col items-center justify-center 
         gap-2 overflow-hidden rounded-2xl border border-gray-200/80 bg-white text-center 
         shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md 
-        dark:border-white/10 dark:bg-white/[0.04]">
+        dark:border-white/10 dark:bg-white/4">
 
       {/* Location icon */}
       <div className="flex size-10 items-center justify-center rounded-full bg-orange-50 

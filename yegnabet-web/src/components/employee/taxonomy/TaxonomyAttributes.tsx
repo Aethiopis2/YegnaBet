@@ -9,14 +9,18 @@ import type { TaxonomyNodeFront, TaxonomyAttribute } from "../../../types/common
 
 interface Props {
   node: TaxonomyNodeFront | null;
-  onSelectAttribute: (
-    attribute: TaxonomyAttribute
-  ) => void;
+  attributes: TaxonomyAttribute[];
+  loading?: boolean;
+  onSelectAttribute: (attribute: TaxonomyAttribute) => void;
+  onAddAttribute: () => void;
 }
 
 export function TaxonomyAttributes({
   node,
+  attributes,
+  loading,
   onSelectAttribute,
+  onAddAttribute
 }: Props) {
   if (!node) {
     return null;
@@ -47,29 +51,34 @@ export function TaxonomyAttributes({
 
         <button
           type="button"
+          onClick={onAddAttribute}
           className="
-            flex
-            items-center
-            gap-1.5
-            rounded-lg
-            border
-            border-yegna-600/30
-            px-2.5
-            py-1.5
-            text-[9px]
-            font-semibold
-            text-yegna-700
-
-            dark:text-yegna-400
+            inline-flex items-center gap-2
+            rounded-xl
+            bg-orange-500
+            px-3 py-2
+            text-sm font-medium text-white
+            transition
+            hover:bg-orange-400
+            active:scale-95
           "
         >
-          <Plus className="size-3" />
+          <Plus size={16} />
           Add Attribute
         </button>
       </header>
 
       <div className="overflow-x-auto">
-        <table className="w-full text-left">
+        {loading ? (
+          <div className="py-8 text-center text-sm text-zinc-500">
+            Loading attributes...
+          </div>
+        ) : attributes.length === 0 ? (
+          <div className="py-8 text-center text-sm text-zinc-500">
+            No attributes defined for this category.
+          </div>
+        ) : (
+          <table className="w-full text-left">
           <thead>
             <tr className="border-b border-black/[0.05] dark:border-white/[0.06]">
               {[
@@ -99,61 +108,63 @@ export function TaxonomyAttributes({
           </thead>
 
           <tbody>
-            {node.attributes.map((attribute) => (
+            {attributes.map((attribute) => (
               <tr
                 key={attribute.id}
+                onClick={() => onSelectAttribute(attribute)}
                 className="
-                  border-b
-                  border-black/[0.04]
-                  last:border-0
-                  hover:bg-gray-50
-
-                  dark:border-white/[0.04]
-                  dark:hover:bg-white/[0.025]
+                  cursor-pointer
+                  border-t border-zinc-800
+                  transition
+                  hover:bg-zinc-800/50
                 "
               >
-                <td className="px-4 py-3 text-[9px] font-medium">
+                <td className="px-4 py-3 text-sm text-white">
                   {attribute.name}
                 </td>
 
-                <td className="px-4 py-3 text-[8px] text-gray-400">
+                <td className="px-4 py-3 text-sm text-zinc-400">
                   {attribute.key}
                 </td>
 
-                <td className="px-4 py-3 text-[8px] text-gray-500">
+                <td className="px-4 py-3 text-sm text-zinc-400">
                   {attribute.type}
                 </td>
 
-                <BooleanCell value={attribute.required} />
-                <BooleanCell value={attribute.searchable} />
-                <BooleanCell value={attribute.filterable} />
+                
+                  <BooleanCell value={attribute.required} />
+               
+
+                
+                  <BooleanCell value={attribute.searchable} />
+                
+
+                
+                  <BooleanCell value={attribute.filterable} />
+                
 
                 <td className="px-4 py-3">
                   <button
                     type="button"
-                    onClick={() =>
-                      onSelectAttribute(attribute)
-                    }
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      onSelectAttribute(attribute);
+                    }}
                     className="
-                      grid
-                      size-7
-                      place-items-center
-                      rounded-lg
-                      text-gray-400
-                      hover:bg-gray-100
-                      hover:text-gray-700
-
-                      dark:hover:bg-white/[0.05]
+                      rounded-lg p-2
+                      text-zinc-400
+                      hover:bg-zinc-800
+                      hover:text-orange-400
                     "
-                    aria-label="Edit attribute"
                   >
-                    <Pencil className="size-3.5" />
+                    <Pencil size={16} />
                   </button>
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
+        )}
       </div>
     </section>
   );

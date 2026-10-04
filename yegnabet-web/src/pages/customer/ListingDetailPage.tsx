@@ -1,19 +1,23 @@
 import {
   Navigate,
+  useLocation,
   useParams,
 } from "react-router-dom";
 
 import { AppShell } from "../../components/layout/AppShell";
 import { ListingDetail } from "../../components/listing/ListingDetails";
-import { API, ASSET_URL } from "../../types/api";
 import { useState, useEffect } from "react";
 import type { Listing } from "../../types/customer/listings";
+import Loading from "../../components/ui/common/Loading";
+import { getListing } from "../../lib/customer/customerApi";
 
 export function ListingDetailPage() {
+  const locations = useLocation();
   const { id } = useParams();
 
   const [listing, setListing] = useState<Listing | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string>("");
 
   useEffect(() => {
     if (!id) {
@@ -21,38 +25,31 @@ export function ListingDetailPage() {
       return;
     }
 
-    API.get(`/listings/${id}`)
-      .then((r) => {
-        // correct image url if since its always relative
-        if (r.data.images) {
-          r.data.images = r.data.images.map((img: string) => ASSET_URL + img);
-        }
+    setLoading(true);
 
-        // do the same for the employee image
-        if (r.data.employee?.avatar) {
-          r.data.employee.avatar = ASSET_URL + r.data.employee.avatar;
-        }
-        setListing(r.data);
-      })
-      .catch((error) => {
-        console.error("Failed to load listing", error);
-        setListing(null);
-      })
-      .finally(() => {
+    const fetchListing = async () => {
+      try {
+        const response = await getListing(Number(id));
+        setListing(response);
+      } catch (err) {
+        console.error(err);
+        setError(String(err || "An error occurred while fetching the listing."));
+      } finally {
         setLoading(false);
-      });
-
+      }
+    }; 
+    
+    if (locations.state?.listing && locations.state.listing.id === Number(id)) {
+      setListing(locations.state.listing);
+      setLoading(false);
+    } else {
+      fetchListing();
+    }
   }, [id]);
 
   // Don't make any navigation decision while request is pending
   if (loading) {
-    return (
-      <AppShell>
-        <div className="flex items-center justify-center py-10">
-          <div className="h-6 w-6 animate-spin rounded-full border-2 border-gray-300 border-t-orange-500" />
-        </div>
-      </AppShell>
-    );
+    return <Loading />;
   }
 
   // API finished, but no listing was returned
@@ -61,7 +58,7 @@ export function ListingDetailPage() {
   }
 
   return (
-    <AppShell>
+    <AppShell currentUser={locations.state?.currentUser} mode={locations.state?.mode}>
       <ListingDetail listing={listing} />
     </AppShell>
   );
