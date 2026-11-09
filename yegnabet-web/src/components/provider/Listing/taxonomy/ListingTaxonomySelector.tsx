@@ -1,7 +1,7 @@
 import { ArrowLeft, ChevronRight } from "lucide-react";
 import { useMemo, useState } from "react";
 
-import type { ProviderTaxonomy } from "../../../../types/provider";
+import type { ProviderTaxonomy } from "../../../../types/employee/employee";
 
 interface Props {
   nodes: ProviderTaxonomy[];

@@ -38,22 +38,7 @@ namespace YegnaBet.API.Modules.Marketplace.Services
             if (user != null)
                 return user;
 
-            user = await _db.Users
-                .AsNoTracking()
-                .Where(x => x.Id == userId)
-                .Select(u => new UserProfileDto
-                {
-                    Id = u.Id,
-                    FullName = u.FullName,
-                    PhoneNumber = u.PhoneNumber,
-                    Role = u.Role.ToString(),
-                    Email = u.Email,
-                    AvatarUrl = u.Avatar,
-                    Verified = u.IsVerified
-                })
-                .FirstOrDefaultAsync();
-
-            return user == null ? throw new KeyNotFoundException($"Provider with id {userId} was not found.") : user;
+            throw new KeyNotFoundException($"Provider with id {userId} was not found.");
         } // end GetMe
     } // end CustAuthService
 } // end namespace

@@ -26,6 +26,8 @@ namespace YegnaBet.Infrastructure.Persistence
         public DbSet<AttributeDefinition> AttributeDefinition => Set<AttributeDefinition>();
         public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
         public DbSet<SavedListings> SavedListings => Set<SavedListings>();
+        public DbSet<ListingViewsCount> ListingViewsCount => Set<ListingViewsCount>();
+        public DbSet<ListingViewsDates> ListingViewsDates => Set<ListingViewsDates>();
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)

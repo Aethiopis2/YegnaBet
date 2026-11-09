@@ -5,15 +5,18 @@ import {
   Sun,
   User,
 } from "lucide-react";
+import type { AuthUser } from "../../types/auth/authTypes";
 
 interface ProfileDropdownProps {
   darkMode: boolean;
   setDarkMode: React.Dispatch<React.SetStateAction<boolean>>;
+  user: AuthUser | null;
 }
 
 export function ProfileDropdown({
   darkMode,
   setDarkMode,
+  user,
 }: ProfileDropdownProps) {
   return (
     <div
@@ -26,7 +29,7 @@ export function ProfileDropdown({
         overflow-hidden
         rounded-2xl
         border
-        border-black/[0.06]
+        border-black/6
         bg-white
         p-2
         shadow-xl
@@ -36,19 +39,27 @@ export function ProfileDropdown({
         dark:bg-[#151b17]
       "
     >
-      <div className="border-b border-black/[0.05] px-3 py-3 dark:border-white/[0.06]">
+      <div className="border-b border-black/5 px-3 py-3 dark:border-white/6">
         <p className="text-xs font-bold">
-          Hana Tesfaye
+          {user?.fullName || "User"}
         </p>
 
         <p className="mt-0.5 text-[9px] text-gray-400">
-          hana@yegnabet.com
+          {user?.phoneNumber}
         </p>
       </div>
 
       <div className="py-1">
         <ProfileMenuItem
-          icon={User}
+          icon={!user ? User : user.avatar ? () => (
+            <img
+              src={user.avatar}
+              alt={user.fullName}
+              className="size-full object-cover"
+            />
+          ) : (
+            User
+          )}
           label="My Profile"
         />
 
@@ -77,7 +88,7 @@ export function ProfileDropdown({
             hover:bg-gray-100
 
             dark:text-gray-300
-            dark:hover:bg-white/[0.04]
+            dark:hover:bg-white/4
           "
         >
           <span className="flex items-center gap-3">
@@ -126,7 +137,7 @@ export function ProfileDropdown({
         </button>
       </div>
 
-      <div className="border-t border-black/[0.05] pt-1 dark:border-white/[0.06]">
+      <div className="border-t border-black/5 pt-1 dark:border-white/6">
         <ProfileMenuItem
           icon={LogOut}
           label="Sign out"
@@ -164,7 +175,7 @@ function ProfileMenuItem({
         ${
           destructive
             ? "text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10"
-            : "text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-white/[0.04]"
+            : "text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-white/4"
         }
       `}
     >

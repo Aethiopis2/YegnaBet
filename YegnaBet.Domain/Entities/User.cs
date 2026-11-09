@@ -9,7 +9,7 @@ namespace YegnaBet.Domain.Entities
 
         public string FullName { get; set; } = null!;
         public string PhoneNumber { get; set; } = null!;
-        public string Email { get; set; } = null!;
+        public string? Email { get; set; } = "";
         public string PasswordHash { get; set; } = null!;
 
         public bool IsVerified { get; set; }

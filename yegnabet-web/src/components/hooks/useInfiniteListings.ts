@@ -16,7 +16,7 @@ import type {
 } from "../../types/customer/listings";
 
 import { API, ASSET_URL } from "../../types/api";
-import type { UserProfile } from "../../types/customer/profile";
+import type { AuthUser } from "../../types/auth/authTypes";
 
 
 const PAGE_SIZE = 5;
@@ -26,7 +26,7 @@ interface Options {
   mode: ListingMode;
   filters: ListingFilters;
   sort: ListingSort;
-  currentUser?: UserProfile | null;
+  user?: AuthUser | null;
   listingId?: number;
 }
 
@@ -35,7 +35,7 @@ export function useInfiniteListings({
   mode,
   filters,
   sort,
-  currentUser
+  user
 }: Options) {
 
   const [items, setItems] =
@@ -213,10 +213,10 @@ export function useInfiniteListings({
     /**
      * Current User ID
      */
-    if (currentUser) {
+    if (user) {
       params.set(
         "userId",
-        currentUser.id
+        String(user.id)
       );
     }
 

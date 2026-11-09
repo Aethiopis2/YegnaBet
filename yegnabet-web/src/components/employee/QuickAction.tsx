@@ -6,15 +6,18 @@ import {
 interface QuickActionProps {
   icon: LucideIcon;
   label: string;
+  onClick: () => void;
 }
 
 export function QuickAction({
   icon: Icon,
   label,
+  onClick
 }: QuickActionProps) {
   return (
     <button
       type="button"
+      onClick={onClick}
       className="
         group
         flex
@@ -29,7 +32,7 @@ export function QuickAction({
 
         hover:bg-gray-50
 
-        dark:hover:bg-white/[0.03]
+        dark:hover:bg-white/3
       "
     >
       <span

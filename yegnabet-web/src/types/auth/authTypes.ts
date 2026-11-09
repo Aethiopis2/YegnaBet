@@ -10,6 +10,7 @@ export interface AuthUser {
   phoneNumber: string;
   role: UserRole;
   isVerified: boolean;
+  avatar?: string;
 }
 
 export interface LoginRequest {

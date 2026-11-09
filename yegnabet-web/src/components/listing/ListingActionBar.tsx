@@ -6,11 +6,13 @@ import {
 interface ListingActionBarProps {
   onMessage: () => void;
   onRequestViewing: () => void;
+  requestSend: boolean;
 }
 
 export function ListingActionBar({
   onMessage,
   onRequestViewing,
+  requestSend
 }: ListingActionBarProps) {
   return (
     <div
@@ -20,7 +22,7 @@ export function ListingActionBar({
         bottom-0
         z-40
         border-t
-        border-black/[0.06]
+        border-black/6
         bg-white/90
         p-3
         pb-[calc(0.75rem+env(safe-area-inset-bottom))]
@@ -67,6 +69,7 @@ export function ListingActionBar({
         <button
           type="button"
           onClick={onRequestViewing}
+          disabled={requestSend}
           className="
             flex
             h-12

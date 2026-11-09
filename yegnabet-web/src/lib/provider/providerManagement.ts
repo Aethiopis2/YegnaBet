@@ -85,10 +85,10 @@ export function createListingDraftFormData(draft: ListingDraft) : FormData {
         }
 
         if (photo.url) {
-        formData.append(
-            `Photos[${index}].Url`,
-            photo.url
-        );
+            formData.append(
+                `Photos[${index}].Url`,
+                photo.url
+            );
         }
 
         if (photo.file) {

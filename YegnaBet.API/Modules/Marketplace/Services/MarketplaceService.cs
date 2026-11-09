@@ -21,28 +21,28 @@ namespace YegnaBet.API.Modules.Marketplace.Services
             _employeeAssignmentService = employeeAssignmentService;
         }
 
-        public async Task<List<ListingCardDto>> GetListingsAsync(int? categoryId) 
-        {
-            var query = _db.Listings
-                .AsNoTracking()
-                .Where(x => x.ListingStatus == ListingStatus.Active); 
+        //public async Task<List<ListingCardDto>> GetListingsAsync(int? categoryId) 
+        //{
+        //    var query = _db.Listings
+        //        .AsNoTracking()
+        //        .Where(x => x.ListingStatus == ListingStatus.Active); 
             
-            //if (categoryId.HasValue)
-            //    query = query.Where(x => x.CategoryId == categoryId);
+        //    //if (categoryId.HasValue)
+        //    //    query = query.Where(x => x.CategoryId == categoryId);
             
-            return await query.OrderByDescending(x => x.TrustScore)
-                .Select(x => new ListingCardDto {
-                    Id = x.Id, 
-                    Title = x.Title,
-                    Area = x.Location.Area,
-                    Price = x.Price,
-                    PriceUnit = x.PriceUnit,
-                    Image = x.Images.First().ImageUrl,
-                    TrustScore = x.TrustScore,
-                    IsVerified = x.IsVerified
-                })
-                .ToListAsync();
-        }
+        //    return await query.OrderByDescending(x => x.TrustScore)
+        //        .Select(x => new ListingCardDto {
+        //            Id = x.Id, 
+        //            Title = x.Title,
+        //            Area = x.Location.Area,
+        //            Price = x.Price,
+        //            PriceUnit = x.PriceUnit,
+        //            Image = x.Images.First().ImageUrl,
+        //            TrustScore = x.TrustScore,
+        //            IsVerified = x.IsVerified
+        //        })
+        //        .ToListAsync();
+        //}
 
         public async Task<ListingDto?> GetListingAsync(long id)
         {
@@ -139,12 +139,13 @@ namespace YegnaBet.API.Modules.Marketplace.Services
 
             if (request.Saved.HasValue && request.UserId.HasValue)
             {
-                var saved = await _db.SavedListings
-                    .AsNoTracking()
-                    .Where(x => x.UserId == request.UserId)
-                    .ToListAsync();
-                    
-                query = query.Where(x => saved.All(y => y.ListingId == x.Id));
+                var userId = request.UserId.Value;
+
+                query = query.Where(l =>
+                    _db.SavedListings.Any(s =>
+                        s.UserId == userId &&
+                        s.ListingId == l.Id &&
+                        !s.IsDeleted));
             }
 
             if (request.Method.HasValue)
@@ -360,5 +361,53 @@ namespace YegnaBet.API.Modules.Marketplace.Services
             var saved = await _db.SaveChangesAsync();
             return saved;
         } // InsertUpdateSaved
+
+        public async Task<long> UpdateListingViews(SetViewsCountDto dto)
+        {
+            var listing = await _db.Listings
+                .AsNoTracking()
+                .FirstOrDefaultAsync(x => x.Id == dto.ListingId) ?? 
+                throw new BadHttpRequestException($"ListingId: {dto.ListingId} not found");
+
+            listing.ViewsCount += 1;
+            _db.Listings.Update(listing);
+
+            // make an entry for extra views stat if user has logged in
+            if (dto.UserId != null)
+            {
+                var view = await _db.ListingViewsCount
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(x => x.UserId == dto.UserId && x.ListingId == dto.ListingId);
+
+                if (view == null)
+                {
+                    var newView = new ListingViewsCount
+                    {
+                        UserId = (long)dto.UserId,
+                        ListingId = dto.ListingId,
+                        Count = 1
+                    };
+
+                    _db.ListingViewsCount.Add(newView);
+                } // end if empty
+                else
+                {
+                    view.Count += 1;
+                    _db.ListingViewsCount.Update(view);
+                } // end else
+
+                // now add the date for these actions
+                var viewDate = new ListingViewsDates
+                {
+                    ListingId = dto.ListingId,
+                    UserId = (long)dto.UserId,
+                };
+
+                _db.ListingViewsDates.Add(viewDate);
+            } // end if userId
+
+            await _db.SaveChangesAsync();
+            return listing.Id;
+        } // end UpdateListingViews
     } // end MarketplaceService
 } // end namespace

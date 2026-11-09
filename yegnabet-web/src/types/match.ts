@@ -19,6 +19,7 @@ export interface MatchPreferences {
 
   bathrooms?: number;
 
+  attributes?: Record<number, any>;
   features: string[];
 
   verifiedOnly: boolean;

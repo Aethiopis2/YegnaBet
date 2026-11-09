@@ -2,24 +2,27 @@ import { ArrowRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 import { cn } from "../../lib/cn";
-import type { UserProfile } from "../../types/customer/profile";
-import type { TaxonomyNode } from "../../types/common/taxonomy";
+import type { TaxonomyNode } from "../../types/customer/taxonomy";
+import type { AuthUser } from "../../types/auth/authTypes";
+import type { ListingMode } from "../../types/customer/listings";
 
 interface SectionHeaderProps {
   title: string;
+  listingMode: ListingMode;
   actionLabel?: string;
   actionHref?: string;
   className?: string;
-  currentUser: UserProfile | null;
+  user: AuthUser| null;
   categories?: TaxonomyNode[] | null;
 }
 
 export function SectionHeader({
   title,
+  listingMode,
   actionLabel = "View all",
   actionHref = "#",
   className,
-  currentUser,
+  user,
   categories
 }: SectionHeaderProps) {
   const navigate = useNavigate();
@@ -39,7 +42,8 @@ export function SectionHeader({
         <span
           onClick={() => navigate(actionHref, {
             state: {
-              currentUser,
+              user,
+              listingMode,
               categories
             }
           })} 

@@ -88,7 +88,7 @@ namespace YegnaBet.API.Modules.Provider.Services
                 .Select(x => new 
                 { 
                     x.Id, 
-                    x.CustomerName, 
+                    x.Customer.FullName, 
                     x.ListingId, 
                     ListingTitle = x.Listing != null ? x.Listing.Title : "Unknown listing", 
                     Location = x.Listing != null && x.Listing.Location != null ? x.Listing.Location.Area + ", " + x.Listing.Location.City : string.Empty 
@@ -103,7 +103,7 @@ namespace YegnaBet.API.Modules.Provider.Services
                 .Select(x => new ProviderRequestDto 
                 { 
                     Id = x.Id, 
-                    Customer = x.CustomerName, 
+                    Customer = "",//x.CustomerName, 
                     Request = x.ListingTitle, 
                     Location = x.Location, 
                     Budget = random .Next(100_000, 1_000_000).ToString("N0"), 
@@ -225,16 +225,28 @@ namespace YegnaBet.API.Modules.Provider.Services
 
         public async Task<long> CreateListing(long providerId, ListingDraftDto draft)
         {
-            // Create location
-            var location = new Location
-            {
-                City = draft.City,
-                Area = draft.Area,
-                SubArea = draft.SubArea,
-            };
+            // make sure location does not exist, and store as lower case
+            string city = draft.City.ToLower();
+            string area = draft.Area.ToLower();
+            string? subArea = draft.SubArea?.ToLower();
 
-            await _db.Locations.AddAsync(location);
-            await _db.SaveChangesAsync();
+            var location = _db.Locations
+                .AsNoTracking()
+                .FirstOrDefault(x => x.City == city && x.Area == area && x.SubArea == subArea);
+
+            if (location == null)
+            {
+                // Create location
+                location = new Location
+                {
+                    City = draft.City,
+                    Area = draft.Area,
+                    SubArea = draft.SubArea,
+                };
+
+                await _db.Locations.AddAsync(location);
+                await _db.SaveChangesAsync();
+            } // end create new
 
             // Upload new photos and get the generated filenames back
             var uploadedPhotos = await UploadPhotos(draft);

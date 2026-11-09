@@ -1,23 +1,23 @@
 import { useEffect, useState } from "react";
 import { SectionHeader } from "../ui/SectionHeader";
 import { PopularLocationCard } from "./PopularLocationCard";
-import type { ListingLocation } from "../../types/common/location";
+import type { ListingLocation } from "../../types/customer/location";
 import Loading from "../ui/common/Loading";
 import type { ListingFilters } from "../../types/customer/explorer";
-import type { UserProfile } from "../../types/customer/profile";
 import { getLocations } from "../../lib/customer/customerApi";
 import ErrorBlock from "../ui/common/ErrorBlock";
 import { toQueryString } from "../../lib/common/utils";
 import type { ListingMode } from "../../types/customer/listings";
+import type { AuthUser } from "../../types/auth/authTypes";
 
 interface PopularLocationsProps {
   filters: ListingFilters;
   setFilters: any;
-  currentUser: UserProfile | null;
+  user: AuthUser | null;
   mode?: ListingMode;
 }
 
-export function PopularLocations({ filters, setFilters, currentUser, mode }: PopularLocationsProps) {
+export function PopularLocations({ filters, setFilters, user, mode }: PopularLocationsProps) {
   const [listingLocations, setListingLocations] = useState<ListingLocation[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -47,9 +47,10 @@ export function PopularLocations({ filters, setFilters, currentUser, mode }: Pop
     <section className="mt-6">
       <SectionHeader
         title="Popular Locations"
+        listingMode={mode ?? "Buy"}
         actionLabel="View all"
         actionHref={`/locations${toQueryString(filters)}` + (mode && `&mode=${mode}`)}
-        currentUser={currentUser}
+        user={user}
       />
 
       <div className="mt-3 flex gap-3 overflow-x-auto pb-1 scrollbar-none">

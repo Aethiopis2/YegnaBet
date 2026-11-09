@@ -17,7 +17,7 @@ namespace YegnaBet.Domain.Entities
         public bool IsVerified { get; set; }
         public bool IsFeatured { get; set; }
         public DateTime FeaturedUntil { get; set; } = DateTime.UtcNow;
-        public int ViewsCount { get; set; }
+        public int ViewsCount { get; set; } = 0;
         public int InquiresCount { get; set; }
         public int SuccessfulDeals {  get; set; }
         public double? Latitude { get; set; }

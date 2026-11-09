@@ -5,14 +5,14 @@ import type { Listing, ListingMode } from "../../types/customer/listings";
 import Loading from "../ui/common/Loading";
 import { getFeaturedListings } from "../../lib/customer/customerApi";
 import ErrorBlock from "../ui/common/ErrorBlock";
-import type { UserProfile } from "../../types/customer/profile";
+import type { AuthUser } from "../../types/auth/authTypes";
 
 interface FeaturedSectionProps {
   listingMode: ListingMode;
-  currentUser: UserProfile | null;
+  user: AuthUser | null;
 }
 
-export function FeaturedSection({ listingMode, currentUser }: FeaturedSectionProps) {
+export function FeaturedSection({ listingMode, user }: FeaturedSectionProps) {
   const [listings, setListings] = useState<Listing[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -51,9 +51,10 @@ export function FeaturedSection({ listingMode, currentUser }: FeaturedSectionPro
     <section className="mt-8">
       <SectionHeader
         title="Featured Properties"
+        listingMode={listingMode}
         actionLabel="View all"
-        actionHref={`/explore?featured=true&mode=${listingMode}`}
-        currentUser={currentUser}
+        actionHref={`/explore?featured=true`}
+        user={user}
       />
 
       <div

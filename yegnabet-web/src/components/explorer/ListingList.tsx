@@ -1,16 +1,16 @@
+import type { AuthUser } from "../../types/auth/authTypes";
 import type { Listing } from "../../types/customer/listings";
-import type { UserProfile } from "../../types/customer/profile";
 
 import { ListingListCard } from "./ListingListCard";
 
 interface ListingListProps {
   listings: Listing[];
-  currentUser: UserProfile | null;
+  user: AuthUser | null;
 }
 
 export function ListingList({
   listings,
-  currentUser,
+  user,
 }: ListingListProps) {
   return (
     <div className="mt-4 space-y-3">
@@ -18,7 +18,7 @@ export function ListingList({
         <ListingListCard
           key={listing.id}
           listing={listing}
-          currentUser={currentUser}
+          user={user}
         />
       ))}
     </div>

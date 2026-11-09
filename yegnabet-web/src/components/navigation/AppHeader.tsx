@@ -2,13 +2,17 @@ import { useEffect, useRef, useState } from "react";
 
 import { NotificationMenu } from "./NotificationMenu";
 import { ProfileMenu } from "./ProfileMenu";
-import type { UserProfile } from "../../types/customer/profile";
+import type { ListingMode } from "../../types/customer/listings";
+import type { AuthUser } from "../../types/auth/authTypes";
 
 interface Props {
-  currentUser: UserProfile | null;
+  user: AuthUser | null;
+  openSigninDlg: boolean;
+  setOpenSigninDlg: any;
+  mode?: ListingMode;
 }
 
-export function AppHeader({ currentUser }: Props) {
+export function AppHeader({ user, openSigninDlg, setOpenSigninDlg, mode }: Props) {
   const [openMenu, setOpenMenu] = useState<"notifications" | "profile" | null>(null);
 
   const headerRef = useRef<HTMLElement>(null);
@@ -93,7 +97,10 @@ export function AppHeader({ currentUser }: Props) {
                   : "profile"
               )
             }
-            currentUser={currentUser}
+            user={user}
+            openSignin={openSigninDlg}
+            setOpenSignin={setOpenSigninDlg}
+            mode={mode}
           />
         </div>
       </div>

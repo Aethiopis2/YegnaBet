@@ -1,24 +1,25 @@
 import { useNavigate } from "react-router-dom";
 import { cn } from "../../lib/cn";
 import type { ListingMode } from "../../types/customer/listings";
-import type { TaxonomyNode } from "../../types/common/taxonomy";
-import type { UserProfile } from "../../types/customer/profile";
+import type { TaxonomyNode } from "../../types/customer/taxonomy";
+import type { AuthUser } from "../../types/auth/authTypes";
 
 interface CategoryCardProps {
   category: TaxonomyNode;
   route: string;
   className?: string;
   listingMode?: ListingMode;
-  currentUser: UserProfile | null;
+  user: AuthUser | null;
 }
 
-export function CategoryCard({ category, route, className, listingMode, currentUser }: CategoryCardProps) {
+export function CategoryCard({ category, route, className, listingMode, user }: CategoryCardProps) {
   const navigate = useNavigate();
 
   return (
-    <button type="button" onClick={() => navigate(route + `?mode=${listingMode}`, {
+    <button type="button" onClick={() => navigate(route, {
       state: {
-        currentUser
+        user,
+        listingMode
       }
     })}
       className={cn("group w-20.5 shrink-0", "text-center", className)}>

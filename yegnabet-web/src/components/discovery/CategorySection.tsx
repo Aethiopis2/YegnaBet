@@ -4,17 +4,17 @@ import { CategoryCard } from "./CategoryCard";
 import { ASSET_URL } from "../../types/api";
 import type { ListingMode } from "../../types/customer/listings";
 import Loading from "../ui/common/Loading";
-import type { TaxonomyNode } from "../../types/common/taxonomy";
+import type { TaxonomyNode } from "../../types/customer/taxonomy";
 import { getTaxonomyLeafNodes } from "../../lib/customer/customerApi";
 import ErrorBlock from "../ui/common/ErrorBlock";
-import type { UserProfile } from "../../types/customer/profile";
+import type { AuthUser } from "../../types/auth/authTypes";
 
 interface CategoryProps {
   listingMode: ListingMode;
-  currentUser: UserProfile | null;
+  user: AuthUser | null;
 }
 
-export function CategorySection({listingMode, currentUser}: CategoryProps) {
+export function CategorySection({listingMode, user}: CategoryProps) {
   const [categories, setCategories] = useState<TaxonomyNode[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -49,9 +49,10 @@ export function CategorySection({listingMode, currentUser}: CategoryProps) {
     <section className="mt-8">
       <SectionHeader
         title="Browse by Category"
+        listingMode={listingMode}
         actionLabel="View all"
-        actionHref={`/categories?mode=${listingMode}`}
-        currentUser={currentUser}
+        actionHref={`/categories`}
+        user={user}
         categories={categories} />
 
       <div className="mt-4 flex gap-4 overflow-x-auto pb-1 scrollbar-none">
@@ -61,7 +62,7 @@ export function CategorySection({listingMode, currentUser}: CategoryProps) {
             category={category}
             route={`/categories/${category.name}`}
             listingMode={listingMode}
-            currentUser={currentUser}
+            user={user}
           />
         ))}
 
@@ -76,7 +77,7 @@ export function CategorySection({listingMode, currentUser}: CategoryProps) {
           }}
           route="/categories"
           listingMode={listingMode}
-          currentUser={currentUser} />
+          user={user} />
       </div>
     </section>
   );

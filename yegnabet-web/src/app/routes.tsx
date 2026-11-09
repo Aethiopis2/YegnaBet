@@ -14,13 +14,14 @@ import { ProfilePage } from "../pages/customer/ProfilePage";
 import { TaxonomiesPage } from "../pages/employee/TaxonomiesPage";
 import { EmployeeDashboardPage } from "../pages/employee/EmployeeDashboardPage";
 import OwnerDashboard from "../pages/owner/OwnerDashboard";
-import ProviderDashboard from "../pages/provider/ProviderDashboard";
-import CreateListingPage from "../pages/provider/CreateListingPage";
-import EditListingPage from "../pages/provider/EditListingPage";
+import CreateListingPage from "../pages/employee/CreateListingPage";
 import CategorySectionPage from "../pages/customer/CategorySectionPage";
 import LoginPage from "../pages/auth/LoginPage";
 import { RequireAuth } from "../auth/RequireAuth";
 import LocationsSectionPage from "../pages/customer/LocationsSectionPage";
+import SignUpPage from "../pages/auth/SignupPage";
+import { EmployeeRequestsPage } from "../pages/employee/EmployeeRequestsPage";
+import { EmployeeRequestDetailsPage } from "../pages/employee/EmployeeRequestsDetailsPage";
 
 export function AppRoutes() {
   return (
@@ -46,13 +47,13 @@ export function AppRoutes() {
       />
 
       <Route
-        path="/locations"
-        element={<LocationsSectionPage />}
-      />
-
-      <Route
         path="/categories/:category"
         element={<CategoryPage />}
+      />
+      
+      <Route
+        path="/locations"
+        element={<LocationsSectionPage />}
       />
 
       <Route
@@ -78,6 +79,11 @@ export function AppRoutes() {
       <Route
         path="/login"
         element={<LoginPage />}
+      />
+
+      <Route
+        path="/Signup"
+        element={<SignUpPage />}
       />
 
       {/* ------------------------------------------------ */}
@@ -122,6 +128,24 @@ export function AppRoutes() {
           element={<TaxonomiesPage />}
         />
 
+        <Route
+          path="/employee/create-listing"
+          element={<CreateListingPage />}
+        />
+
+      <Route
+        path="/employee/requests"
+        element={
+          <EmployeeRequestsPage />
+        }
+      />
+
+      <Route
+        path="/employee/requests/:id"
+        element={
+          <EmployeeRequestDetailsPage />
+        }
+      />
       </Route>
 
       {/* ------------------------------------------------ */}
@@ -141,7 +165,7 @@ export function AppRoutes() {
       {/* Provider */}
       {/* ------------------------------------------------ */}
 
-      <Route element={<RequireAuth roles={["Provider"]} />}>
+      {/* <Route element={<RequireAuth roles={["Provider"]} />}>
 
         <Route
           path="/provider"
@@ -158,7 +182,7 @@ export function AppRoutes() {
           element={<EditListingPage />}
         />
 
-      </Route>
+      </Route> */}
 
     </Routes>
   );

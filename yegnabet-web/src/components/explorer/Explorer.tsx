@@ -38,7 +38,7 @@ export function Explorer({ config }: ExplorerProps) {
   
   const [mode, setMode] =
     useState<ListingMode>(
-      config.mode ?? "All"
+      config.mode ?? "Buy"
     );
 
   const [filters, setFilters] =
@@ -70,7 +70,7 @@ export function Explorer({ config }: ExplorerProps) {
     mode,
     filters,
     sort,
-    currentUser: config.currentUser,
+    user: config.user,
   });
 
   const title = useMemo(
@@ -162,7 +162,7 @@ export function Explorer({ config }: ExplorerProps) {
         {config.showMode !== false && (
           <TransactionMode
             value={mode}
-            onChange={setMode}
+            onChange={(val) => setMode(val)}
           />
         )}
 
@@ -187,7 +187,7 @@ export function Explorer({ config }: ExplorerProps) {
           <PopularLocations
             filters={filters}
             setFilters={setFilters}
-            currentUser={config.currentUser ?? null}
+            user={config.user ?? null}
             mode={config.mode} />
         )}
 
@@ -202,9 +202,9 @@ export function Explorer({ config }: ExplorerProps) {
 
         {/* Listings */}
         {view === "grid" ? (
-          <ListingGrid listings={items} currentUser={config.currentUser ?? null} />
+          <ListingGrid listings={items} user={config.user ?? null} />
         ) : (
-          <ListingList listings={items} currentUser={config.currentUser ?? null} />
+          <ListingList listings={items} user={config.user ?? null} />
         )}
 
         {/* Infinite scroll */}

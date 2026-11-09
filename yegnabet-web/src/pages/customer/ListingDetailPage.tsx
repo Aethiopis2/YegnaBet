@@ -4,18 +4,20 @@ import {
   useParams,
 } from "react-router-dom";
 
-import { AppShell } from "../../components/layout/AppShell";
+import { AppShell, useAppContext } from "../../components/layout/AppShell";
 import { ListingDetail } from "../../components/listing/ListingDetails";
 import { useState, useEffect } from "react";
 import type { Listing } from "../../types/customer/listings";
 import Loading from "../../components/ui/common/Loading";
-import { getListing } from "../../lib/customer/customerApi";
+import { getListing, updateListingViewCount } from "../../lib/customer/customerApi";
+import ErrorBlock from "../../components/ui/common/ErrorBlock";
 
-export function ListingDetailPage() {
+function ListingDetailPageComponent() {
   const locations = useLocation();
   const { id } = useParams();
+  const { user, openSigninDlg, setOpenSigninDlg, token } = useAppContext();
 
-  const [listing, setListing] = useState<Listing | null>(null);
+  const [listing, setListing] = useState<Listing | null>(locations.state?.listing ?? null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>("");
 
@@ -26,7 +28,6 @@ export function ListingDetailPage() {
     }
 
     setLoading(true);
-
     const fetchListing = async () => {
       try {
         const response = await getListing(Number(id));
@@ -39,27 +40,48 @@ export function ListingDetailPage() {
       }
     }; 
     
-    if (locations.state?.listing && locations.state.listing.id === Number(id)) {
-      setListing(locations.state.listing);
-      setLoading(false);
-    } else {
-      fetchListing();
-    }
+    fetchListing();
   }, [id]);
 
+  // update the listingViewCount
+  useEffect(() => {
+    const updateViewCount = async () => {
+      if (!listing) return;
+      try {
+        await updateListingViewCount(
+          { 
+            listingId: listing.id, 
+            userId: locations.state?.currentUser?.id 
+          }
+        );
+      } catch (err) {
+        console.error(err);
+      }
+    };
+
+    updateViewCount();
+  }, [listing]);
+
   // Don't make any navigation decision while request is pending
-  if (loading) {
-    return <Loading />;
-  }
+  if (loading) return <Loading />;
+
+  if (error) return <ErrorBlock message={error} />;
 
   // API finished, but no listing was returned
-  if (!listing) {
-    return <Navigate to="/explore" replace />;
-  }
+  if (!listing) return <Navigate to="/explore" replace />;
 
   return (
-    <AppShell currentUser={locations.state?.currentUser} mode={locations.state?.mode}>
-      <ListingDetail listing={listing} />
-    </AppShell>
+    <ListingDetail listing={listing} user={user} 
+      openSigninDlg={openSigninDlg} setOpenSigninDlg={(isOpen) => setOpenSigninDlg(isOpen)}
+      token={token}  />
   );
+}
+
+
+export function ListingDetailPage() {
+  return (
+    <AppShell>
+      <ListingDetailPageComponent />
+    </AppShell>
+  )
 }

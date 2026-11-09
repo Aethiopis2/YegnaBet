@@ -42,6 +42,21 @@ namespace YegnaBet.API.Modules.Marketplace.Controllers
         } // end InsertUpdateSavedListing
 
 
+        [HttpPost("update-listing-view-count")]
+        public async Task<ActionResult<long>> UpdateListingViewCount([FromBody] SetViewsCountDto dto)
+        {
+            try
+            {
+                var res = await _service.UpdateListingViews(dto);
+                return Ok(res);
+            } // end try
+            catch (BadHttpRequestException ex)
+            {
+                return BadRequest(ex.Message);
+            } // end catch
+        } // end UpdateListingViewCount
+
+
         [HttpGet("status-count")]
         public async Task<IActionResult> Get([FromQuery] int providerId)
         {

@@ -9,7 +9,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { useState } from "react";
-import type { TaxonomyNodeFront } from "../../../types/common/taxonomy";
+import type { TaxonomyNodeFront } from "../../../types/customer/taxonomy";
 
 
 interface Props {

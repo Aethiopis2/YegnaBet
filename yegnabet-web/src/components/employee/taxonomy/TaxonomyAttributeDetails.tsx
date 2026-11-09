@@ -4,9 +4,9 @@ import { Save, Trash2 } from "lucide-react";
 import type {
   TaxonomyAttribute,
   TaxonomyAttributeType,
-} from "../../../types/common/taxonomy";
+} from "../../../types/customer/taxonomy";
 
-import type { UpdateTaxonomyAttributeRequest } from "../../../types/common/taxonomy";
+import type { UpdateTaxonomyAttributeRequest } from "../../../types/customer/taxonomy";
 
 import {
   deleteTaxonomyAttribute,

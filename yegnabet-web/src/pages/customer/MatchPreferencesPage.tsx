@@ -7,9 +7,10 @@ import {
   Home,
   LandPlot,
   Store,
+  type LucideIcon,
 } from "lucide-react";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { AppShell } from "../../components/layout/AppShell";
@@ -22,8 +23,19 @@ import type {
   MatchPreferences,
   MatchPropertyType,
 } from "../../types/match";
+import { getLocations, getTaxonomyLeafNodes, getTaxonomyNodeAttributes } from "../../lib/customer/customerApi";
+import { resolveIcon } from "../../lib/IconResolver";
+import ErrorBlock from "../../components/ui/common/ErrorBlock";
+import Loading from "../../components/ui/common/Loading";
+import type { TaxonomyAttribute, TaxonomyNode } from "../../types/customer/taxonomy";
 
-const propertyTypes = [
+
+interface CatTypes {
+  value: MatchPropertyType;
+  label: string;
+  icon: LucideIcon;
+}
+const intPropertyTypes = [
   {
     value: "house" as MatchPropertyType,
     label: "House",
@@ -46,7 +58,7 @@ const propertyTypes = [
   },
 ];
 
-const areas = [
+const initAreas = [
   "Bole",
   "CMC",
   "Kazanchis",
@@ -83,6 +95,44 @@ export function MatchPreferencesPage() {
     });
 
   const [step, setStep] = useState(1);
+
+  const [areas, setAreas] = useState<string[]>([]);
+  const [propertyTypes, setPropertyTypes] = useState<TaxonomyNode[]>([]);
+  const [taxonomyAttributes, setTaxonomyAttributes] = useState<TaxonomyAttribute[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    const getCategories = async () => {
+      try {
+        setLoading(true);
+        const categories = await getTaxonomyLeafNodes();
+        setPropertyTypes(categories);
+
+        const locs = await getLocations();
+        setAreas(locs.map((loc) => (
+          loc.city + ", " + loc.area
+        )));
+      } catch (err) {
+        console.error(err);
+        setError(String(err));
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    getCategories();
+  }, []);
+
+  const getAttributes = async (selectedId: number) => {
+    try {
+      const attrs = await getTaxonomyNodeAttributes(selectedId);
+      setTaxonomyAttributes(attrs);
+    }
+    catch (error) {
+      setError(error as string);
+    }
+  };
 
   const update = (
     values: Partial<MatchPreferences>
@@ -141,6 +191,10 @@ export function MatchPreferencesPage() {
     }
   };
 
+  if (error) return <ErrorBlock message={error} />;
+   
+  if (loading ) return <Loading />;
+
   return (
     <AppShell>
       <PageContainer>
@@ -157,7 +211,7 @@ export function MatchPreferencesPage() {
               text-gray-500
               transition
               hover:bg-gray-100
-              dark:hover:bg-white/[0.06]
+              dark:hover:bg-white/6
             "
             aria-label="Go back"
           >
@@ -171,7 +225,8 @@ export function MatchPreferencesPage() {
 
           {/* STEP 1 */}
 
-          {step === 1 && (
+          {step === 1 && 
+          (
             <section className="mt-8">
               <h1 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">
                 What are you looking for?
@@ -186,18 +241,20 @@ export function MatchPreferencesPage() {
                 {propertyTypes.map(
                   (type) => (
                     <MatchOptionCard
-                      key={type.value}
-                      label={type.label}
-                      icon={type.icon}
+                      key={type.id}
+                      label={type.name}
+                      icon={resolveIcon(type.slug)}
                       selected={
                         preferences.propertyType ===
-                        type.value
+                        type.slug
                       }
-                      onClick={() =>
-                        update({
-                          propertyType:
-                            type.value,
-                        })
+                      onClick={() => {
+                          update({
+                            propertyType:
+                              type.slug as MatchPropertyType,
+                          })
+                          getAttributes(type.id);
+                        }
                       }
                     />
                   )
@@ -243,7 +300,7 @@ export function MatchPreferencesPage() {
                         ${
                           selected
                             ? "border-yegna-700 bg-yegna-700 text-white"
-                            : "border-black/[0.06] bg-white text-gray-500 dark:border-white/[0.07] dark:bg-white/[0.035] dark:text-gray-400"
+                            : "border-black/6 bg-white text-gray-500 dark:border-white/[0.07] dark:bg-white/[0.035] dark:text-gray-400"
                         }
                       `}
                     >
@@ -314,7 +371,7 @@ export function MatchPreferencesPage() {
                       w-full
                       rounded-xl
                       border
-                      border-black/[0.06]
+                      border-black/6
                       bg-white
                       px-3
                       text-sm
@@ -357,7 +414,7 @@ export function MatchPreferencesPage() {
                       w-full
                       rounded-xl
                       border
-                      border-black/[0.06]
+                      border-black/6
                       bg-white
                       px-3
                       text-sm
@@ -372,7 +429,54 @@ export function MatchPreferencesPage() {
                 </label>
               </div>
 
-              <div className="mt-8">
+              {taxonomyAttributes.filter((attr) => attr.type === "integer").map((attr) => {
+                return (
+                  <div key={attr.id}>
+                    <div className="mt-8">
+                      <p className="text-sm font-semibold text-gray-900 dark:text-white">
+                        Minimum {attr.name}
+                      </p>
+                    </div>
+
+                    <div className="mt-3 flex gap-2">
+                      {[1, 2, 3, 4, 5].map(
+                        (number) => (
+                          <button
+                            key={number}
+                            type="button"
+                            onClick={() =>
+                              update({
+                                bedrooms:
+                                  number,
+                              })
+                            }
+                            className={`
+                              grid
+                              size-11
+                              place-items-center
+                              rounded-xl
+                              border
+                              text-xs
+                              font-semibold
+                              ${
+                                preferences.bedrooms ===
+                                number
+                                  ? "border-yegna-700 bg-yegna-700 text-white"
+                                  : "border-black/6 bg-white text-gray-500 dark:border-white/[0.07] dark:bg-white/[0.035]"
+                              }
+                            `}
+                          >
+                            {number}
+                            {number === 5 && "+"}
+                          </button>
+                        )
+                      )}
+                    </div>
+                  </div>
+                )
+              })}
+
+              {/* <div className="mt-8">
                 <p className="text-sm font-semibold text-gray-900 dark:text-white">
                   Minimum bedrooms
                 </p>
@@ -401,7 +505,7 @@ export function MatchPreferencesPage() {
                             preferences.bedrooms ===
                             number
                               ? "border-yegna-700 bg-yegna-700 text-white"
-                              : "border-black/[0.06] bg-white text-gray-500 dark:border-white/[0.07] dark:bg-white/[0.035]"
+                              : "border-black/6 bg-white text-gray-500 dark:border-white/[0.07] dark:bg-white/[0.035]"
                           }
                         `}
                       >
@@ -452,7 +556,7 @@ export function MatchPreferencesPage() {
                     )
                   )}
                 </div>
-              </div>
+              </div> */}
             </section>
           )}
 
@@ -470,17 +574,17 @@ export function MatchPreferencesPage() {
               </p>
 
               <div className="mt-6 grid gap-3">
-                {features.map(
+                {taxonomyAttributes.filter(m => m.type === "boolean").map(
                   (feature) => (
                     <MatchOptionCard
-                      key={feature}
-                      label={feature}
+                      key={feature.id}
+                      label={feature.name}
                       selected={preferences.features.includes(
-                        feature
+                        feature.name
                       )}
                       onClick={() =>
                         toggleFeature(
-                          feature
+                          feature.name
                         )
                       }
                     />
@@ -509,7 +613,7 @@ export function MatchPreferencesPage() {
                   ${
                     preferences.verifiedOnly
                       ? "border-yegna-600 bg-yegna-50 dark:bg-yegna-900/20"
-                      : "border-black/[0.05] bg-white dark:border-white/[0.06] dark:bg-white/[0.035]"
+                      : "border-black/5 bg-white dark:border-white/6 dark:bg-white/[0.035]"
                   }
                 `}
               >

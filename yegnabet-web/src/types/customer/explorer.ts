@@ -1,5 +1,6 @@
+import type { AuthUser } from "../auth/authTypes";
 import type { ListingMode } from "./listings";
-import type { UserProfile } from "./profile";
+
 
 export type ListingView = "grid" | "list";
 
@@ -39,5 +40,5 @@ export interface ExplorerConfig {
   initialView?: ListingView;
 
   sort?: ListingSort;
-  currentUser?: UserProfile;
+  user?: AuthUser;
 }

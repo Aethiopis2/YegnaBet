@@ -43,7 +43,19 @@ export function ListingAttributesStep({
     useState(true);
 
   useEffect(() => {
-    setLoading(true);
+
+    // const fetchNodeAttributes = async () => {
+    //   setLoading(true);
+    //   try {
+    //     const response = await getTaxonomyNodeAttributes(nodeId);
+    //     setNodeAttributes(response);
+    //   } catch (error) {
+    //     console.error("Failed to fetch node attributes", error);
+    //     setNodeAttributes([]);
+    //   } finally {
+    //     setLoading(false);
+    //   }
+    // };
 
     API.get(
       `/provider/get-taxonomyNodeAtrributes?nodeId=${nodeId}`
@@ -112,7 +124,8 @@ export function ListingAttributesStep({
               return (
                 <ListingTextField
                   key={attribute.id}
-                  {...props}
+                  label={attribute.label}
+                  hint={attribute.key}
                 />
               );
 

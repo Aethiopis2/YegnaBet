@@ -1,9 +1,6 @@
 import {
-  Bath,
-  BedDouble,
   Heart,
   MapPin,
-  Maximize,
   MessageCircle,
 } from "lucide-react";
 import { useState } from "react";
@@ -15,18 +12,19 @@ import {
   formatPrice,
 } from "../../lib/formatters";
 import { cn } from "../../lib/cn";
-import type { UserProfile } from "../../types/customer/profile";
 import { updateSavedListing } from "../../lib/customer/customerApi";
 import { resolveIcon } from "../../lib/IconResolver";
+import type { AuthUser } from "../../types/auth/authTypes";
+import ErrorBlock from "../ui/common/ErrorBlock";
 
 interface ListingListCardProps {
   listing: Listing;
-  currentUser: UserProfile | null;
+  user: AuthUser | null;
 }
 
 export function ListingListCard({
   listing,
-  currentUser,
+  user,
 }: ListingListCardProps) {
   const navigate = useNavigate();
 
@@ -34,12 +32,14 @@ export function ListingListCard({
   const [error, setError] = useState("");
 
   const saveListing = async () => {
-    if (!currentUser)
+    if (!user) {
+      setSaved(!saved);
       return;
+    }
 
     try {
       const savedListing = {
-        userId: Number(currentUser.id),
+        userId: Number(user.id),
         listingId: listing.id,
         saved: !saved,
       };
@@ -57,11 +57,13 @@ export function ListingListCard({
     navigate(`/listing/${listing.id}`, {
       state: {
         listing,
-        currentUser,
+        user,
       },
     });
   };
 
+
+  if (error) return <ErrorBlock message={error} />
 
   return (
     <article

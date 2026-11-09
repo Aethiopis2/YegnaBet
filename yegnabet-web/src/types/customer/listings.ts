@@ -95,3 +95,8 @@ export interface AddUpdateSavedListing {
   listingId: number;
   saved: boolean;
 }
+
+export interface ListingViewCountRequest {
+  listingId: number;
+  userId?: number;
+}

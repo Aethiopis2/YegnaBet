@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { createEmptyListingDraft } from "../../../lib/provider/providerManagement";
-import type { ProviderTaxonomy, } from "../../../types/provider";
+import type { EmployeeTaxonomyShort, } from "../../../types/employee/employee";
 import {
 LISTING_WIZARD_STEPS,
 type ListingDraft,
@@ -18,26 +18,27 @@ import { ListingLocationStep } from "../listing/steps/ListingLocationSteps";
 import { ListingMediaStep } from "../listing/steps/ListingMediaStep";
 import { ListingDetailsStep } from "../listing/steps/ListingDetailsStep";
 import { ListingReviewStep } from "../listing/steps/ListingReviewStep";
-import { API } from "../../../types/api";
 import Loading from "../../ui/common/Loading";
+import { getTaxonomyNodesShort } from "../../../lib/employee/employeServices";
 
 export function ListingWizard({
     initialData,
     locations,
     onSubmit,
     onCancel,
-    providerId,
+    employeeId,
     mode = "create",
+    token,
   }: ListingWizardProps) {
 
-  const [taxonomy, setTaxonomy] = useState<ProviderTaxonomy[]>([]);
+  const [taxonomy, setTaxonomy] = useState<EmployeeTaxonomyShort[]>([]);
   const [loading, setLoading] = useState(true);
 
 
   const [stepIndex, setStepIndex] = useState(0);
 
   const [draft, setDraft] = useState<ListingDraft>(() => ({
-    ...createEmptyListingDraft(Number(providerId)), ...initialData,}));
+    ...createEmptyListingDraft(Number(employeeId)), ...initialData,}));
 
   const step =LISTING_WIZARD_STEPS[stepIndex];
 
@@ -66,19 +67,16 @@ export function ListingWizard({
   };
 
   useEffect(() => {
-    API.get(`/provider/get-taxonomyNodes`)
-      .then((r) => {
-        setTaxonomy(r.data);
-      })
-      .catch((error) => {
-        console.error("Failed to load listing", error);
-        setTaxonomy([]);
-      })
-      .finally(() => {
-        setLoading(false);
-      });
-    }
-  , []);
+
+    const fetchTaxonomy = async () => {
+      setLoading(true);
+      const resp = await getTaxonomyNodesShort(String(token));
+      setTaxonomy(resp);
+      setLoading(false);
+    };
+
+    fetchTaxonomy();
+    }, []);
 
   if (loading) {
     return <Loading />

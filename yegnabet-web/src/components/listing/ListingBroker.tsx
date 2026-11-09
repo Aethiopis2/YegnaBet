@@ -5,6 +5,7 @@ import {
 } from "lucide-react";
 
 import type { ListingEmployee as Broker } from "../../types/customer/listings";
+import { ASSET_URL, BASE_URL_STRING } from "../../types/api";
 
 interface ListingBrokerProps {
   broker?: Broker;
@@ -47,7 +48,7 @@ export function ListingBroker({
       >
         {broker.avatar ? (
           <img
-            src={broker.avatar}
+            src={BASE_URL_STRING + "/" + broker.avatar}
             alt=""
             className="
               size-12

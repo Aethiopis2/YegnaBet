@@ -1,5 +1,5 @@
 import { API, ASSET_URL } from "../../types/api";
-import type { CreateTaxonomyAttributeRequest, CreateTaxonomyNodeRequest, EmployeeTaxonomyNodeDto, TaxonomyAttribute, UpdateTaxonomyAttributeRequest, UpdateTaxonomyNodeRequest } from "../../types/common/taxonomy";
+import type { CreateTaxonomyAttributeRequest, CreateTaxonomyNodeRequest, EmployeeTaxonomyNodeDto, TaxonomyAttribute, UpdateTaxonomyAttributeRequest, UpdateTaxonomyNodeRequest } from "../../types/customer/taxonomy";
 
 export async function getTaxonomyTree(taxonomyId: number): Promise<EmployeeTaxonomyNodeDto[]> {
   const response = await fetch(

@@ -5,7 +5,7 @@ import {
   Trash2,
 } from "lucide-react";
 
-import type { TaxonomyNodeFront } from "../../../types/common/taxonomy";
+import type { TaxonomyNodeFront } from "../../../types/customer/taxonomy";
 import { useEffect, useMemo, useState } from "react";
 import { getDescendantIds } from "./TaxonomyTree";
 import { updateTaxonomyNode } from "../../../lib/employee/taxonomyApi";

@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using YegnaBet.API.Modules.Employee.Dtos;
 using YegnaBet.API.Modules.Marketplace.Dtos;
 using YegnaBet.Infrastructure.Persistence;
 
@@ -21,7 +22,7 @@ namespace YegnaBet.API.Modules.Marketplace.Services
         /// <param name="cancellationToken"></param>
         /// <returns>tree of TaxonomyNodes</returns>
         public async Task<List<TaxonomyNodeDto>> getTaxonomyTree(
-    CancellationToken cancellationToken = default)
+            CancellationToken cancellationToken = default)
         {
             var nodes = await _db.TaxonomyNode
                 .AsNoTracking()
@@ -70,5 +71,40 @@ namespace YegnaBet.API.Modules.Marketplace.Services
 
             return roots;
         } // end getTaxonomyTree
+
+
+        public async Task<List<EmployeeTaxonomyAttributeDto>> GetTaxonomyNodeAttributes(long nodeId,
+            CancellationToken cancellationToken = default)
+        {
+            var attrs = await _db.AttributeDefinition
+                .AsNoTracking()
+                .Where(x => x.Nodes.ToList()
+                    .Any(y => y.TaxonomyNodeId == nodeId))
+                .ToListAsync(cancellationToken);
+
+            return [.. attrs
+                .OrderBy(x => x.SortOrder)
+                .Select(x => new EmployeeTaxonomyAttributeDto
+                {
+                    Id = x.Id,
+                    Name = x.Name,
+                    Key = x.Key,
+                    Type = x.DataType.ToString().ToLower(),
+
+                    Required = x.IsRequired,
+                    Searchable = x.IsSearchable,
+                    Filterable = x.IsFilterable,
+
+                    MinValue = x.MinValue,
+                    MaxValue = x.MaxValue,
+
+                    Options = x.Options == null
+                        ? new List<string>()
+                        : x.Options.RootElement
+                            .EnumerateArray()
+                            .Select(v => v.GetString() ?? v.ToString())
+                            .ToList()
+                })];
+        } // end GetAttributes
     } // end CategoryService
 } // end namespace

@@ -4,8 +4,5 @@
     {
         public long ListingId { get; set; }
         public Guid AssignmentId { get; set; }
-        public long? CustomerId { get; set; }
-        public string? CustomerName { get; set; }
-        public string? CustomerPhone { get; set; }
     }
 }

@@ -1,7 +1,5 @@
-import { useEffect, useState } from "react";
-
+import React, { useEffect, useState } from "react";
 import type { Listing } from "../../types/customer/listings";
-
 import { ListingGallery } from "./ListingGallery";
 import { ListingHeader } from "./ListingHeader";
 import { ListingFacts } from "./ListingFacts";
@@ -11,30 +9,38 @@ import { ListingVerification } from "./ListingVerification";
 import { ListingLocation } from "./ListingLocation";
 import { ListingBroker } from "./ListingBroker";
 import { ListingActionBar } from "./ListingActionBar";
-
-import { CustomerInfoDialog } from "../common/CustomerInfoDialog";
 import { Toast } from "../common/Toast";
-import { ASSET_URL } from "../../types/api";
+import type { AuthUser } from "../../types/auth/authTypes";
+import { createInquiry } from "../../lib/customer/customerApi";
+
 
 interface ListingDetailProps {
   listing: Listing;
+  user: AuthUser | null;
+  openSigninDlg?: boolean;
+  setOpenSigninDlg?: React.Dispatch<React.SetStateAction<boolean>>;
+  token?: string;
 }
 
 export function ListingDetail({
   listing,
+  user,
+  openSigninDlg,
+  setOpenSigninDlg,
+  token,
 }: ListingDetailProps) {
+
   const [saved, setSaved] = useState(
     listing.saved ?? false
   );
-
-  const [showCustomerDialog, setShowCustomerDialog] =
-    useState(false);
 
   const [showToast, setShowToast] =
     useState(false);
 
   const [submitting, setSubmitting] =
     useState(false);
+
+  const [requestSend, setRequestSend] = useState(false);
 
   useEffect(() => {
     if (!showToast) {
@@ -50,24 +56,12 @@ export function ListingDetail({
     };
   }, [showToast]);
 
-  /*
-   * Later this will come from our authentication/session state.
-   *
-   * For now:
-   *   null = guest
-   *
-   * Later:
-   *   const customer = useAuth();
-   *   const customerId = customer?.id ?? null;
-   */
-  const customerId: number | null = null;
 
-  const submitInquiry = async (
-    customer?: {
-      fullName: string;
-      phone: string;
-    }
-  ) => {
+  useEffect(() => {
+     
+  }, [user])
+
+  const submitInquiry = async () => {
     if (!listing.assignmentId) {
       console.error(
         "No employee assignment available."
@@ -83,52 +77,21 @@ export function ListingDetail({
     try {
       setSubmitting(true);
 
-
-      const response = await fetch(
-        ASSET_URL + "/api/inquiries",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            listingId: listing.id,
-            assignmentId: listing.assignmentId,
-
-            /*
-             * Logged-in customer:
-             * use the customer ID.
-             */
-            customerId,
-
-            /*
-             * Guest customer:
-             * use the information entered
-             * in the dialog.
-             */
-            customerName:
-              customer?.fullName ?? null,
-
-            customerPhone:
-              customer?.phone ?? null,
-          }),
-        }
+      console.log(
+        "Creating inquiry for listing:",
+        listing.id, listing.assignmentId
       );
-
-      if (!response.ok) {
-        const error =
-          await response.json().catch(() => null);
-
-        throw new Error(
-          error?.message ??
-            "Failed to request viewing."
-        );
-      }
+  
+      await createInquiry(token??"", {
+        listingId: listing.id,
+        assignmentId: listing.assignmentId
+      });
+      
 
       /*
        * Inquiry successfully created.
        */
-      setShowCustomerDialog(false);
+      setRequestSend(true);
       setShowToast(true);
     } catch (error) {
       console.error(
@@ -160,22 +123,12 @@ export function ListingDetail({
       return;
     }
 
-    /*
-     * Later, authentication will provide
-     * the customer ID.
-     *
-     * Logged in:
-     *      submit immediately
-     *
-     * Guest:
-     *      ask for minimal contact information
-     */
-    if (customerId) {
+    if (user) {
       submitInquiry();
       return;
     }
 
-    setShowCustomerDialog(true);
+    setOpenSigninDlg?.(!openSigninDlg);
   };
 
   return (
@@ -247,17 +200,10 @@ export function ListingDetail({
           <ListingActionBar
             onMessage={handleMessage}
             onRequestViewing={handleViewing}
+            requestSend={requestSend}
           />
         </div>
       </div>
-
-      <CustomerInfoDialog
-        open={showCustomerDialog}
-        onClose={() =>
-          setShowCustomerDialog(false)
-        }
-        onSubmit={submitInquiry}
-      />
 
       <Toast
         open={showToast}

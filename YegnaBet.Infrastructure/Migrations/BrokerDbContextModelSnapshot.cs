@@ -413,6 +413,58 @@ namespace YegnaBet.Infrastructure.Migrations
                     b.ToTable("ListingTaxonomyNode", "public");
                 });
 
+            modelBuilder.Entity("YegnaBet.Domain.Entities.ListingViewsCount", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<int>("Count")
+                        .HasColumnType("integer");
+
+                    b.Property<long>("ListingId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("UserId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ListingId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("ListingViewsCount", "public");
+                });
+
+            modelBuilder.Entity("YegnaBet.Domain.Entities.ListingViewsDates", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<long>("ListingId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("UserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime>("ViewDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ListingId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("ListingViewsDates", "public");
+                });
+
             modelBuilder.Entity("YegnaBet.Domain.Entities.Location", b =>
                 {
                     b.Property<long>("Id")
@@ -621,7 +673,6 @@ namespace YegnaBet.Infrastructure.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Email")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("FullName")
@@ -798,6 +849,44 @@ namespace YegnaBet.Infrastructure.Migrations
                     b.Navigation("Listing");
 
                     b.Navigation("TaxonomyNode");
+                });
+
+            modelBuilder.Entity("YegnaBet.Domain.Entities.ListingViewsCount", b =>
+                {
+                    b.HasOne("YegnaBet.Domain.Entities.Listing", "Listing")
+                        .WithMany()
+                        .HasForeignKey("ListingId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("YegnaBet.Domain.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Listing");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("YegnaBet.Domain.Entities.ListingViewsDates", b =>
+                {
+                    b.HasOne("YegnaBet.Domain.Entities.Listing", "Listing")
+                        .WithMany()
+                        .HasForeignKey("ListingId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("YegnaBet.Domain.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Listing");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("YegnaBet.Domain.Entities.NodeAttributeDefinition", b =>

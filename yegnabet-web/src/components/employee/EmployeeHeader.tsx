@@ -3,15 +3,18 @@ import {
   ChevronDown,
   Menu,
   MessageSquare,
-  Moon,
   Search,
-  Sun,
 } from "lucide-react";
 import { useState } from "react";
 import { ProfileDropdown } from "./ProfileDropdown";
 import { NotificationDropdown } from "./NotificationDropdown";
+import type { AuthUser } from "../../types/auth/authTypes";
 
-export function EmployeeHeader() {
+interface EmployeeHeaderProps {
+  user: AuthUser | null;
+}
+
+export function EmployeeHeader({ user }: EmployeeHeaderProps) {
   const [profileOpen, setProfileOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
@@ -21,11 +24,11 @@ export function EmployeeHeader() {
       className="
         sticky top-0 z-30
         h-16
-        border-b border-black/[0.05]
+        border-b border-black/5
         bg-white/90
         backdrop-blur-xl
 
-        dark:border-white/[0.06]
+        dark:border-white/6
         dark:bg-[#101512]/90
       "
     >
@@ -44,7 +47,7 @@ export function EmployeeHeader() {
             lg:hidden
 
             dark:text-gray-400
-            dark:hover:bg-white/[0.05]
+            dark:hover:bg-white/5
             dark:hover:text-white
           "
           aria-label="Open menu"
@@ -73,7 +76,7 @@ export function EmployeeHeader() {
               w-full
               rounded-xl
               border
-              border-black/[0.06]
+              border-black/6
               bg-gray-50
               pl-10
               pr-4
@@ -88,10 +91,10 @@ export function EmployeeHeader() {
               focus:ring-2
               focus:ring-yegna-500/10
 
-              dark:border-white/[0.06]
+              dark:border-white/6
               dark:bg-white/[0.035]
               dark:text-white
-              dark:focus:bg-white/[0.06]
+              dark:focus:bg-white/6
             "
           />
         </div>
@@ -116,12 +119,12 @@ export function EmployeeHeader() {
                 hover:text-gray-900
 
                 dark:text-gray-400
-                dark:hover:bg-white/[0.05]
+                dark:hover:bg-white/5
                 dark:hover:text-white
               "
               aria-label="Notifications"
             >
-              <Bell className="size-[18px]" />
+              <Bell className="size-4.5" />
 
               <span
                 className="
@@ -162,12 +165,12 @@ export function EmployeeHeader() {
               hover:text-gray-900
 
               dark:text-gray-400
-              dark:hover:bg-white/[0.05]
+              dark:hover:bg-white/5
               dark:hover:text-white
             "
             aria-label="Messages"
           >
-            <MessageSquare className="size-[18px]" />
+            <MessageSquare className="size-4.5" />
 
             <span
               className="
@@ -206,7 +209,7 @@ export function EmployeeHeader() {
                 transition
                 hover:bg-gray-100
 
-                dark:hover:bg-white/[0.05]
+                dark:hover:bg-white/5
               "
             >
               <div
@@ -222,16 +225,16 @@ export function EmployeeHeader() {
                   text-yegna-700
                 "
               >
-                HT
+                {user && user.fullName.trim()[0].charAt(0).toUpperCase() + "" + user.fullName.trim()[1].charAt(0).toUpperCase()}
               </div>
 
               <div className="hidden text-left xl:block">
                 <p className="text-[11px] font-semibold">
-                  Hana Tesfaye
+                  {user?.fullName || "User"}
                 </p>
 
                 <p className="text-[8px] text-gray-400">
-                  Property Consultant
+                  {user?.role || "Employee"}
                 </p>
               </div>
 
@@ -242,6 +245,7 @@ export function EmployeeHeader() {
               <ProfileDropdown
                 darkMode={darkMode}
                 setDarkMode={setDarkMode}
+                user={user}
               />
             )}
           </div>

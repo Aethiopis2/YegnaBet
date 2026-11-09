@@ -1,5 +1,5 @@
 import { MapPin } from "lucide-react";
-import type { ListingLocation } from "../../types/common/location"
+import type { ListingLocation } from "../../types/customer/location"
 import type { ListingFilters } from "../../types/customer/explorer";
 
 interface PopularLocationCardProps {

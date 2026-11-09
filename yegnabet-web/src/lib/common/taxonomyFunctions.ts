@@ -1,4 +1,4 @@
-import type { TaxonomyNode } from "../../types/common/taxonomy";
+import type { TaxonomyNode } from "../../types/customer/taxonomy";
 
 /**
  * @description recursively collects all the leaf nodes from a given TaxonomyNode.

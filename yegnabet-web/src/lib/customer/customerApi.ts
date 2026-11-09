@@ -1,12 +1,13 @@
 import axios from "axios";
 import { API_BASE, BASE_URL_STRING } from "../../types/api";
-import type { TaxonomyNode } from "../../types/common/taxonomy";
-import type { AddUpdateSavedListing, Listing, ListingLocation, ListingPage } from "../../types/customer/listings";
-import type { UserProfile } from "../../types/customer/profile";
+import type { TaxonomyAttribute, TaxonomyNode } from "../../types/customer/taxonomy";
+import type { AddUpdateSavedListing, Listing, ListingLocation, ListingPage, ListingViewCountRequest } from "../../types/customer/listings";
 import { getLeafNodes } from "../common/taxonomyFunctions";
+import type { AuthUser } from "../../types/auth/authTypes";
+import type { CustomerInquiryDto } from "../../types/customer/dto/CreateInquiryDto";
 
-export async function getCustomerAuth(token: string): Promise<UserProfile> {
-    const response = await API_BASE.get('/customer/me', {
+export async function getCustomerAuth(token: string): Promise<AuthUser> {
+    const response = await API_BASE.get('auth/me', {
         headers: {
             Authorization: `Bearer ${token}`
         }
@@ -112,3 +113,64 @@ export async function getListing(listingId: number): Promise<Listing> {
         throw error;
     }
 } // end getListing
+
+
+export async function updateListingViewCount(viewCount: ListingViewCountRequest): Promise<void> {
+    try {
+        await API_BASE.post(`/listings/update-listing-view-count`, viewCount);
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            throw new Error(
+                `Failed to update listing view count: ${
+                    error.response?.status ?? error.message
+                }`
+            );
+        }
+
+        throw error;
+    } 
+}
+
+
+export async function getTaxonomyNodeAttributes(nodeId: number): Promise<TaxonomyAttribute[]> {
+    try {
+        const ret = await API_BASE.get(`/categories/attributes/${nodeId}`);
+        return ret.data;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            throw new Error(
+                `Failed to update listing view count: ${
+                    error.response?.status ?? error.message
+                }`
+            );
+        }
+
+        throw error;
+    } 
+}
+
+
+export async function createInquiry(token: string, inquiry: CustomerInquiryDto) : Promise<void> {
+    try {
+        
+        await API_BASE.post(
+            `/inquiries/`,
+            inquiry, // Request body
+            {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            }
+        );
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            throw new Error(
+                `Failed to create inquriy: ${
+                    error.response?.status ?? error.message
+                }`
+            );
+        }
+
+        throw error;
+    }
+}

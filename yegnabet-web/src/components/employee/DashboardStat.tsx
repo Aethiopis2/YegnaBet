@@ -6,6 +6,7 @@ interface DashboardStatProps {
   description?: string;
   icon: LucideIcon;
   trend?: string;
+  onClick?: () => void;
 }
 
 export function DashboardStat({
@@ -14,9 +15,11 @@ export function DashboardStat({
   description,
   icon: Icon,
   trend,
+  onClick,
 }: DashboardStatProps) {
   return (
-    <div
+    <div 
+      onClick={onClick}
       className="
         rounded-2xl
         border

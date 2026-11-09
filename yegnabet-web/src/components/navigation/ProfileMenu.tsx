@@ -3,7 +3,6 @@ import {
   Heart,
   LogOut,
   Moon,
-  Settings,
   Sun,
   User,
   UserRound,
@@ -15,15 +14,20 @@ import { Avatar } from "../ui/Avatar";
 import { Dropdown } from "../ui/Dropdown";
 import IconButton  from "../ui/IconButton";
 import { useNavigate } from "react-router-dom";
-import type { UserProfile } from "../../types/customer/profile";
+import type { ListingMode } from "../../types/customer/listings";
+import type { AuthUser } from "../../types/auth/authTypes";
 
 interface ProfileMenuProps {
   open: boolean;
   onToggle: () => void;
-  currentUser: UserProfile | null;
+  user: AuthUser | null;
+  openSignin: boolean;
+  setOpenSignin: any;
+  mode?: ListingMode;
 }
 
-export function ProfileMenu({ open, onToggle, currentUser }: ProfileMenuProps) {
+export function ProfileMenu({ open, onToggle, user,
+  openSignin, setOpenSignin, mode }: ProfileMenuProps) {
   const navigate = useNavigate();
   const { theme, toggleTheme } = useTheme();
 
@@ -35,9 +39,9 @@ export function ProfileMenu({ open, onToggle, currentUser }: ProfileMenuProps) {
         onClick={onToggle}
         className="p-0.5"
       >
-        {currentUser ?
+        {user ?
           <Avatar
-            name={currentUser.fullName}
+            name={user.fullName}
             size="md"
             src="/images/avatars/user.jpg"
           />
@@ -48,17 +52,17 @@ export function ProfileMenu({ open, onToggle, currentUser }: ProfileMenuProps) {
       <Dropdown open={open} className="w-64">
         <div className="p-2">
 
-          {currentUser &&
+          {user &&
             <div className="flex items-center gap-3 rounded-xl px-2 py-2.5">
               <Avatar
-                name={currentUser.fullName}
+                name={user.fullName}
                 size="lg"
                 src="/images/avatars/user.jpg"
               />
 
               <div className="min-w-0">
                 <p className="truncate text-sm font-semibold text-gray-900 dark:text-white">
-                  {currentUser.fullName}
+                  {user.fullName}
                 </p>
 
                 <p className="truncate text-xs text-gray-400">
@@ -69,17 +73,26 @@ export function ProfileMenu({ open, onToggle, currentUser }: ProfileMenuProps) {
           }
           <div className="my-2 h-px bg-black/5 dark:bg-white/8" />
 
-          {currentUser ? 
+          {user ? 
             <>
               <ProfileItem
                 icon={UserRound}
                 label={"My profile"}
-                onclick={() => navigate('/profile')}
+                onclick={() => navigate('/profile', {
+                  state: { 
+                    user
+                  }
+                })}
               />
 
               <ProfileItem
                 icon={Heart}
                 label="Saved listings"
+                onclick={() => user && navigate(`/explore?saved=true` + (mode && `&mode=${mode}`), {
+                  state: { 
+                    user 
+                  }
+                })}
               />
 
               {/* <ProfileItem
@@ -92,7 +105,7 @@ export function ProfileMenu({ open, onToggle, currentUser }: ProfileMenuProps) {
               icon={User}
               label="Sign In | Create New" 
               chevronOff={true}
-              onclick={() => navigate('/login')}
+              onclick={() => setOpenSignin(!openSignin)}
               />
           }
           <div className="my-2 h-px bg-black/5 dark:bg-white/8" />
@@ -130,7 +143,7 @@ export function ProfileMenu({ open, onToggle, currentUser }: ProfileMenuProps) {
 
           <div className="my-2 h-px bg-black/5 dark:bg-white/8" />
 
-          {currentUser &&
+          {user &&
             <button type="button"
               className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm 
                 text-red-500 transition-colors hover:bg-red-50 dark:hover:bg-red-900/15">

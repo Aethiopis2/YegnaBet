@@ -5,8 +5,8 @@ import { flattenTree, TaxonomyTree } from "../../components/employee/taxonomy/Ta
 import { TaxonomyDetails } from "../../components/employee/taxonomy/TaxonomyDetails";
 import { TaxonomyAttributes } from "../../components/employee/taxonomy/TaxonomyAttributes";
 import { TaxonomyAttributeDetails } from "../../components/employee/taxonomy/TaxonomyAttributeDetails";
-import type { TaxonomyAttribute, TaxonomyAttributeType, TaxonomyNodeFront } from "../../types/common/taxonomy";
-import { mapTaxonomyTree } from "../../types/eployee/taxonomyMapper";
+import type { TaxonomyAttribute, TaxonomyAttributeType, TaxonomyNodeFront } from "../../types/customer/taxonomy";
+import { mapTaxonomyTree } from "../../types/employee/taxonomyMapper";
 import { createTaxonomyAttribute, createTaxonomyNode, getTaxonomyAttributes, getTaxonomyTree, moveTaxonomyNode } from "../../lib/employee/taxonomyApi";
 import { ConfirmDialog } from "../../components/common/ConfrimationDialog";
 

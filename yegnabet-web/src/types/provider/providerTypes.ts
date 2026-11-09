@@ -1,4 +1,4 @@
-import type { ProviderLocation } from "../provider";
+import type { ProviderLocation } from "../employee/employee";
 
 export interface ListingPhotoDraft {
   id?: number;
@@ -113,6 +113,7 @@ export interface ListingWizardProps {
   onCancel?: () => void;
 
   mode?: "create" | "edit";
-  providerId?: number;
+  employeeId?: number;
   listingId?: number;
+  token?: string;
 }

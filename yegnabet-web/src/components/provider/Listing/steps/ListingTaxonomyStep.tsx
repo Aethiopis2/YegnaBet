@@ -1,4 +1,4 @@
-import type { ProviderTaxonomy } from "../../../../types/provider";
+import type { ProviderTaxonomy } from "../../../../types/employee/employee";
 
 import { ListingTaxonomySelector } from "../taxonomy/ListingTaxonomySelector";
 

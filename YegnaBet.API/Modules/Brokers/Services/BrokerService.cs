@@ -27,7 +27,8 @@ namespace YegnaBet.API.Modules.Brokers.Services
             _employeeAssignmentService = employeeAssignmentService;
         }
 
-        public async Task<InquiryDto?> CreateAsync(CreateInquiryDto request, CancellationToken cancellationToken = default)
+        public async Task<InquiryDto?> CreateAsync(CreateInquiryDto request, long userId,
+            CancellationToken cancellationToken = default)
         { 
             /* 
              * Make sure the listing exists and is still available. 
@@ -52,28 +53,12 @@ namespace YegnaBet.API.Modules.Brokers.Services
                 throw new InvalidOperationException("The listing assignment is no longer valid.");
 
             var cust = await _db.Users.AsNoTracking()
-                .AnyAsync(x => x.Id == request.CustomerId || x.PhoneNumber == request.CustomerPhone, 
+                .AnyAsync(x => x.Id == userId, 
                 cancellationToken);
 
             if (!cust)
             {
-                // register this new customer and use its Id
-                if (request.CustomerPhone != null && request.CustomerName != null)
-                {
-                    User customer = new User
-                    {
-                        FullName = request.CustomerName,
-                        PhoneNumber = request.CustomerPhone,
-                        IsActive = false,
-                        IsVerified = false,
-                        Role = UserRole.Customer
-                    };
-
-                    _db.Users.Add(customer);
-                    await _db.SaveChangesAsync(); 
-                        
-                    request.CustomerId = _db.Users.First(x => x.PhoneNumber == customer.PhoneNumber).Id;
-                }
+                throw new InvalidOperationException("User does not exist.");
             }
 
             /* 
@@ -90,9 +75,7 @@ namespace YegnaBet.API.Modules.Brokers.Services
             {
                 ListingId = request.ListingId,
                 EmployeeId = employee.EmployeeId,
-                CustomerId = request.CustomerId,
-                CustomerName = request.CustomerName,
-                CustomerPhone = request.CustomerPhone,
+                CustomerId = userId,
                 InquiryStatus = InquiryStatus.New,
                 CreatedAt = DateTime.UtcNow
             }; 
@@ -106,7 +89,7 @@ namespace YegnaBet.API.Modules.Brokers.Services
             await _hub.Clients.All.SendAsync("InquiryCreated", new
             {
                 inquiry.Id,
-                request.CustomerName,
+                //request.CustomerName,
                 request.ListingId
             });
 
@@ -118,40 +101,38 @@ namespace YegnaBet.API.Modules.Brokers.Services
                 ListingId = inquiry.ListingId,
                 EmployeeId = inquiry.EmployeeId,
                 CustomerId = inquiry.CustomerId,
-                CustomerName = inquiry.CustomerName,
-                CustomerPhone = inquiry.CustomerPhone,
                 Status = inquiry.InquiryStatus.ToString(),
                 CreatedAt = inquiry.CreatedAt
             };
         }
 
-        public async Task<long> CreateInquiryAsync(CreateInquiryDto dto)
-        {
-            var inquiry = new Inquiry
-            {
-                ListingId = dto.ListingId,
-                CustomerName = dto.CustomerName,
-                CustomerPhone = dto.CustomerPhone,
-                InquiryStatus = InquiryStatus.New
-            };
+        //public async Task<long> CreateInquiryAsync(CreateInquiryDto dto)
+        //{
+        //    var inquiry = new Inquiry
+        //    {
+        //        ListingId = dto.ListingId,
+        //        CustomerName = dto.CustomerName,
+        //        CustomerPhone = dto.CustomerPhone,
+        //        InquiryStatus = InquiryStatus.New
+        //    };
 
-            _db.Inquiries.Add(inquiry);
+        //    _db.Inquiries.Add(inquiry);
 
-            var listing = await _db.Listings.FindAsync(dto.ListingId);
-            if (listing != null)
-                listing.InquiresCount++;
+        //    var listing = await _db.Listings.FindAsync(dto.ListingId);
+        //    if (listing != null)
+        //        listing.InquiresCount++;
 
-            await _db.SaveChangesAsync();
+        //    await _db.SaveChangesAsync();
 
-            await _hub.Clients.All.SendAsync("InquiryCreated", new
-            {
-                inquiry.Id,
-                dto.CustomerName,
-                ListingId = dto.ListingId
-            });
+        //    await _hub.Clients.All.SendAsync("InquiryCreated", new
+        //    {
+        //        inquiry.Id,
+        //        dto.CustomerName,
+        //        ListingId = dto.ListingId
+        //    });
 
-            return inquiry.Id;
-        }
+        //    return inquiry.Id;
+        //}
 
         public async Task<List<BrokerInquiryDto>> GetInquiresAsync()
         {
@@ -162,8 +143,8 @@ namespace YegnaBet.API.Modules.Brokers.Services
                 {
                     Id = x.Id,
                     ListingTitle = x.Listing.Title,
-                    CustomerName = x.CustomerName,
-                    CustomerPhone = x.CustomerPhone,
+                    CustomerName = x.Customer.FullName,
+                    CustomerPhone = x.Customer.PhoneNumber,
                     Status = x.InquiryStatus.ToString(),
                     CreatedAt = x.CreatedAt
                 })
@@ -251,8 +232,6 @@ namespace YegnaBet.API.Modules.Brokers.Services
             return new PipelineCountsDto
             {
                 New = data.FirstOrDefault(x => x.Key == InquiryStatus.New)?.Count ?? 0,
-                Called = data.FirstOrDefault(x => x.Key == InquiryStatus.Called)?.Count ?? 0,
-                Visited = data.FirstOrDefault(x => x.Key == InquiryStatus.Visited)?.Count ?? 0,
                 Negotiating = data.FirstOrDefault(x => x.Key == InquiryStatus.Negotiating)?.Count ?? 0,
                 Completed = data.FirstOrDefault(x => x.Key == InquiryStatus.Completed)?.Count ?? 0
             };

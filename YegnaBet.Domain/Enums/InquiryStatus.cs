@@ -11,8 +11,6 @@
     public enum InquiryStatus
     {
         New,
-        Called,
-        Visited,
         Negotiating,
         Completed,
         Cancelled

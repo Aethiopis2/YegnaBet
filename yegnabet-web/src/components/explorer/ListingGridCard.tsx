@@ -6,19 +6,19 @@ import { formatArea, formatPrice, } from "../../lib/formatters";
 import { cn } from "../../lib/cn";
 import { resolveIcon } from "../../lib/IconResolver";
 import VerifiedTag from "../common/VerifiedTag";
-import type { UserProfile } from "../../types/customer/profile";
 import { updateSavedListing } from "../../lib/customer/customerApi";
+import type { AuthUser } from "../../types/auth/authTypes";
 
 
 interface ListingGridCardProps {
   listing: Listing;
-  currentUser: UserProfile | null;
+  user: AuthUser | null;
 }
 
 
 export function ListingGridCard({
   listing,
-  currentUser,
+  user,
 }: ListingGridCardProps) {
   const navigate = useNavigate();
 
@@ -26,12 +26,14 @@ export function ListingGridCard({
   const [error, setError] = useState<string>("");
 
   const saveListing = async () => {
-    if (!currentUser)
+    if (!user) {
+      setSaved(!saved);
       return;
+    }
 
     try {
       const savedListing = {
-        userId: Number(currentUser.id),
+        userId: Number(user.id),
         listingId: listing.id,
         saved: !saved,
       };
@@ -49,7 +51,7 @@ export function ListingGridCard({
     navigate(`/listing/${listing.id}`, {
       state: {
         listing,
-        currentUser,
+        user,
       },
     });
   };

@@ -9,8 +9,8 @@ import { NavLink } from "react-router-dom";
 
 import { cn } from "../../lib/cn";
 import { QuickActionSheet } from "../quick-actions/QuickActionSheet";
-import type { UserProfile } from "../../types/customer/profile";
 import type { ListingMode } from "../../types/customer/listings";
+import type { AuthUser } from "../../types/auth/authTypes";
 
 const navigation = [
   {
@@ -24,7 +24,7 @@ const navigation = [
     href: "/explore",
   },
   {
-    label: "Favorites",
+    label: "Saved",
     icon: Heart,
     href: "/explore?saved=true",
   },
@@ -36,11 +36,12 @@ const navigation = [
 ];
 
 interface Props {
-  currentUser: UserProfile | null;
+  user: AuthUser | null;
+  onLogin: () => void;
   mode?: ListingMode;
 }
 
-export function BottomNavigation({ currentUser, mode }: Props) {
+export function BottomNavigation({ user, onLogin, mode }: Props) {
   return (
     <nav
       className="
@@ -60,7 +61,8 @@ export function BottomNavigation({ currentUser, mode }: Props) {
           <NavigationItem
             key={item.href}
             {...item}
-            currentUser={currentUser}
+            user={user}
+            onLogin={onLogin}
             mode={mode}
           />
         ))}
@@ -75,7 +77,8 @@ interface NavigationItemProps {
   label: string;
   icon: typeof Home;
   href: string;
-  currentUser: UserProfile | null;
+  user: AuthUser | null;
+  onLogin: () => void;
   mode?: ListingMode;
 }
 
@@ -83,13 +86,13 @@ function NavigationItem({
   label,
   icon: Icon,
   href,
-  currentUser,
+  user,
   mode,
 }: NavigationItemProps) {
   return (
     <NavLink
-      to={href + (mode ? `?mode=${mode}` : "")}
-      state={{ currentUser: currentUser }}
+      to={(label === "Saved" || label === "Profile" ? (user ? href : "") : href)}
+      state={{ user: user, listingMode: mode }}
       className={({ isActive }) =>
         cn(
           "flex min-w-16 flex-col items-center gap-1",

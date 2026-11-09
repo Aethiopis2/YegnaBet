@@ -4,7 +4,7 @@ import {
   Plus,
   XCircle,
 } from "lucide-react";
-import type { TaxonomyNodeFront, TaxonomyAttribute } from "../../../types/common/taxonomy";
+import type { TaxonomyNodeFront, TaxonomyAttribute } from "../../../types/customer/taxonomy";
 
 
 interface Props {

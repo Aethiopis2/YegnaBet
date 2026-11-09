@@ -13,6 +13,10 @@ using YegnaBet.API.Modules.Marketplace.Services;
 using YegnaBet.API.Modules.Provider.Services;
 using YegnaBet.API.Modules.Realtime;
 using YegnaBet.API.Modules.Search;
+using YegnaBet.API.Modules.Search.Abstractions;
+using YegnaBet.API.Modules.Search.Numeric;
+using YegnaBet.API.Modules.Search.Parsing;
+using YegnaBet.API.Modules.Search.Vocabulary;
 using YegnaBet.API.Modules.Users.Services;
 using YegnaBet.Domain.Entities;
 using YegnaBet.Infrastructure.Persistence;
@@ -32,6 +36,7 @@ builder.Services.AddScoped<FinanceService>();
 builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<ProviderService>();
 builder.Services.AddScoped<CustAuthService>();
+builder.Services.AddScoped<EmployeeService>();
 builder.Services.AddScoped<IEmployeeTaxonomyService, EmployeeTaxonomyService>();
 
 builder.Services.AddScoped<IJwtService, JwtService>();
@@ -65,11 +70,56 @@ builder.Services.AddSingleton<EmployeeAssignmentState>();
 builder.Services.AddSingleton<EmployeeAssignmentService>();
 builder.Services.AddSingleton<EmployeeAssignmentInitializer>();
 builder.Services.AddHostedService<EmployeeAssignmentCleanupService>();
+builder.Services.AddScoped<IAvatarStorage, AvatarStorage>();
 
-builder.Services.AddSingleton<ISearchTextNormalizer, SearchTextNormalizer>();
-builder.Services.AddSingleton<ISearchNumberWordResolver, SearchNumberWordResolver>();
-builder.Services.AddSingleton<ISearchVocabulary, InMemorySearchVocabulary>();
-builder.Services.AddScoped<ISearchLexicalResolver, SearchLexicalResolver>();
+var searchVocabulary =
+    new SearchVocabulary();
+
+SearchVocabularyInitializer.Initialize(
+    searchVocabulary);
+
+builder.Services.AddSingleton<ISearchVocabulary>(
+    searchVocabulary);
+
+builder.Services.AddSingleton<
+    ISearchTextNormalizer,
+    SearchTextNormalizer>();
+
+builder.Services.AddSingleton<
+    ISearchNumberWordResolver,
+    SearchNumberWordResolver>();
+
+builder.Services.AddSingleton<
+    ISearchTokenizer,
+    SearchTokenizer>();
+
+builder.Services.AddSingleton<
+    ISearchLexicalResolver,
+    SearchLexicalResolver>();
+
+builder.Services.AddSingleton<
+    ISearchNumericExpressionResolver,
+    SearchNumericExpressionResolver>();
+
+builder.Services.AddSingleton<
+    ISearchExpressionParser,
+    SearchExpressionParser>();
+
+builder.Services.AddSingleton<
+    ISearchContextInterpreter,
+    SearchContextInterpreter>();
+
+builder.Services.AddSingleton<
+    ISearchConstraintGrouper,
+    SearchConstraintGrouper>();
+
+builder.Services.AddSingleton<
+    ISearchQueryValidator,
+    SearchQueryValidator>();
+
+builder.Services.AddSingleton<
+    ISearchEngine,
+    SearchEngine>();
 
 
 builder.Services.Configure<JwtOptions>(

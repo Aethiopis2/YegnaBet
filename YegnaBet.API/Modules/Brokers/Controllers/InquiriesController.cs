@@ -1,5 +1,7 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using YegnaBet.API.Modules.Authentication;
 using YegnaBet.API.Modules.Brokers.Dtos;
 using YegnaBet.API.Modules.Brokers.Services;
 
@@ -10,19 +12,23 @@ namespace YegnaBet.API.Modules.Brokers.Controllers
     public class InquiriesController : ControllerBase
     {
         private readonly BrokerService _service;
+        private readonly ICurrentUser _currentUser;
 
-        public InquiriesController(BrokerService service)
+        public InquiriesController(BrokerService service, ICurrentUser currentUser)
         {
             _service = service;
+            _currentUser = currentUser;
         }
 
+        [Authorize(Roles = "Customer")]
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] CreateInquiryDto request, 
-            CancellationToken cancellationToken)
+            CancellationToken cancellationToken = default)
         {
             try
             {
-                var inquiry = await _service.CreateAsync(request, cancellationToken); 
+                long userId = _currentUser.Id;
+                var inquiry = await _service.CreateAsync(request, userId, cancellationToken); 
                 if (inquiry == null)
                 {
                     return NotFound(new { message = "Listing not found or unavailable." });
