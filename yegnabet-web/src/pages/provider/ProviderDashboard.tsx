@@ -21,7 +21,7 @@ import { useEffect, useState } from "react";
 import { API, ASSET_URL } from "../../types/api";
 import { ListingForm } from "../../components/provider/ListingForm";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../../types/auth/authContext";
+import { useAuth } from "../../types/auth/authStore";
 
 // import { providerData } from "./providerData";
 

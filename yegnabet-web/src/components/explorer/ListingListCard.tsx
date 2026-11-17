@@ -2,6 +2,8 @@ import {
   Heart,
   MapPin,
   MessageCircle,
+  Pencil,
+  Trash2,
 } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -16,6 +18,9 @@ import { updateSavedListing } from "../../lib/customer/customerApi";
 import { resolveIcon } from "../../lib/IconResolver";
 import type { AuthUser } from "../../types/auth/authTypes";
 import ErrorBlock from "../ui/common/ErrorBlock";
+import { useAuth } from "../../types/auth/authStore";
+import { OkCancelDialog } from "../ui/common/OkCancelDialog";
+import { removeManagedListing } from "../../lib/customer/customerApi";
 
 interface ListingListCardProps {
   listing: Listing;
@@ -27,9 +32,30 @@ export function ListingListCard({
   user,
 }: ListingListCardProps) {
   const navigate = useNavigate();
+  const { accessToken } = useAuth();
+  const canManage = user?.role === "Employee" || user?.role === "Owner";
+  const isOwner = user?.role === "Owner";
 
   const [saved, setSaved] = useState(listing.saved ?? false);
   const [error, setError] = useState("");
+  const [confirmRemove, setConfirmRemove] = useState(false);
+  const [removing, setRemoving] = useState(false);
+  const [removed, setRemoved] = useState(false);
+
+  const removeListing = async () => {
+    if (!isOwner || !accessToken) return;
+    setRemoving(true);
+    try {
+      await removeManagedListing(listing.id, accessToken);
+      setRemoved(true);
+      setConfirmRemove(false);
+    } catch (removeError) {
+      console.error("Failed to remove listing", removeError);
+      setError("Could not remove this listing.");
+    } finally {
+      setRemoving(false);
+    }
+  };
 
   const saveListing = async () => {
     if (!user) {
@@ -62,10 +88,13 @@ export function ListingListCard({
     });
   };
 
+  if (removed) return null;
+
 
   if (error) return <ErrorBlock message={error} />
 
   return (
+    <>
     <article
       className="
         group
@@ -149,7 +178,25 @@ export function ListingListCard({
               </div>
             </div>
 
-            <button
+            {canManage ? (
+              <div className="flex shrink-0 flex-col items-end gap-1.5">
+                {listing.listingStatus && <span className="text-[9px] font-bold uppercase text-gray-400">{listing.listingStatus}</span>}
+                <button
+                  type="button"
+                  onClick={() => navigate(`/listing/${listing.id}?edit=true`, { state: { listing, user } })}
+                  className="inline-flex items-center gap-1 rounded-lg bg-yegna-50 px-2.5 py-2 text-[10px] font-semibold text-yegna-800 dark:bg-yegna-900/20 dark:text-yegna-300"
+                >
+                  <Pencil className="size-3" /> Edit
+                </button>
+                {isOwner && <button
+                  type="button"
+                  onClick={() => setConfirmRemove(true)}
+                  className="inline-flex items-center gap-1 rounded-lg bg-red-50 px-2.5 py-2 text-[10px] font-semibold text-red-700 dark:bg-red-900/20 dark:text-red-300"
+                >
+                  <Trash2 className="size-3" /> Remove
+                </button>}
+              </div>
+            ) : <button
               type="button"
               onClick={saveListing}
               className="
@@ -170,7 +217,7 @@ export function ListingListCard({
                     "fill-red-500 stroke-red-500"
                 )}
               />
-            </button>
+            </button>}
           </div>
 
           <p className="mt-2 text-sm font-bold text-yegna-700 dark:text-yegna-300 sm:text-base">
@@ -256,5 +303,16 @@ export function ListingListCard({
         </div>
       </div>
     </article>
+    <OkCancelDialog
+      open={confirmRemove}
+      title="Remove this listing?"
+      message={`“${listing.title}” will be removed from the marketplace.`}
+      okText="Remove listing"
+      variant="danger"
+      busy={removing}
+      onOk={() => void removeListing()}
+      onCancel={() => !removing && setConfirmRemove(false)}
+    />
+    </>
   );
 }

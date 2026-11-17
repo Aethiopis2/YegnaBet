@@ -180,35 +180,64 @@ namespace YegnaBet.API.Modules.Brokers.Services
             
             if (inquiry == null)
                 return null;
+
+            if (dto.DealValue <= 0 || dto.CommissionRate < 0 || dto.CommissionRate > 100)
+                throw new ArgumentOutOfRangeException(nameof(dto), "Deal value must be positive and commission rate must be between 0 and 100.");
+
+            var deal = await _db.Deals.FirstOrDefaultAsync(x => x.InquiryId == inquiry.Id);
+            var wasSuccessful = deal?.DealStatus == DealStatus.Successful;
+            if (wasSuccessful)
+                return deal!.Id;
             
             inquiry.InquiryStatus = InquiryStatus.Completed;
             
-            var commission = dto.DealValue * dto.CommissionRate / 100m;
-            var deal = new Deal {
-                InquiryId = inquiry.Id,
-                ListingId = inquiry.ListingId,
-                EmployeeId = inquiry.EmployeeId,
-                DealValue = dto.DealValue,
-                CommissionRate = dto.CommissionRate,
-                CommissionAmount = commission,
-                DealStatus = DealStatus.Successful,
-                CompletedAt = DateTime.UtcNow
-            }; _db.Deals.Add(deal);
+            var commission = Math.Round(dto.DealValue * dto.CommissionRate / 100m,
+                2, MidpointRounding.AwayFromZero);
+            if (deal is null)
+            {
+                deal = new Deal
+                {
+                    InquiryId = inquiry.Id,
+                    ListingId = inquiry.ListingId,
+                    EmployeeId = inquiry.EmployeeId
+                };
+                _db.Deals.Add(deal);
+            }
+            deal.DealValue = dto.DealValue;
+            deal.CommissionRate = dto.CommissionRate;
+            deal.CommissionAmount = commission;
+            deal.DealStatus = DealStatus.Successful;
+            deal.CompletedAt = DateTime.UtcNow;
+
+            var commissionTransaction = deal.Id > 0
+                ? await _db.FinancialTransactions.FirstOrDefaultAsync(x => x.DealId == deal.Id)
+                : null;
+            if (commissionTransaction is null)
+            {
+                _db.FinancialTransactions.Add(new FinancialTransaction
+                {
+                    Deal = deal,
+                    TransactionType = "commission_earned",
+                    Amount = commission,
+                    Currency = "ETB"
+                });
+            }
+            else
+            {
+                commissionTransaction.TransactionType = "commission_earned";
+                commissionTransaction.Amount = commission;
+            }
             
-            inquiry.Listing.SuccessfulDeals += 1;
-            inquiry.Listing.TrustScore = Math.Min(100, inquiry.Listing.TrustScore + 1);
+            if (!wasSuccessful)
+            {
+                inquiry.Listing.SuccessfulDeals += 1;
+                inquiry.Listing.TrustScore = Math.Min(100, inquiry.Listing.TrustScore + 1);
+            }
             
             await _db.SaveChangesAsync();
             
             await _hub.Clients.All.SendAsync("DealCompleted", 
                 new { deal.Id, deal.CommissionAmount });
-
-            _db.FinancialTransactions.Add(new FinancialTransaction
-            {
-                Deal = deal,
-                TransactionType = "Comission Earned",
-                Amount = commission
-            });
 
             await _audit.LogAsync(
                 "Deal", 

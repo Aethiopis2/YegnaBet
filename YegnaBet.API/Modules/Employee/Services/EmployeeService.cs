@@ -1,4 +1,8 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Options;
+using System.Text.RegularExpressions;
+using YegnaBet.API.Modules.Configuration;
 using YegnaBet.API.Modules.Employee.Dtos;
 using YegnaBet.API.Modules.Provider.Dtos;
 using YegnaBet.Domain.Entities;
@@ -11,11 +15,17 @@ public class EmployeeService
 {
     private readonly BrokerDbContext _db;
     private readonly IWebHostEnvironment _environment;
+    private readonly BusinessSettings _businessSettings;
+    private readonly IPasswordHasher<User> _passwordHasher;
 
-    public EmployeeService(BrokerDbContext db, IWebHostEnvironment environment)
+    public EmployeeService(BrokerDbContext db, IWebHostEnvironment environment,
+        IOptions<BusinessSettings> businessSettings,
+        IPasswordHasher<User> passwordHasher)
     {
         _db = db;
         _environment = environment;
+        _businessSettings = businessSettings.Value;
+        _passwordHasher = passwordHasher;
     } // end EmployeeService
 
 
@@ -184,14 +194,23 @@ public class EmployeeService
 
     public async Task<long> CreateListing(long providerId, ListingDraftDto draft)
     {
+        var listingProviderId = await ResolveListingProvider(providerId, draft.Provider);
         // make sure location does not exist, and store as lower case
         string city = draft.City.ToLower();
         string area = draft.Area.ToLower();
         string? subArea = draft.SubArea?.ToLower();
 
-        var location = _db.Locations
+        var normalizedCity = Normalize(city);
+        var normalizedArea = Normalize(area);
+        var normalizedSubArea = Normalize(subArea);
+
+        var location = await _db.Locations
             .AsNoTracking()
-            .FirstOrDefault(x => x.City == city && x.Area == area && x.SubArea == subArea);
+            .FirstOrDefaultAsync(x =>
+                Regex.Replace(x.City.ToLower(), @"\s+", " ").Trim() == normalizedCity &&
+                Regex.Replace(x.Area.ToLower(), @"\s+", " ").Trim() == normalizedArea &&
+                (subArea == null ||
+                 Regex.Replace(x.SubArea!.ToLower(), @"\s+", " ").Trim() == normalizedSubArea));
 
         if (location == null)
         {
@@ -251,15 +270,24 @@ public class EmployeeService
             },
 
             ListingStatus = ListingStatus.Draft,
-            ProviderId = providerId,
+            ProviderId = listingProviderId,
 
             Images = uploadedPhotos
                 .Select(x => new ListingImage
                 {
-                    ImageUrl = $"/uploads/listings/{x.FileName}",
+                    ImageUrl = $"/uploads/images/{x.FileName}",
                     IsPrimary = x.IsPrimary,
                     Kind = ImageKind.Photo
                 })
+                .Concat(draft.Videos.Select(video => video.Url)
+                    .Concat(draft.VideoUrls)
+                    .Where(url => !string.IsNullOrWhiteSpace(url))
+                    .Select(url => new ListingImage
+                    {
+                        ImageUrl = url.Trim(),
+                        IsPrimary = false,
+                        Kind = ImageKind.Video
+                    }))
                 .ToList(),
 
             AttributeValues = draft.Attributes
@@ -310,10 +338,12 @@ public class EmployeeService
                 {
                     Id = r.ListingId,
                     Title = r.Listing.Title,
-                    Category = r.Listing.TaxonomyNodes.First().TaxonomyNode.Name,
+                    Category = r.Listing.TaxonomyNodes
+                        .Select(node => node.TaxonomyNode.Name)
+                        .FirstOrDefault() ?? string.Empty,
                     Location = r.Listing.Location.City + ", " + r.Listing.Location.Area,
                     Price = r.Listing.Price,
-                    ImageUrl = r.Listing.Images.First().ImageUrl,
+                    ImageUrl = r.Listing.Images.Select(image => image.ImageUrl).FirstOrDefault(),
                 },
                 Status = r.InquiryStatus
             })
@@ -323,19 +353,118 @@ public class EmployeeService
     } // end GetEmployeeRequest
 
 
-    public async Task<EmployeeRequestDto> UpdateInquiryState(long inquiryId, InquiryStatus status)
+    public async Task<EmployeeRequestDto> UpdateInquiryState(long employeeId, long inquiryId, InquiryStatus status,
+        decimal? dealValue)
     {
         var inquiry = await _db.Inquiries
-            .AsNoTracking()
-            .FirstOrDefaultAsync(x => x.Id == inquiryId);
+            .Include(x => x.Listing)
+            .FirstOrDefaultAsync(x => x.Id == inquiryId && x.EmployeeId == employeeId);
 
         if (inquiry == null)
             throw new BadHttpRequestException("Inquiry not found");
 
+        var deal = await _db.Deals.FirstOrDefaultAsync(x => x.InquiryId == inquiry.Id);
+        var wasSuccessful = deal?.DealStatus == DealStatus.Successful;
+        if (wasSuccessful && status != InquiryStatus.Completed)
+            throw new InvalidOperationException("A completed deal cannot be moved back to an in-progress inquiry state.");
+
+        if (status == InquiryStatus.Negotiating)
+        {
+            if (deal is null)
+            {
+                var initialValue = dealValue.GetValueOrDefault() > 0
+                    ? dealValue.GetValueOrDefault()
+                    : inquiry.Listing.Price.GetValueOrDefault();
+                var rate = _businessSettings.CommissionPercentage;
+                if (rate < 0 || rate > 100)
+                    throw new InvalidOperationException("Invalid business commission configuration.");
+
+                deal = new Deal
+                {
+                    InquiryId = inquiry.Id,
+                    ListingId = inquiry.ListingId,
+                    EmployeeId = inquiry.EmployeeId,
+                    DealValue = initialValue,
+                    CommissionRate = rate,
+                    CommissionAmount = Math.Round(initialValue * rate / 100m, 2, MidpointRounding.AwayFromZero),
+                    DealStatus = DealStatus.Pending
+                };
+                _db.Deals.Add(deal);
+            }
+            else if (deal.DealStatus != DealStatus.Successful)
+            {
+                deal.DealStatus = DealStatus.Pending;
+                if (dealValue.GetValueOrDefault() > 0) deal.DealValue = dealValue.GetValueOrDefault();
+                deal.CommissionAmount = Math.Round(deal.DealValue * deal.CommissionRate / 100m,
+                    2, MidpointRounding.AwayFromZero);
+            }
+        }
+        else if (status == InquiryStatus.Completed && inquiry.InquiryStatus != InquiryStatus.Completed)
+        {
+            var negotiatedPrice = dealValue.GetValueOrDefault() > 0
+                ? dealValue.GetValueOrDefault()
+                : deal is not null && deal.DealValue > 0
+                    ? deal.DealValue
+                    : inquiry.Listing.Price.GetValueOrDefault();
+            if (negotiatedPrice <= 0)
+                throw new BadHttpRequestException("Enter a negotiated price greater than zero before completing the deal.");
+
+            var commissionRate = deal?.CommissionRate ?? _businessSettings.CommissionPercentage;
+            if (commissionRate < 0 || commissionRate > 100)
+                throw new InvalidOperationException("Invalid business commission configuration.");
+
+            if (deal is null)
+            {
+                deal = new Deal
+                {
+                    InquiryId = inquiry.Id,
+                    ListingId = inquiry.ListingId,
+                    EmployeeId = inquiry.EmployeeId
+                };
+                _db.Deals.Add(deal);
+            }
+
+            deal.DealValue = negotiatedPrice;
+            deal.CommissionRate = commissionRate;
+            deal.CommissionAmount = Math.Round(negotiatedPrice * commissionRate / 100m,
+                2, MidpointRounding.AwayFromZero);
+            deal.DealStatus = DealStatus.Successful;
+            deal.CompletedAt = DateTime.UtcNow;
+
+            if (!wasSuccessful)
+            {
+                inquiry.Listing.SuccessfulDeals += 1;
+                inquiry.Listing.TrustScore = Math.Min(100m, inquiry.Listing.TrustScore + 1m);
+            }
+
+            var transaction = deal.Id > 0
+                ? await _db.FinancialTransactions.FirstOrDefaultAsync(x => x.DealId == deal.Id)
+                : null;
+            if (transaction is null)
+            {
+                _db.FinancialTransactions.Add(new FinancialTransaction
+                {
+                    Deal = deal,
+                    TransactionType = "commission_earned",
+                    Amount = deal.CommissionAmount,
+                    Currency = "ETB"
+                });
+            }
+            else
+            {
+                transaction.TransactionType = "commission_earned";
+                transaction.Amount = deal.CommissionAmount;
+            }
+        }
+        else if (status == InquiryStatus.Cancelled && deal?.DealStatus == DealStatus.Pending)
+        {
+            deal.DealStatus = DealStatus.Failed;
+        }
+
         inquiry.InquiryStatus = status;
-        _db.Inquiries.Update(inquiry);
 
         await _db.SaveChangesAsync();
+;
         return await _db.Inquiries
             .AsNoTracking()
             .Where(x => x.Id == inquiryId)
@@ -408,6 +537,27 @@ public class EmployeeService
     } // end EmployeeTaxonomyShort
 
 
+    public async Task<object> GetNodeAttributes(long nodeId)
+    {
+        var attrbs = await _db.TaxonomyNode
+            .AsNoTracking()
+            .Where(n => n.Id == nodeId)
+            .SelectMany(n => n.Attributes)
+            .Select(a => new ProviderTaxonomyNodeAttributeDto
+            {
+                Id = a.AttributeDefinition.Id,
+                Key = a.AttributeDefinition.Name.ToLower(),
+                Label = a.AttributeDefinition.Name,
+                Type = a.AttributeDefinition.DataType.ToString()
+            })
+            .ToListAsync();
+
+        return attrbs;
+    } // end GetNodeAttributes
+
+
+
+
     private async Task<List<(string FileName, bool IsPrimary)>> UploadPhotos(
             ListingDraftDto dto)
     {
@@ -450,5 +600,53 @@ public class EmployeeService
 
         return uploadedPhotos;
     } // end UploadPhotos
+
+
+    private async Task<long> ResolveListingProvider(long employeeId, ListingProviderDraftDto? providerDraft)
+    {
+        if (providerDraft is null) return employeeId;
+        if (providerDraft.ProviderId.HasValue)
+        {
+            var existing = await _db.Users.FirstOrDefaultAsync(user =>
+                user.Id == providerDraft.ProviderId.Value && user.Role == UserRole.Provider && user.IsActive);
+            if (existing is null) throw new ArgumentException("The selected provider account was not found or is inactive.");
+            return existing.Id;
+        }
+
+        var fullName = providerDraft.FullName?.Trim();
+        var phone = providerDraft.PhoneNumber?.Trim();
+        var email = providerDraft.Email?.Trim().ToLowerInvariant();
+        var password = providerDraft.Password;
+        if (string.IsNullOrWhiteSpace(fullName) || string.IsNullOrWhiteSpace(phone) ||
+            string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(password))
+            throw new ArgumentException("Provider name, phone, email, and password are required.");
+        if (password.Length < 6) throw new ArgumentException("Provider password must be at least 6 characters.");
+        if (await _db.Users.AnyAsync(user => user.PhoneNumber == phone ||
+            (user.Email != null && user.Email.ToLower() == email)))
+            throw new ArgumentException("A user with that phone number or email already exists. Select the existing provider instead.");
+
+        var provider = new User
+        {
+            Role = UserRole.Provider,
+            FullName = fullName,
+            PhoneNumber = phone,
+            Email = email,
+            IsActive = true,
+            IsVerified = false,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+        provider.PasswordHash = _passwordHasher.HashPassword(provider, password);
+        _db.Users.Add(provider);
+        await _db.SaveChangesAsync();
+        return provider.Id;
+    }
+    private static string Normalize(string? value)
+    {
+        return string.Join(" ",
+            (value ?? string.Empty)
+                .Split(' ', StringSplitOptions.RemoveEmptyEntries))
+            .ToLowerInvariant();
+    }
 
 }

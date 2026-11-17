@@ -13,6 +13,7 @@ function CategoryPageComponent() {
 
   return (
     <Explorer
+      key={category ?? "all"}
       config={{
         title,
         subtitle:
@@ -28,9 +29,9 @@ function CategoryPageComponent() {
         showPopularLocations: true,
         showModeTabs:
           category !== "services",
-        showFilters: false,
+        showFilters: true,
         initialView: "grid",
-        currentUser: user ?? location.state?.currentUser,
+        user: user ?? location.state?.user,
       }}
     />
   );

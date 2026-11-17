@@ -22,7 +22,6 @@ namespace YegnaBet.API.Modules.Marketplace.Controllers
         } // end get /category
 
 
-        [AllowAnonymous]
         [HttpGet("attributes/{nodeId:long}")]
         public async Task<IActionResult> GetTaxonomyNodeAttributes(long nodeId,
             CancellationToken cancellationToken)

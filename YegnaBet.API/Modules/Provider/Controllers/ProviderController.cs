@@ -39,15 +39,6 @@ namespace YegnaBet.API.Modules.Provider.Controllers
             );
         }
 
-        [Authorize(Roles = "Provider")]
-        [HttpGet("get-taxonomyNodeAtrributes")]
-        public async Task<IActionResult> GetTaxonomyNodeAttributes(
-            [FromQuery] long nodeId)
-        {
-            return Ok(
-                await _service.GetNodeAttributes(nodeId)
-            );
-        }
 
         // ---------------------------------------------------------
         // Create listing

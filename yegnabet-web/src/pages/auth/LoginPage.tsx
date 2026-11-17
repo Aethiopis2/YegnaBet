@@ -1,14 +1,12 @@
-import {
-  FormEvent,
-  useState,
-} from "react";
+import { useState } from "react";
+import type { FormEvent } from "react";
 
 import {
   useLocation,
   useNavigate,
 } from "react-router-dom";
 
-import { useAuth } from "../../types/auth/authContext";
+import { useAuth } from "../../types/auth/authStore";
 
 export default function LoginPage() {
   const navigate = useNavigate();
@@ -180,6 +178,9 @@ export default function LoginPage() {
                 : "Sign in"}
             </button>
           </form>
+          <div className="mt-4 text-center">
+            <a href="/forgot-password" className="text-sm text-yegna-700">Forgot password?</a>
+          </div>
         </div>
       </div>
     </div>

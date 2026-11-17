@@ -18,6 +18,7 @@ import { ListingLocationStep } from "../listing/steps/ListingLocationSteps";
 import { ListingMediaStep } from "../listing/steps/ListingMediaStep";
 import { ListingDetailsStep } from "../listing/steps/ListingDetailsStep";
 import { ListingReviewStep } from "../listing/steps/ListingReviewStep";
+import { ListingProviderStep } from "../listing/steps/ListingProviderStep";
 import Loading from "../../ui/common/Loading";
 import { getTaxonomyNodesShort } from "../../../lib/employee/employeServices";
 
@@ -36,6 +37,7 @@ export function ListingWizard({
 
 
   const [stepIndex, setStepIndex] = useState(0);
+  const [providerError, setProviderError] = useState("");
 
   const [draft, setDraft] = useState<ListingDraft>(() => ({
     ...createEmptyListingDraft(Number(employeeId)), ...initialData,}));
@@ -51,6 +53,17 @@ export function ListingWizard({
   };
 
   const next = () => {
+    if (step.id === "provider") {
+      const provider = draft.provider;
+      const valid = provider.providerId
+        ? true
+        : Boolean(provider.fullName.trim() && provider.phoneNumber.trim() && provider.email.trim() && provider.password.length >= 6);
+      if (!valid) {
+        setProviderError("Select an existing provider or complete all provider fields. Password must be at least 6 characters.");
+        return;
+      }
+      setProviderError("");
+    }
     if (!isLast) {
     setStepIndex((current) => current + 1);
     }
@@ -127,6 +140,7 @@ export function ListingWizard({
                 attributes,
               })
             }
+            token={String(token)}
           />
         )}
 
@@ -192,11 +206,21 @@ export function ListingWizard({
           />
         )}
 
+        {step.id === "provider" && (
+          <ListingProviderStep
+            value={draft.provider}
+            token={token}
+            validationError={providerError}
+            onChange={(provider) => { updateDraft({ provider }); setProviderError(""); }}
+          />
+        )}
+
         {step.id === "review" && (
           <ListingReviewStep
             listing={draft}
             taxonomy={taxonomy}
             locations={locations}
+            provider={draft.provider}
           />
         )}
       </div>

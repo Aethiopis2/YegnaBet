@@ -1,47 +1,62 @@
-import {
-  createContext,
-  useContext,
-  useState,
-  type ReactNode,
-} from "react";
+import { useEffect, useState } from "react";
 
 import type {
   AuthUser,
   LoginRequest,
-  LoginResponse,
 } from "./authTypes";
-
-interface AuthContextValue {
-  user: AuthUser | null;
-  accessToken: string | null;
-
-  isAuthenticated: boolean;
-  isLoading: boolean;
-
-  login: (request: LoginRequest) => Promise<AuthUser>;
-  logout: () => void;
-}
-
-const AuthContext =
-  createContext<AuthContextValue | undefined>(undefined);
+import { AuthContext, type ReactNode } from "./authStore";
+import type { LoginResponse } from "./authTypes";
+import { API } from "../api";
 
 interface AuthProviderProps {
   children: ReactNode;
 }
-
 const API_URL = "http://localhost:5150";
+const CUSTOMER_SESSION_KEY = "yegnabet.customer-session";
+const STAFF_SESSION_KEY = "yegnabet.staff-session";
+
+function clearStoredCustomerSession() {
+  try {
+    sessionStorage.removeItem(CUSTOMER_SESSION_KEY);
+    sessionStorage.removeItem(STAFF_SESSION_KEY);
+  } catch {
+    // In-memory sign-out still works when browser storage is unavailable.
+  }
+}
+
+interface StoredCustomerSession {
+  accessToken: string;
+  user: AuthUser;
+}
+
+function readCustomerSession(): StoredCustomerSession | null {
+  try {
+    const value = sessionStorage.getItem(CUSTOMER_SESSION_KEY) ??
+      sessionStorage.getItem(STAFF_SESSION_KEY);
+    if (!value) return null;
+    const session = JSON.parse(value) as StoredCustomerSession;
+    return session.accessToken && session.user?.role ? session : null;
+  } catch {
+    clearStoredCustomerSession();
+    return null;
+  }
+}
 
 export function AuthProvider({
   children,
 }: AuthProviderProps) {
-  const [user, setUser] =
-    useState<AuthUser | null>(null);
-
-  const [accessToken, setAccessToken] =
-    useState<string | null>(null);
+  const [initialSession] = useState(readCustomerSession);
+  const [user, setUser] = useState<AuthUser | null>(initialSession?.user ?? null);
+  const [accessToken, setAccessToken] = useState<string | null>(initialSession?.accessToken ?? null);
 
   const [isLoading, setIsLoading] =
     useState(false);
+
+  useEffect(() => {
+    if (initialSession?.accessToken) {
+      API.defaults.headers.common.Authorization = `Bearer ${initialSession.accessToken}`;
+    }
+  }, [initialSession]);
 
   const login = async (
     request: LoginRequest
@@ -80,8 +95,30 @@ export function AuthProvider({
       const data: LoginResponse =
         await response.json();
 
+      API.defaults.headers.common.Authorization = `Bearer ${data.accessToken}`;
       setAccessToken(data.accessToken);
       setUser(data.user);
+      if (data.user.role === "Customer") {
+        try {
+          sessionStorage.removeItem(STAFF_SESSION_KEY);
+          sessionStorage.setItem(CUSTOMER_SESSION_KEY, JSON.stringify({
+            accessToken: data.accessToken,
+            user: data.user,
+          } satisfies StoredCustomerSession));
+        } catch {
+          // Keep the current tab authenticated even if storage is unavailable.
+        }
+      } else {
+        try {
+          sessionStorage.removeItem(CUSTOMER_SESSION_KEY);
+          sessionStorage.setItem(STAFF_SESSION_KEY, JSON.stringify({
+            accessToken: data.accessToken,
+            user: data.user,
+          } satisfies StoredCustomerSession));
+        } catch {
+          // Keep the current tab authenticated if storage is unavailable.
+        }
+      }
 
       return data.user;
     } finally {
@@ -89,9 +126,24 @@ export function AuthProvider({
     }
   };
 
-  const logout = () => {
+  const logout = async () => {
+    const tokenToRevoke = accessToken;
+
+    // Clear the customer session immediately; server cleanup is best-effort.
+    delete API.defaults.headers.common.Authorization;
+    clearStoredCustomerSession();
     setAccessToken(null);
     setUser(null);
+
+    if (tokenToRevoke) {
+      void fetch(`${API_URL}/api/auth/logout`, {
+          method: "POST",
+          headers: { Authorization: `Bearer ${tokenToRevoke}` },
+          credentials: "include",
+        }).catch(() => {
+          // Local sign-out must not depend on the API being available.
+        });
+    }
   };
 
   return (
@@ -113,16 +165,4 @@ export function AuthProvider({
       {children}
     </AuthContext.Provider>
   );
-}
-
-export function useAuth(): AuthContextValue {
-  const context = useContext(AuthContext);
-
-  if (!context) {
-    throw new Error(
-      "useAuth must be used inside AuthProvider."
-    );
-  }
-
-  return context;
 }

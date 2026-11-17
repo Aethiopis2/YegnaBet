@@ -76,10 +76,28 @@ namespace YegnaBet.API.Modules.Marketplace.Services
         public async Task<List<EmployeeTaxonomyAttributeDto>> GetTaxonomyNodeAttributes(long nodeId,
             CancellationToken cancellationToken = default)
         {
+            var nodes = await _db.TaxonomyNode
+                .AsNoTracking()
+                .Where(x => x.IsActive && x.Taxonomy.IsActive)
+                .Select(x => new { x.Id, x.ParentId })
+                .ToListAsync(cancellationToken);
+
+            var nodeIds = new HashSet<long> { nodeId };
+            var pending = new Stack<long>();
+            pending.Push(nodeId);
+            while (pending.Count > 0)
+            {
+                var current = pending.Pop();
+                foreach (var child in nodes.Where(x => x.ParentId == current))
+                {
+                    if (nodeIds.Add(child.Id)) pending.Push(child.Id);
+                }
+            }
+
             var attrs = await _db.AttributeDefinition
                 .AsNoTracking()
-                .Where(x => x.Nodes.ToList()
-                    .Any(y => y.TaxonomyNodeId == nodeId))
+                .Where(x => x.IsActive && x.IsFilterable &&
+                    x.Nodes.Any(y => nodeIds.Contains(y.TaxonomyNodeId)))
                 .ToListAsync(cancellationToken);
 
             return [.. attrs

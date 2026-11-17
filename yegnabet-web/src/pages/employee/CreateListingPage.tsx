@@ -1,10 +1,13 @@
-import { AppShell, useAppContext } from "../../components/layout/AppShell";
+
 import { PageContainer } from "../../components/layout/PageContainer";
 import { ListingWizard } from "../../components/provider/listing/ListingWizard";
 import type { ListingDraft } from "../../types/provider/providerTypes";
-import { API } from "../../types/api";
 import { useLocation, useNavigate } from "react-router-dom";
-import { createListingDraftFormData } from "../../lib/provider/providerManagement";
+import { EmployeeShell, useAppContext } from "../../components/employee/EmployeeShell";
+import { createEmployeeListing } from "../../lib/employee/employeServices";
+import { useState } from "react";
+import Loading from "../../components/ui/common/Loading";
+import ErrorBlock from "../../components/ui/common/ErrorBlock";
 
 
 function CreateListingPageComponent() {
@@ -12,18 +15,28 @@ function CreateListingPageComponent() {
   const navigate = useNavigate();
   const location = useLocation();
 
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>("");
+
   const handleSubmit = async (draft: ListingDraft) => {
-    API.post(`/provider`, createListingDraftFormData(draft), {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    })
-      .then(res => {
-        console.log(res)
-        navigate('/employee');
-      })
-      .catch(err => console.log("API upload failed", err.message));
+    try {
+      setLoading(true);
+      setError("");
+      await createEmployeeListing(token || location.state?.token, draft);
+      navigate('/employee', {
+        state: {
+          token: token || location.state?.token,
+        }});
+    } catch (err) {
+      console.error("Failed to create listing", err);
+      setError("Failed to create listing: " + String(err));
+    } finally {
+      setLoading(false);
+    }
   }
+
+  if (loading) return <PageContainer><Loading /></PageContainer>;
+  if (error) return <PageContainer><ErrorBlock message={error} /></PageContainer>;
 
   return (
     <PageContainer>
@@ -42,8 +55,8 @@ function CreateListingPageComponent() {
 
 export default function CreateListingPage() {
   return (
-    <AppShell>
+    <EmployeeShell>
       <CreateListingPageComponent />
-    </AppShell>
+    </EmployeeShell>
   );
 }

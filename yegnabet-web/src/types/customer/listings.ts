@@ -5,6 +5,34 @@ export interface ListingPage {
   hasMore: boolean;
 }
 
+export type ListingLifecycleStatus = "Draft" | "Active" | "Pending" | "Closed" | "Cancelled";
+
+/** Query parameters accepted by GET /api/listings (backend ListingQueryDto). */
+export interface ListingQueryDto {
+  page?: number;
+  pageSize?: number;
+  id?: number;
+  userId?: number;
+  method?: Exclude<ListingMode, "All">;
+  taxonomyNodeId?: number;
+  category?: string;
+  search?: string;
+  locationIds?: number[];
+  location?: string;
+  verified?: boolean;
+  featured?: boolean;
+  trending?: boolean;
+  saved?: boolean;
+  minPrice?: number;
+  maxPrice?: number;
+  sort?: string;
+  attributes?: Record<string, string>;
+  status?: ListingLifecycleStatus;
+  allStatuses?: boolean;
+  myListingsOnly?: boolean;
+  providerId?: number;
+}
+
 
 export type ListingType =  "land" | "house" | "apartment" | "commercial" | "service";
 export type ListingStatus = | "sale" | "rent" | "contract" | "available";
@@ -63,6 +91,12 @@ export interface ListingEmployee {
   listingsCount?: number;
 }
 
+export interface ListingMedia {
+  url: string;
+  kind: "photo" | "video" | "other" | string;
+  isPrimary?: boolean;
+}
+
 export interface Listing {
     id: number;
     type: ListingType;
@@ -71,8 +105,13 @@ export interface Listing {
     price: number;
     currency?: string;
     status: number;
+    listingStatus?: ListingLifecycleStatus;
+    method?: Exclude<ListingMode, "All">;
+    category: string;
+    views: number;
     location: ListingLocation;
     images: string[];
+    media?: ListingMedia[];
     featured?: boolean;
     verified?: boolean;
     trending?: boolean;
@@ -94,6 +133,16 @@ export interface AddUpdateSavedListing {
   userId: number;
   listingId: number;
   saved: boolean;
+}
+
+export interface UpdateManagedListingRequest {
+  title: string;
+  description?: string;
+  price?: number;
+  city: string;
+  area: string;
+  method: Exclude<ListingMode, "All">;
+  listingStatus: ListingLifecycleStatus;
 }
 
 export interface ListingViewCountRequest {

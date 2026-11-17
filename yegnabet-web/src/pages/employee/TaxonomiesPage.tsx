@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { EmployeeShell } from "../../components/employee/EmployeeShell";
 import { TaxonomySidebar } from "../../components/employee/taxonomy/TaxonomySidebar";
 import { flattenTree, TaxonomyTree } from "../../components/employee/taxonomy/TaxonomyTree";
@@ -7,7 +7,7 @@ import { TaxonomyAttributes } from "../../components/employee/taxonomy/TaxonomyA
 import { TaxonomyAttributeDetails } from "../../components/employee/taxonomy/TaxonomyAttributeDetails";
 import type { TaxonomyAttribute, TaxonomyAttributeType, TaxonomyNodeFront } from "../../types/customer/taxonomy";
 import { mapTaxonomyTree } from "../../types/employee/taxonomyMapper";
-import { createTaxonomyAttribute, createTaxonomyNode, getTaxonomyAttributes, getTaxonomyTree, moveTaxonomyNode } from "../../lib/employee/taxonomyApi";
+import { createTaxonomyAttribute, createTaxonomyNode, deleteTaxonomyNode, getTaxonomyAttributes, getTaxonomyTree, moveTaxonomyNode } from "../../lib/employee/taxonomyApi";
 import { ConfirmDialog } from "../../components/common/ConfrimationDialog";
 
 interface PendingMove {
@@ -76,6 +76,14 @@ const taxonomyIds: Record<string, number> = {
   "service-categories": 5,
 };
 
+const taxonomyNames: Record<string, string> = {
+  "listing-types": "Listing Types",
+  "professional-specializations": "Professional Specializations",
+  "business-types": "Business Types",
+  "property-features": "Property Features",
+  "service-categories": "Service Categories",
+};
+
 export function TaxonomiesPage() {
   const [taxonomy, setTaxonomy] = useState("listing-types");
   const [tree, setTree] =useState<TaxonomyNodeFront[]>([]);
@@ -90,12 +98,33 @@ export function TaxonomiesPage() {
 
   const [attributes, setAttributes] = useState<TaxonomyAttribute[]>([]);
   const [attributesLoading, setAttributesLoading] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<TaxonomyNodeFront | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
+  const loadTree = useCallback(async () => {
+    const taxonomyId = taxonomyIds[taxonomy];
+    if (!taxonomyId) {
+      setTree([]);
+      setError("Unknown taxonomy.");
+      return;
+    }
+    try {
+      setLoading(true);
+      setError(null);
+      const result = await getTaxonomyTree(taxonomyId);
+      setTree(mapTaxonomyTree(result));
+    } catch (error) {
+      console.error(error);
+      setTree([]);
+      setError(error instanceof Error ? error.message : "Failed to load taxonomy.");
+    } finally {
+      setLoading(false);
+    }
+  }, [taxonomy]);
 
-  const allNodes = useMemo(
-    () => flattenTree(tree),
-    [tree]
-  );
+  const allNodes = flattenTree(tree);
+  const selectedNode = selectedId ? findNode(tree, selectedId) : null;
+  const selectedAttribute = selectedNode?.attributes.find(attribute => attribute.id === selectedAttributeId) ?? null;
   
   const handleAddAttribute = async () => {
     if (!selectedNode) return;
@@ -136,11 +165,7 @@ export function TaxonomiesPage() {
   };
 
   useEffect(() => {
-    if (!selectedNode) {
-      setAttributes([]);
-      setSelectedAttributeId(null);
-      return;
-    }
+    if (!selectedNode?.id) return;
 
     let cancelled = false;
 
@@ -187,51 +212,14 @@ export function TaxonomiesPage() {
     return () => {
       cancelled = true;
     };
-  }, [selectedId]);
+  }, [selectedNode?.id]);
 
 
 
   useEffect(() => {
-    const taxonomyId = taxonomyIds[taxonomy];
-
-    if (!taxonomyId) {
-      setTree([]);
-      setError("Unknown taxonomy.");
-      setLoading(false);
-      return;
-    }
-
-    let cancelled = false;
-
-    loadTree();
-    return () => {
-      cancelled = true;
-    };
-  }, [taxonomy]);
-
-  const selectedNode = useMemo(
-    () =>
-      selectedId
-        ? findNode(tree, selectedId)
-        : null,
-    [tree, selectedId]
-  );
-
-  const selectedAttribute = useMemo(() => {
-    if (!selectedNode || !selectedAttributeId) {
-      return null;
-    }
-
-    return (
-      selectedNode.attributes.find(
-        (attribute) =>
-          attribute.id === selectedAttributeId
-      ) ?? null
-    );
-  }, [
-    selectedNode,
-    selectedAttributeId,
-  ]);
+    const frame = requestAnimationFrame(() => { void loadTree(); });
+    return () => cancelAnimationFrame(frame);
+  }, [loadTree]);
 
   const handleMove = (
     draggedId: string,
@@ -326,6 +314,22 @@ export function TaxonomiesPage() {
     setMoveSnapshot(null);
   };
 
+  const handleDeleteNode = async () => {
+    if (!deleteTarget) return;
+    try {
+      setDeleting(true);
+      await deleteTaxonomyNode(deleteTarget.id);
+      setDeleteTarget(null);
+      setSelectedId(null);
+      await loadTree();
+    } catch (deleteError) {
+      setError(deleteError instanceof Error ? deleteError.message : "Failed to delete category.");
+      setDeleteTarget(null);
+    } finally {
+      setDeleting(false);
+    }
+  };
+
 
   async function createNode(parentId: string | null) {
     const taxonomyId = taxonomyIds[taxonomy];
@@ -359,39 +363,6 @@ export function TaxonomiesPage() {
     }
   };
 
-  const loadTree = useCallback(async () => {
-    const taxonomyId = taxonomyIds[taxonomy];
-
-    if (!taxonomyId) {
-      setTree([]);
-      setError("Unknown taxonomy.");
-      return;
-    }
-
-    try {
-      setLoading(true);
-      setError(null);
-
-      const result = await getTaxonomyTree(taxonomyId);
-
-      setTree(mapTaxonomyTree(result));
-    }
-    catch (error) {
-      console.error(error);
-
-      setTree([]);
-
-      setError(
-        error instanceof Error
-          ? error.message
-          : "Failed to load taxonomy."
-      );
-    }
-    finally {
-      setLoading(false);
-    }
-  }, [taxonomy]);
-
   return (
     <EmployeeShell>
       <div className="mx-auto max-w-[1700px] space-y-5">
@@ -419,7 +390,7 @@ export function TaxonomiesPage() {
               <span>Taxonomies</span>
               <span>›</span>
               <span className="text-gray-600 dark:text-gray-300">
-                Listing Types
+                {taxonomyNames[taxonomy]}
               </span>
             </div>
           </div>
@@ -461,7 +432,15 @@ export function TaxonomiesPage() {
 
           <TaxonomySidebar
             selected={taxonomy}
-            onSelect={setTaxonomy}
+            onSelect={(nextTaxonomy) => {
+              setTaxonomy(nextTaxonomy);
+              setTree([]);
+              setLoading(true);
+              setError(null);
+              setSelectedId(null);
+              setSelectedAttributeId(null);
+              setAttributes([]);
+            }}
           />
 
           {/* CENTER */}
@@ -491,12 +470,11 @@ export function TaxonomiesPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <h2 className="text-sm font-bold">
-                    Listing Types
+                    {taxonomyNames[taxonomy]}
                   </h2>
 
                   <p className="mt-1 text-[9px] text-gray-400">
-                    Classification of all listing
-                    types in the platform.
+                    {taxonomyIds[taxonomy] ? `Manage ${taxonomy.replaceAll("-", " ")} categories.` : "Classification categories."}
                   </p>
                 </div>
 
@@ -568,10 +546,12 @@ export function TaxonomiesPage() {
           {/* RIGHT */}
 
           <TaxonomyDetails
+            key={selectedNode?.id ?? "empty"}
             node={selectedNode}
             allNodes={allNodes}
+            attributes={attributes}
             onSaved={loadTree}
-            onDelete={()=> {}}  /*handleDeleteNode*/
+            onDelete={setDeleteTarget}
           />
         </div>
 
@@ -639,6 +619,16 @@ export function TaxonomiesPage() {
         onConfirm={confirmMove}
         onCancel={cancelMove}
         busy={mutationLoading}
+      />
+      <ConfirmDialog
+        open={deleteTarget !== null}
+        title="Delete category?"
+        message={deleteTarget ? `Delete “${deleteTarget.name}” and deactivate all its nested categories? Existing listing references will remain.` : ""}
+        confirmText="Delete"
+        cancelText="Cancel"
+        onConfirm={handleDeleteNode}
+        onCancel={() => setDeleteTarget(null)}
+        busy={deleting}
       />
     </EmployeeShell>
   );

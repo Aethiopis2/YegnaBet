@@ -205,24 +205,6 @@ namespace YegnaBet.API.Modules.Provider.Services
             return roots;
         }
 
-        public async Task<object> GetNodeAttributes(long nodeId)
-        {
-            var attrbs = await _db.TaxonomyNode
-                .AsNoTracking()
-                .Where(n => n.Id == nodeId)
-                .SelectMany(n => n.Attributes)
-                .Select(a => new ProviderTaxonomyNodeAttributeDto
-                {
-                    Id = a.AttributeDefinition.Id,
-                    Key = a.AttributeDefinition.Name.ToLower(),
-                    Label = a.AttributeDefinition.Name,
-                    Type = a.AttributeDefinition.DataType.ToString()
-                })
-                .ToListAsync();
-
-            return attrbs;
-        }
-
         public async Task<long> CreateListing(long providerId, ListingDraftDto draft)
         {
             // make sure location does not exist, and store as lower case
@@ -301,6 +283,15 @@ namespace YegnaBet.API.Modules.Provider.Services
                         IsPrimary = x.IsPrimary,
                         Kind = ImageKind.Photo
                     })
+                    .Concat(draft.Videos.Select(video => video.Url)
+                        .Concat(draft.VideoUrls)
+                        .Where(url => !string.IsNullOrWhiteSpace(url))
+                        .Select(url => new ListingImage
+                        {
+                            ImageUrl = url.Trim(),
+                            IsPrimary = false,
+                            Kind = ImageKind.Video
+                        }))
                     .ToList(),
 
                 AttributeValues = draft.Attributes
@@ -548,6 +539,45 @@ namespace YegnaBet.API.Modules.Provider.Services
                 {
                     existingPhoto.IsPrimary = draftPhoto.IsPrimary;
                 }
+            }
+
+            // ---------------------------------------------------------
+            // 5b. Video URLs
+            // ---------------------------------------------------------
+
+            var videoDrafts = draft.Videos
+                .Concat(draft.VideoUrls.Select(url => new ListingVideoDraftDto { Url = url }))
+                .ToList();
+
+            var incomingVideoIds = videoDrafts
+                .Where(video => video.Id.HasValue)
+                .Select(video => video.Id!.Value)
+                .ToHashSet();
+
+            var videosToRemove = listing.Images
+                .Where(image => image.Kind == ImageKind.Video &&
+                    !incomingVideoIds.Contains(image.Id))
+                .ToList();
+            foreach (var video in videosToRemove)
+                listing.Images.Remove(video);
+
+            foreach (var draftVideo in videoDrafts.Where(video => !string.IsNullOrWhiteSpace(video.Url)))
+            {
+                if (draftVideo.Id.HasValue)
+                {
+                    var existingVideo = listing.Images.FirstOrDefault(image =>
+                        image.Id == draftVideo.Id.Value && image.Kind == ImageKind.Video);
+                    if (existingVideo is not null)
+                        existingVideo.ImageUrl = draftVideo.Url.Trim();
+                    continue;
+                }
+
+                listing.Images.Add(new ListingImage
+                {
+                    ImageUrl = draftVideo.Url.Trim(),
+                    Kind = ImageKind.Video,
+                    IsPrimary = false
+                });
             }
 
 

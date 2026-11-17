@@ -1,20 +1,21 @@
 import {
-  ChevronDown,
-  MoreHorizontal,
   Save,
   Trash2,
 } from "lucide-react";
 
 import type { TaxonomyNodeFront } from "../../../types/customer/taxonomy";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { getDescendantIds } from "./TaxonomyTree";
 import { updateTaxonomyNode } from "../../../lib/employee/taxonomyApi";
+import { getTaxonomyNodeListings, type TaxonomyListing } from "../../../lib/employee/taxonomyApi";
+import type { TaxonomyAttribute } from "../../../types/customer/taxonomy";
 
 interface Props {
   node: TaxonomyNodeFront | null;
   allNodes: TaxonomyNodeFront[];
   onSaved: () => Promise<void>;
   onDelete: (node: TaxonomyNodeFront) => void;
+  attributes: TaxonomyAttribute[];
 }
 
 export function TaxonomyDetails({ 
@@ -22,46 +23,48 @@ export function TaxonomyDetails({
   allNodes,
   onSaved,
   onDelete,
+  attributes,
  }: Props) {
-  const [name, setName] = useState("");
-  const [slug, setSlug] = useState("");
-  const [description, setDescription] = useState("");
-  const [parentId, setParentId] = useState<string | null>(null);
-  const [sortOrder, setSortOrder] = useState(0);
-  const [active, setActive] = useState(true);
+  const [name, setName] = useState(node?.name ?? "");
+  const [slug, setSlug] = useState(node?.slug ?? "");
+  const [description, setDescription] = useState(node?.description ?? "");
+  const [parentId, setParentId] = useState<string | null>(node?.parentId ?? null);
+  const [sortOrder, setSortOrder] = useState(node?.sortOrder ?? 0);
+  const [active, setActive] = useState(node?.active ?? true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [tab, setTab] = useState<"General" | "Attributes" | "Listings">("General");
+  const [listings, setListings] = useState<TaxonomyListing[]>([]);
+  const [listingsLoading, setListingsLoading] = useState(false);
+  const [listingsRefresh, setListingsRefresh] = useState(0);
+  const nodeId = node?.id;
 
   useEffect(() => {
-    if (!node) {
-      setName("");
-      setSlug("");
-      setDescription("");
-      setParentId(null);
-      setSortOrder(0);
-      setActive(true);
-      return;
-    }
+    if (tab !== "Listings" || !nodeId) return;
+    let cancelled = false;
+    getTaxonomyNodeListings(nodeId)
+      .then((result) => { if (!cancelled) setListings(result); })
+      .catch((loadError) => { if (!cancelled) setError(loadError instanceof Error ? loadError.message : "Failed to load listings."); })
+      .finally(() => { if (!cancelled) setListingsLoading(false); });
+    return () => { cancelled = true; };
+  }, [tab, nodeId, listingsRefresh]);
 
-    setName(node.name);
-    setSlug(node.slug);
-    setDescription(node.description ?? "");
-    setParentId(node.parentId);
-    setSortOrder(node.sortOrder);
-    setActive(node.active);
-  }, [node]);
-
-  const validParents = useMemo(() => {
-    if (!node)
-      return [];
-
+  const validParents = (() => {
+    if (!node) return [];
     const descendantIds = getDescendantIds(node);
-
     return allNodes.filter(candidate =>
       candidate.id !== node.id &&
       !descendantIds.has(candidate.id)
     );
-  }, [node, allNodes]);
+  })();
+
+  const changeTab = (next: "General" | "Attributes" | "Listings") => {
+    if (next === "Listings") {
+      setListingsLoading(true);
+      if (tab === "Listings") setListingsRefresh(value => value + 1);
+    }
+    setTab(next);
+  };
 
   async function handleSave() {
     if (!node)
@@ -170,6 +173,7 @@ export function TaxonomyDetails({
 
         <button
           type="button"
+          onClick={() => onDelete(node)}
           className="
             flex
             items-center
@@ -208,60 +212,60 @@ export function TaxonomyDetails({
       >
         <button
           type="button"
-          className="
+          onClick={() => changeTab("General")}
+          className={`
             border-b-2
-            border-yegna-600
+            ${tab === "General" ? "border-yegna-600 text-yegna-700 dark:text-yegna-400" : "border-transparent text-gray-400"}
             px-3
             py-3
             text-[9px]
             font-semibold
-            text-yegna-700
-
-            dark:text-yegna-400
-          "
+          `}
         >
           General
         </button>
 
         <button
           type="button"
-          className="
+          onClick={() => changeTab("Attributes")}
+          className={`
             px-3
             py-3
             text-[9px]
             font-medium
-            text-gray-400
+            ${tab === "Attributes" ? "border-b-2 border-yegna-600 text-yegna-700" : "text-gray-400"}
             hover:text-gray-700
-          "
+          `}
         >
           Attributes
         </button>
 
         <button
           type="button"
-          className="
+          onClick={() => changeTab("Listings")}
+          className={`
             px-3
             py-3
             text-[9px]
             font-medium
-            text-gray-400
+            ${tab === "Listings" ? "border-b-2 border-yegna-600 text-yegna-700" : "text-gray-400"}
             hover:text-gray-700
-          "
+          `}
         >
           Listings ({node.listingCount})
         </button>
       </div>
 
-      <div className="space-y-4 p-4">
+      {tab === "General" ? <div className="space-y-4 p-4">
         <Field
           label="Name"
-          value={node.name}
+          value={name}
           onChange={setName}
         />
 
         <Field
           label="Slug"
-          value={node.slug}
+          value={slug}
           onChange={setSlug}
         />
 
@@ -338,6 +342,9 @@ export function TaxonomyDetails({
 
           <button
             type="button"
+            role="switch"
+            aria-checked={active}
+            aria-label="Category active"
             onClick={() => setActive(value => !value)}
             className={`
               relative h-6 w-11 rounded-full
@@ -360,22 +367,6 @@ export function TaxonomyDetails({
           </span>
         </div>
 
-        <div className="flex items-center justify-between rounded-xl bg-gray-50 px-3 py-3 dark:bg-white/[0.035]">
-          <div>
-            <p className="text-[10px] font-semibold">
-              Active
-            </p>
-
-            <p className="mt-0.5 text-[8px] text-gray-400">
-              Make this category available to users.
-            </p>
-          </div>
-
-          <div className="relative h-5 w-9 rounded-full bg-yegna-600">
-            <span className="absolute right-0.5 top-0.5 size-4 rounded-full bg-white shadow-sm" />
-          </div>
-        </div>
-
         <button
           type="button"
           onClick={handleSave}
@@ -393,7 +384,26 @@ export function TaxonomyDetails({
 
           {saving ? "Saving..." : "Save Changes"}
         </button>
-      </div>
+      </div> : tab === "Attributes" ? (
+        <div className="space-y-3 p-4">
+          <p className="text-xs text-gray-500">Attributes configured for {node.name}</p>
+          {attributes.length === 0 ? <p className="rounded-xl bg-gray-50 p-4 text-sm text-gray-500 dark:bg-white/[0.035]">No attributes are configured for this category.</p> : attributes.map(attribute => (
+            <div key={attribute.id} className="rounded-xl border border-gray-200 p-3 dark:border-white/10">
+              <div className="flex justify-between gap-3"><span className="text-sm font-semibold">{attribute.name}</span><span className="text-xs text-gray-500">{attribute.type}</span></div>
+              <p className="mt-1 text-xs text-gray-500">{attribute.key} · {attribute.required ? "Required" : "Optional"}{attribute.filterable ? " · Filterable" : ""}</p>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="space-y-3 p-4">
+          {listingsLoading ? <p className="text-sm text-gray-500">Loading listings…</p> : listings.length === 0 ? <p className="rounded-xl bg-gray-50 p-4 text-sm text-gray-500 dark:bg-white/[0.035]">No listings use this category.</p> : listings.map(listing => (
+            <div key={listing.id} className="rounded-xl border border-gray-200 p-3 dark:border-white/10">
+              <div className="flex justify-between gap-3"><span className="text-sm font-semibold">{listing.title}</span><span className="text-xs text-gray-500">{listing.status}</span></div>
+              <p className="mt-1 text-xs text-gray-500">{listing.price == null ? "Price not set" : `${listing.price.toLocaleString()} ETB`} · {new Date(listing.createdAt).toLocaleDateString()}</p>
+            </div>
+          ))}
+        </div>
+      )}
       
       {error && (
         <div className="

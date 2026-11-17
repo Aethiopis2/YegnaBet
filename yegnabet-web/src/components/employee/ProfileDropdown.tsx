@@ -1,23 +1,28 @@
 import {
   LogOut,
   Moon,
-  Settings,
   Sun,
   User,
 } from "lucide-react";
 import type { AuthUser } from "../../types/auth/authTypes";
+import { useLocation, useNavigate } from "react-router-dom";
+import { useAuth } from "../../types/auth/authStore";
+import { useTheme } from "../hooks/useTheme";
 
 interface ProfileDropdownProps {
-  darkMode: boolean;
-  setDarkMode: React.Dispatch<React.SetStateAction<boolean>>;
   user: AuthUser | null;
+  onClose?: () => void;
 }
 
 export function ProfileDropdown({
-  darkMode,
-  setDarkMode,
   user,
+  onClose,
 }: ProfileDropdownProps) {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { logout } = useAuth();
+  const { theme, toggleTheme } = useTheme();
+  const darkMode = theme === "dark";
   return (
     <div
       className="
@@ -61,18 +66,21 @@ export function ProfileDropdown({
             User
           )}
           label="My Profile"
-        />
-
-        <ProfileMenuItem
-          icon={Settings}
-          label="Settings"
+          onClick={() => {
+            const isEmployee = user?.role === "Employee";
+            navigate(isEmployee ? "/employee/profile" : "/profile", {
+              state: {
+                user,
+                ...(isEmployee ? { from: `${location.pathname}${location.search}${location.hash}` } : {}),
+              },
+            });
+            onClose?.();
+          }}
         />
 
         <button
           type="button"
-          onClick={() =>
-            setDarkMode((value) => !value)
-          }
+          onClick={toggleTheme}
           className="
             flex
             w-full
@@ -92,15 +100,9 @@ export function ProfileDropdown({
           "
         >
           <span className="flex items-center gap-3">
-            {darkMode ? (
-              <Moon className="size-4" />
-            ) : (
-              <Sun className="size-4" />
-            )}
+            {darkMode ? <Sun className="size-4" /> : <Moon className="size-4" />}
 
-            {darkMode
-              ? "Dark theme"
-              : "Light theme"}
+            {darkMode ? "Light theme" : "Dark theme"}
           </span>
 
           <span
@@ -142,6 +144,10 @@ export function ProfileDropdown({
           icon={LogOut}
           label="Sign out"
           destructive
+          onClick={() => {
+            void logout();
+            navigate("/login", { replace: true, state: null });
+          }}
         />
       </div>
     </div>
@@ -152,14 +158,17 @@ function ProfileMenuItem({
   icon: Icon,
   label,
   destructive = false,
+  onClick,
 }: {
   icon: React.ElementType;
   label: string;
   destructive?: boolean;
+  onClick?: () => void;
 }) {
   return (
     <button
       type="button"
+      onClick={onClick}
       className={`
         flex
         w-full

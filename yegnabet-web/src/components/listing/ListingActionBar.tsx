@@ -7,12 +7,16 @@ interface ListingActionBarProps {
   onMessage: () => void;
   onRequestViewing: () => void;
   requestSend: boolean;
+  showMessage?: boolean;
+  messageDisabled?: boolean;
 }
 
 export function ListingActionBar({
   onMessage,
   onRequestViewing,
-  requestSend
+  requestSend,
+  showMessage = true,
+  messageDisabled = false,
 }: ListingActionBarProps) {
   return (
     <div
@@ -37,9 +41,11 @@ export function ListingActionBar({
       "
     >
       <div className="mx-auto flex max-w-3xl gap-2">
-        <button
+        {showMessage && <button
           type="button"
           onClick={onMessage}
+          disabled={messageDisabled}
+          title={messageDisabled ? "No employee is currently assigned to this listing" : "Message assigned employee"}
           className="
             flex
             h-12
@@ -60,11 +66,13 @@ export function ListingActionBar({
             dark:border-yegna-900
             dark:bg-yegna-900/20
             dark:text-yegna-300
+            disabled:cursor-not-allowed
+            disabled:opacity-40
           "
         >
           <MessageCircle className="size-4" />
           Message Broker
-        </button>
+        </button>}
 
         <button
           type="button"

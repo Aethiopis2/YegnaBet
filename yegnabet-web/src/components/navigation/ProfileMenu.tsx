@@ -7,6 +7,7 @@ import {
   User,
   UserRound,
 } from "lucide-react";
+import type { Dispatch, SetStateAction } from "react";
 
 import { useTheme } from "../hooks/useTheme";
 
@@ -16,13 +17,14 @@ import IconButton  from "../ui/IconButton";
 import { useNavigate } from "react-router-dom";
 import type { ListingMode } from "../../types/customer/listings";
 import type { AuthUser } from "../../types/auth/authTypes";
+import { useAuth } from "../../types/auth/authStore";
 
 interface ProfileMenuProps {
   open: boolean;
   onToggle: () => void;
   user: AuthUser | null;
   openSignin: boolean;
-  setOpenSignin: any;
+  setOpenSignin: Dispatch<SetStateAction<boolean>>;
   mode?: ListingMode;
 }
 
@@ -30,6 +32,12 @@ export function ProfileMenu({ open, onToggle, user,
   openSignin, setOpenSignin, mode }: ProfileMenuProps) {
   const navigate = useNavigate();
   const { theme, toggleTheme } = useTheme();
+  const { logout } = useAuth();
+
+  const handleLogout = () => {
+    void logout();
+    navigate(user?.role === "Employee" || user?.role === "Owner" ? "/login" : "/", { replace: true, state: null });
+  };
 
   return (
     <div className="relative">
@@ -145,6 +153,7 @@ export function ProfileMenu({ open, onToggle, user,
 
           {user &&
             <button type="button"
+              onClick={handleLogout}
               className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm 
                 text-red-500 transition-colors hover:bg-red-50 dark:hover:bg-red-900/15">
               <LogOut className="size-4.5" />
@@ -165,7 +174,7 @@ function ProfileItem({ icon: Icon, label, chevronOff, onclick }: {
   icon: typeof UserRound;
   label: string;
   chevronOff?: boolean;
-  onclick?: any;
+  onclick?: () => void;
 }) {
   return (
     <button type="button" onClick={onclick}

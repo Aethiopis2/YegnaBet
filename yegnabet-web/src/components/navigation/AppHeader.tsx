@@ -1,18 +1,24 @@
 import { useEffect, useRef, useState } from "react";
 
 import { NotificationMenu } from "./NotificationMenu";
+import { MessageCenter } from "../communication/MessageCenter";
 import { ProfileMenu } from "./ProfileMenu";
 import type { ListingMode } from "../../types/customer/listings";
 import type { AuthUser } from "../../types/auth/authTypes";
+import type { MessageOpenRequest } from "../layout/AppShell";
+import { useNavigate } from "react-router-dom";
 
 interface Props {
   user: AuthUser | null;
   openSigninDlg: boolean;
   setOpenSigninDlg: any;
   mode?: ListingMode;
+  messageOpenRequest?: MessageOpenRequest | null;
+  onMessageRequestHandled?: (requestId: number) => void;
 }
 
-export function AppHeader({ user, openSigninDlg, setOpenSigninDlg, mode }: Props) {
+export function AppHeader({ user, openSigninDlg, setOpenSigninDlg, mode, messageOpenRequest, onMessageRequestHandled }: Props) {
+  const navigate = useNavigate();
   const [openMenu, setOpenMenu] = useState<"notifications" | "profile" | null>(null);
 
   const headerRef = useRef<HTMLElement>(null);
@@ -63,7 +69,13 @@ export function AppHeader({ user, openSigninDlg, setOpenSigninDlg, mode }: Props
         "
       >
         <div className="flex items-center gap-3">
-          <YegnaLogo />
+          <button
+            type="button"
+            onClick={() => navigate(user?.role === "Employee" ? "/employee" : user?.role === "Owner" ? "/owner" : "/")}
+            aria-label="Go to home"
+          >
+            <YegnaLogo />
+          </button>
 
           <div className="hidden sm:block">
             <div className="text-[17px] font-bold tracking-[-0.03em] text-gray-900 dark:text-white">
@@ -77,6 +89,13 @@ export function AppHeader({ user, openSigninDlg, setOpenSigninDlg, mode }: Props
         </div>
 
         <div className="flex items-center gap-1">
+          <MessageCenter
+            user={user}
+            onRequireLogin={() => setOpenSigninDlg(true)}
+            recipientRequest={messageOpenRequest}
+            onRecipientRequestHandled={onMessageRequestHandled}
+          />
+
           <NotificationMenu
             open={openMenu === "notifications"}
             onToggle={() =>

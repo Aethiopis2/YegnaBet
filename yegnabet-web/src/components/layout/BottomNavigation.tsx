@@ -89,9 +89,16 @@ function NavigationItem({
   user,
   mode,
 }: NavigationItemProps) {
+  const requiresSignIn = label === "Saved" || label === "Profile";
   return (
     <NavLink
-      to={(label === "Saved" || label === "Profile" ? (user ? href : "") : href)}
+      to={href}
+      onClick={event => {
+        if (requiresSignIn && !user) {
+          event.preventDefault();
+          onLogin();
+        }
+      }}
       state={{ user: user, listingMode: mode }}
       className={({ isActive }) =>
         cn(

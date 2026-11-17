@@ -51,7 +51,7 @@ const LocationsSectionPage = () => {
     if (error) return <ErrorBlock message={error} />;
 
     return (
-        <AppShell currentUser={locations.state?.currentUser}>
+        <AppShell>
             <PageContainer>
                 <HeroSection />
                 
@@ -62,24 +62,23 @@ const LocationsSectionPage = () => {
                 <section className="mt-6">
                     <SectionHeader
                         title="Popular Locations"
+                        listingMode={listingMode}
                         actionLabel=""
                         actionHref=""
-                        currentUser={locations.state?.currentUser}
+                        user={locations.state?.user ?? null}
                     />
             
                     <div className="mt-3 grid grid-cols-7 overflow-x-auto pb-1 scrollbar-none">
                         {listingLocations.map((location) => (
-                            <div onClick={() => {
-                                filters.location = location.area;
-                                navigate(`/explore${toQueryString(filters)}` + (mode && `&mode=${mode}`))
-                            }}>
-                                <PopularLocationCard
+                            <PopularLocationCard
                                     key={location.id}
                                     location={location}
-                                    filters={{}}
-                                    setFilters={() => {}}
+                                    selected={filters.locationIds?.includes(location.id) ?? false}
+                                    onClick={() => {
+                                const nextFilters = { ...filters, locationIds: [location.id] };
+                                navigate(`/explore${toQueryString(nextFilters)}` + (mode && `&mode=${mode}`))
+                            }}
                                 />
-                            </div>
                         ))}
                     </div>
                 </section>

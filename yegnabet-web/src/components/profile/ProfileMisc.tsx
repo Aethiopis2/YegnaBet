@@ -1,4 +1,5 @@
 import { ChevronRight, Sun, Moon } from "lucide-react";
+import { useTheme } from "../hooks/useTheme";
 
 interface PreferenceRowProps {
   icon: React.ElementType;
@@ -81,18 +82,25 @@ export function Toggle({
 }
 
 export function ThemeToggle() {
+  const { theme, setTheme } = useTheme();
   return (
     <div className="flex items-center gap-1 rounded-lg bg-gray-100 p-1 dark:bg-white/[0.05]">
       <button
         type="button"
-        className="grid size-7 place-items-center rounded-md bg-white text-gray-700 shadow-sm dark:bg-transparent dark:text-gray-500"
+        aria-label="Use light theme"
+        aria-pressed={theme === "light"}
+        onClick={() => setTheme("light")}
+        className={`grid size-7 place-items-center rounded-md ${theme === "light" ? "bg-white text-gray-700 shadow-sm" : "text-gray-400"}`}
       >
         <Sun className="size-3.5" />
       </button>
 
       <button
         type="button"
-        className="grid size-7 place-items-center rounded-md text-gray-400 dark:bg-white/[0.08] dark:text-white"
+        aria-label="Use dark theme"
+        aria-pressed={theme === "dark"}
+        onClick={() => setTheme("dark")}
+        className={`grid size-7 place-items-center rounded-md ${theme === "dark" ? "bg-white/[0.08] text-white" : "text-gray-400"}`}
       >
         <Moon className="size-3.5" />
       </button>

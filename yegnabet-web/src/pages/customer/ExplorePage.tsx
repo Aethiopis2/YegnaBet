@@ -21,9 +21,9 @@ function ExplorePageComponent() {
         showFilters: true,
         initialView: "grid",
         filters: filters,
-        mode: listingMode,
+        mode: filters.saved ? "All" : listingMode,
         showMode: false,
-        user: user ?? locations.state?.currentUser,
+        user: user ?? locations.state?.user,
       }}
     />
   );

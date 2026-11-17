@@ -1,16 +1,19 @@
 import type { Listing } from "../../types/customer/listings";
 import type { MatchResult } from "../../types/match";
+import type { AuthUser } from "../../types/auth/authTypes";
 
 import { ListingGridCard } from "../explorer/ListingGridCard";
 
 interface MatchListingCardProps {
   listing: Listing;
   result: MatchResult;
+  user: AuthUser | null;
 }
 
 export function MatchListingCard({
   listing,
   result,
+  user,
 }: MatchListingCardProps) {
   return (
     <div className="relative">
@@ -20,6 +23,7 @@ export function MatchListingCard({
 
       <ListingGridCard
         listing={listing}
+        user={user}
       />
     </div>
   );

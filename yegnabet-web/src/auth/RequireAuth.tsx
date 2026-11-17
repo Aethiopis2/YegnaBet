@@ -4,7 +4,7 @@ import {
   useLocation,
 } from "react-router-dom";
 
-import { useAuth } from "../types/auth/authContext";
+import { useAuth } from "../types/auth/authStore";
 import type { UserRole } from "../types/auth/authTypes"
 
 interface RequireAuthProps {

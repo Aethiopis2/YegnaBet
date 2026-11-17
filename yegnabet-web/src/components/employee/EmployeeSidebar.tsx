@@ -1,22 +1,22 @@
 import {
-  BarChart3,
   BriefcaseBusiness,
-  CalendarDays,
-  CheckSquare,
+  Building2,
+  LucideView,
   ClipboardList,
-  FileBarChart,
+  FilePlus,
   Home,
-  MapPin,
   MessageSquare,
   Settings,
-  SlidersHorizontal,
   Tags,
+  UserPlus,
   Users,
 } from "lucide-react";
 
 import {
   NavLink,
+  useLocation,
 } from "react-router-dom";
+import type { AuthUser } from "../../types/auth/authTypes";
 
 const mainNavigation = [
   {
@@ -30,14 +30,14 @@ const mainNavigation = [
     icon: ClipboardList,
   },
   {
-    label: "Properties",
-    path: "/employee/properties",
-    icon: Home,
+    label: "New Listing",
+    path: "/employee/create-listing",
+    icon: FilePlus, 
   },
   {
-    label: "Appointments",
-    path: "/employee/appointments",
-    icon: CalendarDays,
+    label: "View Listings",
+    path: "/employee/listings",
+    icon: LucideView,
   },
   {
     label: "Messages",
@@ -45,25 +45,15 @@ const mainNavigation = [
     icon: MessageSquare,
   },
   {
-    label: "Customers",
-    path: "/employee/customers",
-    icon: Users,
-  },
-  {
-    label: "Tasks",
-    path: "/employee/tasks",
-    icon: CheckSquare,
-  },
-  {
     label: "Deals",
     path: "/employee/deals",
     icon: BriefcaseBusiness,
   },
-  {
-    label: "Reports",
-    path: "/employee/reports",
-    icon: FileBarChart,
-  },
+  // {
+  //   label: "Reports",
+  //   path: "/employee/reports",
+  //   icon: FileBarChart,
+  // },
 ];
 
 const configurationNavigation = [
@@ -73,18 +63,27 @@ const configurationNavigation = [
     icon: Tags,
   },
   {
-    label: "Attributes",
-    path: "/employee/attributes",
-    icon: SlidersHorizontal,
+    label: "Add Employee",
+    path: "/employee/employees/new",
+    icon: UserPlus,
   },
   {
-    label: "Locations",
-    path: "/employee/locations",
-    icon: MapPin,
+    label: "Edit Employee",
+    path: "/employee/employees",
+    icon: Users,
+  },
+  {
+    label: "Providers",
+    path: "/employee/providers",
+    icon: Building2,
   },
 ];
 
-export function EmployeeSidebar() {
+interface Props {
+  user: AuthUser | null;
+}
+
+export function EmployeeSidebar({user}:Props) {
   return (
     <aside
       className="
@@ -96,11 +95,11 @@ export function EmployeeSidebar() {
         w-64
         flex-col
         border-r
-        border-black/[0.05]
+        border-black/5
         bg-white
         lg:flex
 
-        dark:border-white/[0.06]
+        dark:border-white/6
         dark:bg-[#101512]
       "
     >
@@ -130,7 +129,7 @@ export function EmployeeSidebar() {
           items={mainNavigation}
         />
 
-        <div className="my-5 h-px bg-black/[0.05] dark:bg-white/[0.06]" />
+        <div className="my-5 h-px bg-black/5 dark:bg-white/6" />
 
         <p className="mb-2 px-3 text-[9px] font-bold uppercase tracking-wider text-gray-400">
           Configuration
@@ -149,7 +148,7 @@ export function EmployeeSidebar() {
 
       {/* USER */}
 
-      <div className="border-t border-black/[0.05] p-3 dark:border-white/[0.06]">
+      <div className="border-t border-black/5 p-3 dark:border-white/6">
         <button
           type="button"
           className="
@@ -162,7 +161,7 @@ export function EmployeeSidebar() {
             text-left
             transition
             hover:bg-gray-50
-            dark:hover:bg-white/[0.04]
+            dark:hover:bg-white/4
           "
         >
           <div
@@ -178,16 +177,16 @@ export function EmployeeSidebar() {
               text-yegna-700
             "
           >
-            HT
+            {user && user.fullName.trim()[0].toUpperCase() + user.fullName.trim()[1].toUpperCase()}
           </div>
 
           <div className="min-w-0">
             <p className="truncate text-xs font-semibold">
-              Hana Tesfaye
+              {user?.fullName}
             </p>
 
             <p className="truncate text-[9px] text-gray-400">
-              Property Consultant
+              {user?.role}
             </p>
           </div>
         </button>
@@ -222,10 +221,14 @@ function NavigationItem({
   path: string;
   icon: React.ElementType;
 }) {
+  const location = useLocation();
+  const employeeEditRoute = path === "/employee/employees" &&
+    /^\/employee\/employees\/\d+\/edit$/.test(location.pathname);
+
   return (
     <NavLink
       to={path}
-      end={path === "/employee"}
+      end={path === "/employee" || path === "/employee/employees"}
       className={({ isActive }) => `
         group
         flex
@@ -239,10 +242,10 @@ function NavigationItem({
         transition-all
         duration-200
 
-        ${
-          isActive
+          ${
+          isActive || employeeEditRoute
             ? "bg-yegna-700 text-white shadow-sm shadow-yegna-700/20"
-            : "text-gray-500 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-white/[0.04] dark:hover:text-white"
+            : "text-gray-500 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-white/4 dark:hover:text-white"
         }
       `}
     >

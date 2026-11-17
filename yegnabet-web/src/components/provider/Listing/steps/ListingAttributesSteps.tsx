@@ -3,7 +3,6 @@ import {
   useState,
 } from "react";
 
-import { API } from "../../../../types/api";
 import type { ListingAttributeValue } from "../../../../types/provider/providerTypes";
 import type { TNodeAttributeDefinition } from "../../../../types/provider/attributeDefinition";
 import Loading from "../../../ui/common/Loading";
@@ -15,6 +14,8 @@ import { ListingDateField } from "../../common/ListingDateField";
 import { ListingDateTimeField } from "../../common/ListingDateTimeField";
 import { ListingChoiceField } from "../../common/ListingChoiceField";
 import { ListingMultiChoiceField } from "../../common/ListingMultiChoiceField";
+import { getEmpTaxonomyNodeAttributes } from "../../../../lib/employee/employeServices";
+import ErrorBlock from "../../../ui/common/ErrorBlock";
 
 
 interface Props {
@@ -29,51 +30,36 @@ interface Props {
       ListingAttributeValue
     >
   ) => void;
+  token: string;
 }
 
 export function ListingAttributesStep({
   nodeId,
   attributes,
   onChange,
+  token,
 }: Props) {
-  const [nodeAttributes, setNodeAttributes] =
-    useState<TNodeAttributeDefinition[]>([]);
-
-  const [loading, setLoading] =
-    useState(true);
+  const [nodeAttributes, setNodeAttributes] = useState<TNodeAttributeDefinition[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string>("");
 
   useEffect(() => {
 
-    // const fetchNodeAttributes = async () => {
-    //   setLoading(true);
-    //   try {
-    //     const response = await getTaxonomyNodeAttributes(nodeId);
-    //     setNodeAttributes(response);
-    //   } catch (error) {
-    //     console.error("Failed to fetch node attributes", error);
-    //     setNodeAttributes([]);
-    //   } finally {
-    //     setLoading(false);
-    //   }
-    // };
-
-    API.get(
-      `/provider/get-taxonomyNodeAtrributes?nodeId=${nodeId}`
-    )
-      .then((r) => {
-        setNodeAttributes(r.data);
-      })
-      .catch((error) => {
-        console.error(
-          "Failed to load listing attributes",
-          error
-        );
-
+    const fetchNodeAttributes = async () => {
+      setLoading(true);
+      try {
+        const response = await getEmpTaxonomyNodeAttributes(token, nodeId);
+        setNodeAttributes(response);
+      } catch (err) {
+        console.error("Failed to fetch node attributes", err);
+        setError("Failed to fetch node attributes" + String(err));
         setNodeAttributes([]);
-      })
-      .finally(() => {
+      } finally {
         setLoading(false);
-      });
+      }
+    };
+
+    fetchNodeAttributes();
   }, [nodeId]);
 
   const update = (
@@ -86,9 +72,9 @@ export function ListingAttributesStep({
     });
   };
 
-  if (loading) {
-    return <Loading />;
-  }
+  if (loading) return <Loading />;
+
+  if (error) return <ErrorBlock message={error} />;
 
   return (
     <div className="space-y-7">

@@ -1,8 +1,10 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using YegnaBet.API.Modules.Authentication;
+using YegnaBet.API.Modules.Configuration;
 using YegnaBet.API.Modules.Employee.Dtos;
 using YegnaBet.API.Modules.Employee.Services;
+using YegnaBet.API.Modules.Marketplace.Services;
 using YegnaBet.API.Modules.Provider.Dtos;
 using YegnaBet.Domain.Enums;
 
@@ -36,8 +38,16 @@ namespace YegnaBet.API.Modules.Employee.Controllers
         [HttpPost]
         public async Task<IActionResult> Create([FromForm] ListingDraftDto draft)
         {
-            var res = await _service.CreateListing(_currentUser.Id, draft);
-            return Ok(res);
+            try
+            {
+                var empId = _currentUser.Id;
+                var res = await _service.CreateListing(empId, draft);
+                return Ok(res);
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         } // end Create
 
 
@@ -58,7 +68,7 @@ namespace YegnaBet.API.Modules.Employee.Controllers
         {
             try
             {
-                var req = await _service.UpdateInquiryState(dto.InquiryId, dto.Status);
+                var req = await _service.UpdateInquiryState(_currentUser.Id, dto.InquiryId, dto.Status, dto.DealValue);
                 return Ok(req);
             } 
             catch (Exception ex) 
@@ -76,5 +86,15 @@ namespace YegnaBet.API.Modules.Employee.Controllers
                 await _service.GetTaxonomyShortAsync()
             );
         } // end getTaxonomyNodesShort
+
+
+        [Authorize(Roles = "Employee")]
+        [HttpGet("getTaxonomyNodeAtrributes")]
+        public async Task<IActionResult> GetTaxonomyNodeAttributes([FromQuery] long nodeId)
+        {
+            return Ok(
+                await _service.GetNodeAttributes(nodeId)
+            );
+        } // end GetTaxonomyNodeAttributes
     }
 }

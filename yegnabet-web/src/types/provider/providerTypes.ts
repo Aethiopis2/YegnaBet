@@ -22,10 +22,19 @@ export interface ListingAttribute {
   value: string;
 }
 
+export interface ListingProviderDraft {
+  providerId?: number;
+  fullName: string;
+  phoneNumber: string;
+  email: string;
+  password: string;
+}
+
 
 export interface ListingDraft {
   id?: number;
   providerId: number;
+  provider: ListingProviderDraft;
 
   title: string;
   description: string;
@@ -57,6 +66,7 @@ export type ListingWizardStep =
   | "location"
   | "media"
   | "details"
+  | "provider"
   | "review";
 
 export interface ListingWizardStepDefinition {
@@ -95,6 +105,11 @@ export const LISTING_WIZARD_STEPS: ListingWizardStepDefinition[] = [
     id: "details",
     title: "Pricing",
     description: "Set your listing information",
+  },
+  {
+    id: "provider",
+    title: "Provider",
+    description: "Assign the provider for this listing",
   },
   {
     id: "review",

@@ -3,7 +3,6 @@ import {
   Building2,
   FolderTree,
   Layers3,
-  MapPin,
   Search,
   Users,
   Wrench,

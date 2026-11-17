@@ -9,13 +9,15 @@ import { ListingDetail } from "../../components/listing/ListingDetails";
 import { useState, useEffect } from "react";
 import type { Listing } from "../../types/customer/listings";
 import Loading from "../../components/ui/common/Loading";
-import { getListing, updateListingViewCount } from "../../lib/customer/customerApi";
+import { getListing, getManagedListing, updateListingViewCount } from "../../lib/customer/customerApi";
 import ErrorBlock from "../../components/ui/common/ErrorBlock";
 
 function ListingDetailPageComponent() {
   const locations = useLocation();
   const { id } = useParams();
   const { user, openSigninDlg, setOpenSigninDlg, token } = useAppContext();
+  const isManager = user?.role === "Employee" || user?.role === "Owner";
+  const startInEditMode = isManager && new URLSearchParams(locations.search).get("edit") === "true";
 
   const [listing, setListing] = useState<Listing | null>(locations.state?.listing ?? null);
   const [loading, setLoading] = useState(true);
@@ -28,9 +30,12 @@ function ListingDetailPageComponent() {
     }
 
     setLoading(true);
+    setError("");
     const fetchListing = async () => {
       try {
-        const response = await getListing(Number(id));
+        const response = isManager && token
+          ? await getManagedListing(Number(id), token)
+          : await getListing(Number(id), user?.id);
         setListing(response);
       } catch (err) {
         console.error(err);
@@ -41,12 +46,12 @@ function ListingDetailPageComponent() {
     }; 
     
     fetchListing();
-  }, [id]);
+  }, [id, isManager, token, user?.id]);
 
   // update the listingViewCount
   useEffect(() => {
     const updateViewCount = async () => {
-      if (!listing) return;
+      if (!listing || isManager || listing.listingStatus === "Draft") return;
       try {
         await updateListingViewCount(
           { 
@@ -60,7 +65,7 @@ function ListingDetailPageComponent() {
     };
 
     updateViewCount();
-  }, [listing]);
+  }, [listing, isManager]);
 
   // Don't make any navigation decision while request is pending
   if (loading) return <Loading />;
@@ -71,9 +76,11 @@ function ListingDetailPageComponent() {
   if (!listing) return <Navigate to="/explore" replace />;
 
   return (
-    <ListingDetail listing={listing} user={user} 
+    <ListingDetail key={listing.id} listing={listing} user={user}
       openSigninDlg={openSigninDlg} setOpenSigninDlg={(isOpen) => setOpenSigninDlg(isOpen)}
-      token={token}  />
+      token={token}
+      startInEditMode={startInEditMode}
+      onListingUpdated={setListing} />
   );
 }
 

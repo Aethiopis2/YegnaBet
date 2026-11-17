@@ -1,99 +1,35 @@
-import { API, ASSET_URL } from "../../types/api";
+import { API } from "../../types/api";
 import type { CreateTaxonomyAttributeRequest, CreateTaxonomyNodeRequest, EmployeeTaxonomyNodeDto, TaxonomyAttribute, UpdateTaxonomyAttributeRequest, UpdateTaxonomyNodeRequest } from "../../types/customer/taxonomy";
 
 export async function getTaxonomyTree(taxonomyId: number): Promise<EmployeeTaxonomyNodeDto[]> {
-  const response = await fetch(
-    `${ASSET_URL}/api/employee/taxonomies/${taxonomyId}/tree`
-  );
-
-  if (!response.ok) {
-    throw new Error(
-      `Failed to load taxonomy tree (${response.status})`
-    );
-  }
-
-  return response.json();
+  const response = await API.get<EmployeeTaxonomyNodeDto[]>(`/employee/taxonomies/${taxonomyId}/tree`);
+  return response.data;
 } // end getTaxonomyTree
 
 
 export async function updateTaxonomyNode(nodeId: string, 
   request: UpdateTaxonomyNodeRequest): Promise<void> {
-  const response = await fetch(
-    `${ASSET_URL}/api/employee/taxonomies/nodes/${nodeId}`,
-    {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(request),
-    }
-  );
-
-  if (!response.ok) {
-    const body = await response.json().catch(() => null);
-
-    throw new Error(
-      body?.message ??
-      `Failed to update taxonomy node (${response.status})`
-    );
-  }
+  await API.put(`/employee/taxonomies/nodes/${nodeId}`, request);
 } // end updateTaxonomyNode
 
 
 export async function createTaxonomyNode(taxonomyId: number, 
   request: CreateTaxonomyNodeRequest): Promise<EmployeeTaxonomyNodeDto> {
 
-  const response = await fetch(
-    `${ASSET_URL}/api/employee/taxonomies/${taxonomyId}/nodes`,
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(request),
-    }
-  );
-
-  if (!response.ok) {
-    const body = await response.json().catch(() => null);
-
-    throw new Error(
-      body?.message ??
-      `Failed to create taxonomy node (${response.status})`
-    );
-  }
-
-  return response.json();
+  const response = await API.post<EmployeeTaxonomyNodeDto>(`/employee/taxonomies/${taxonomyId}/nodes`, request);
+  return response.data;
 } // end createTaxonomyNode
 
 
 export async function moveTaxonomyNode(nodeId: string, 
   targetParentId: string | null): Promise<void> {
 
-  const response = await fetch(
-    `${ASSET_URL}/employee/taxonomies/nodes/${nodeId}/move`,
-    {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
+  await API.put(`/employee/taxonomies/nodes/${nodeId}/move`, {
         targetParentId:
           targetParentId === null
             ? null
             : Number(targetParentId),
-      }),
-    }
-  );
-
-  if (!response.ok) {
-    const body = await response.json().catch(() => null);
-
-    throw new Error(
-      body?.message ??
-      `Failed to move taxonomy node (${response.status})`
-    );
-  }
+      });
 } // end moveTaxonomyNode
 
 
@@ -139,3 +75,20 @@ export async function deleteTaxonomyAttribute(
     `/employee/taxonomies/nodes/${nodeId}/attributes/${attributeId}`
   );
 } // deleteTaxonomyAttribute
+
+export async function deleteTaxonomyNode(nodeId: string): Promise<void> {
+  await API.delete(`/employee/taxonomies/nodes/${nodeId}`);
+}
+
+export interface TaxonomyListing {
+  id: number;
+  title: string;
+  status: string;
+  price: number | null;
+  createdAt: string;
+}
+
+export async function getTaxonomyNodeListings(nodeId: string): Promise<TaxonomyListing[]> {
+  const response = await API.get<TaxonomyListing[]>(`/employee/taxonomies/nodes/${nodeId}/listings`);
+  return response.data;
+}

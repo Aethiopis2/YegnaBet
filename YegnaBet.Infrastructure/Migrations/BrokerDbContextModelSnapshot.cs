@@ -118,6 +118,38 @@ namespace YegnaBet.Infrastructure.Migrations
                     b.ToTable("AuditLogs", "public");
                 });
 
+            modelBuilder.Entity("YegnaBet.Domain.Entities.Conversation", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<long>("UserOneId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("UserTwoId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UpdatedAt");
+
+                    b.HasIndex("UserTwoId");
+
+                    b.HasIndex("UserOneId", "UserTwoId")
+                        .IsUnique();
+
+                    b.ToTable("Conversations", "public");
+                });
+
             modelBuilder.Entity("YegnaBet.Domain.Entities.Deal", b =>
                 {
                     b.Property<long>("Id")
@@ -157,7 +189,8 @@ namespace YegnaBet.Infrastructure.Migrations
 
                     b.HasIndex("EmployeeId");
 
-                    b.HasIndex("InquiryId");
+                    b.HasIndex("InquiryId")
+                        .IsUnique();
 
                     b.HasIndex("ListingId");
 
@@ -241,14 +274,8 @@ namespace YegnaBet.Infrastructure.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<long?>("CustomerId")
+                    b.Property<long>("CustomerId")
                         .HasColumnType("bigint");
-
-                    b.Property<string>("CustomerName")
-                        .HasColumnType("text");
-
-                    b.Property<string>("CustomerPhone")
-                        .HasColumnType("text");
 
                     b.Property<long>("EmployeeId")
                         .HasColumnType("bigint");
@@ -502,6 +529,42 @@ namespace YegnaBet.Infrastructure.Migrations
                     b.ToTable("Locations", "public");
                 });
 
+            modelBuilder.Entity("YegnaBet.Domain.Entities.Message", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasMaxLength(4000)
+                        .HasColumnType("character varying(4000)");
+
+                    b.Property<long>("ConversationId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime?>("ReadAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<long>("SenderId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime>("SentAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SenderId");
+
+                    b.HasIndex("ConversationId", "SentAt");
+
+                    b.HasIndex("ConversationId", "ReadAt", "SenderId");
+
+                    b.ToTable("Messages", "public");
+                });
+
             modelBuilder.Entity("YegnaBet.Domain.Entities.NodeAttributeDefinition", b =>
                 {
                     b.Property<long>("TaxonomyNodeId")
@@ -521,6 +584,37 @@ namespace YegnaBet.Infrastructure.Migrations
                     b.HasIndex("AttributeDefinitionId");
 
                     b.ToTable("NodeAttributeDefinition", "public");
+                });
+
+            modelBuilder.Entity("YegnaBet.Domain.Entities.PasswordResetToken", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("TokenHash")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("UsedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<long>("UserId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("PasswordResetTokens", "public");
                 });
 
             modelBuilder.Entity("YegnaBet.Domain.Entities.RefreshToken", b =>
@@ -693,6 +787,9 @@ namespace YegnaBet.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<bool>("ReceiveNotifications")
+                        .HasColumnType("boolean");
+
                     b.Property<int>("Role")
                         .HasColumnType("integer");
 
@@ -720,6 +817,25 @@ namespace YegnaBet.Infrastructure.Migrations
                     b.HasIndex("LocationId");
 
                     b.ToTable("UsersEx", "public");
+                });
+
+            modelBuilder.Entity("YegnaBet.Domain.Entities.Conversation", b =>
+                {
+                    b.HasOne("YegnaBet.Domain.Entities.User", "UserOne")
+                        .WithMany()
+                        .HasForeignKey("UserOneId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("YegnaBet.Domain.Entities.User", "UserTwo")
+                        .WithMany()
+                        .HasForeignKey("UserTwoId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("UserOne");
+
+                    b.Navigation("UserTwo");
                 });
 
             modelBuilder.Entity("YegnaBet.Domain.Entities.Deal", b =>
@@ -762,7 +878,9 @@ namespace YegnaBet.Infrastructure.Migrations
                 {
                     b.HasOne("YegnaBet.Domain.Entities.User", "Customer")
                         .WithMany()
-                        .HasForeignKey("CustomerId");
+                        .HasForeignKey("CustomerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.HasOne("YegnaBet.Domain.Entities.User", "Employee")
                         .WithMany()
@@ -889,6 +1007,25 @@ namespace YegnaBet.Infrastructure.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("YegnaBet.Domain.Entities.Message", b =>
+                {
+                    b.HasOne("YegnaBet.Domain.Entities.Conversation", "Conversation")
+                        .WithMany("Messages")
+                        .HasForeignKey("ConversationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("YegnaBet.Domain.Entities.User", "Sender")
+                        .WithMany()
+                        .HasForeignKey("SenderId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Conversation");
+
+                    b.Navigation("Sender");
+                });
+
             modelBuilder.Entity("YegnaBet.Domain.Entities.NodeAttributeDefinition", b =>
                 {
                     b.HasOne("YegnaBet.Domain.Entities.AttributeDefinition", "AttributeDefinition")
@@ -906,6 +1043,17 @@ namespace YegnaBet.Infrastructure.Migrations
                     b.Navigation("AttributeDefinition");
 
                     b.Navigation("TaxonomyNode");
+                });
+
+            modelBuilder.Entity("YegnaBet.Domain.Entities.PasswordResetToken", b =>
+                {
+                    b.HasOne("YegnaBet.Domain.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("YegnaBet.Domain.Entities.RefreshToken", b =>
@@ -980,6 +1128,11 @@ namespace YegnaBet.Infrastructure.Migrations
                     b.Navigation("Nodes");
 
                     b.Navigation("Values");
+                });
+
+            modelBuilder.Entity("YegnaBet.Domain.Entities.Conversation", b =>
+                {
+                    b.Navigation("Messages");
                 });
 
             modelBuilder.Entity("YegnaBet.Domain.Entities.Listing", b =>

@@ -4,6 +4,20 @@ import type {
   MatchResult,
 } from "../types/match";
 
+function normalize(value: unknown): string {
+  return String(value ?? "").trim().toLowerCase().replace(/\s+/g, " ");
+}
+
+function getNumericAttribute(listing: Listing, key: string): number | undefined {
+  const normalizedKey = normalize(key);
+  const value = listing.metadata?.find(attribute =>
+    normalize(attribute.key) === normalizedKey || normalize(attribute.name) === normalizedKey
+  )?.value;
+  if (value === undefined || value === null || value === "") return undefined;
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : undefined;
+}
+
 export function calculateMatchScore(
   listing: Listing,
   preferences: MatchPreferences
@@ -19,7 +33,7 @@ export function calculateMatchScore(
    */
   if (
     !preferences.propertyType ||
-    listing.type === preferences.propertyType
+    normalize(listing.category || listing.type) === normalize(preferences.propertyType)
   ) {
     score += 20;
 
@@ -36,7 +50,7 @@ export function calculateMatchScore(
    */
   if (
     !preferences.city ||
-    listing.location.city === preferences.city
+    normalize(listing.location.city) === normalize(preferences.city)
   ) {
     score += 10;
 
@@ -49,9 +63,11 @@ export function calculateMatchScore(
 
   if (
     !preferences.areas.length ||
-    preferences.areas.includes(
-      listing.location.area
-    )
+    preferences.areas.some(area => {
+      const wanted = normalize(area);
+      return wanted === normalize(listing.location.area) ||
+        wanted === normalize(`${listing.location.city}, ${listing.location.area}`);
+    })
   ) {
     score += 15;
 
@@ -68,9 +84,9 @@ export function calculateMatchScore(
    */
   if (
     (!preferences.minPrice ||
-      listing.price >= preferences.minPrice) &&
+      Number(listing.price) >= preferences.minPrice) &&
     (!preferences.maxPrice ||
-      listing.price <= preferences.maxPrice)
+      Number(listing.price) <= preferences.maxPrice)
   ) {
     score += 25;
 
@@ -90,7 +106,7 @@ export function calculateMatchScore(
    */
   if (
     preferences.bedrooms === undefined ||
-    (listing.metadata.bedrooms ?? 0) >=
+    (getNumericAttribute(listing, "bedrooms") ?? 0) >=
       preferences.bedrooms
   ) {
     score += 10;
@@ -108,7 +124,7 @@ export function calculateMatchScore(
    */
   if (
     preferences.bathrooms === undefined ||
-    (listing.metadata.bathrooms ?? 0) >=
+    (getNumericAttribute(listing, "bathrooms") ?? 0) >=
       preferences.bathrooms
   ) {
     score += 5;
@@ -125,13 +141,17 @@ export function calculateMatchScore(
    * 10 points
    */
   if (preferences.features.length) {
-    const listingFeatures =
-      listing.features ?? [];
-
     const matchedFeatures =
       preferences.features.filter(
-        (feature) =>
-          listingFeatures.includes(feature)
+        feature => {
+          const normalizedFeature = normalize(feature);
+          const attribute = listing.metadata?.find(item =>
+            normalize(item.key) === normalizedFeature || normalize(item.name) === normalizedFeature
+          );
+          const value = normalize(attribute?.value);
+          return value === "true" || value === "1" || value === "yes" ||
+            (listing.features ?? []).some(item => normalize(item) === normalizedFeature);
+        }
       );
 
     const featureScore =

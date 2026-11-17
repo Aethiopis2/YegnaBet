@@ -10,21 +10,53 @@ import { formatArea, formatPrice } from "../../lib/formatters";
 import { cn } from "../../lib/cn";
 import { resolveIcon } from "../../lib/IconResolver";
 import { useNavigate } from "react-router-dom";
+import type { AuthUser } from "../../types/auth/authTypes";
+import { updateSavedListing } from "../../lib/customer/customerApi";
 
 interface FeaturedCardProps {
   listing: Listing;
+  user: AuthUser | null;
   className?: string;
 }
 
 export function FeaturedCard({
   listing,
+  user,
   className,
 }: FeaturedCardProps) {
   const navigate = useNavigate();
-  
-  const [saved, setSaved] = useState(
-    listing.saved ?? false
-  );
+  const [savedState, setSavedState] = useState({
+    listingId: listing.id,
+    userId: user?.id,
+    value: Boolean(listing.saved),
+  });
+  const saved = savedState.listingId === listing.id && savedState.userId === user?.id
+    ? savedState.value
+    : Boolean(listing.saved);
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState("");
+
+  const toggleSaved = async (event: React.MouseEvent<HTMLButtonElement>) => {
+    event.stopPropagation();
+    if (!user || saving) return;
+    const nextSaved = !saved;
+    setSaving(true);
+    setSaveError("");
+    try {
+      await updateSavedListing({
+        userId: Number(user.id),
+        listingId: listing.id,
+        saved: nextSaved,
+      });
+      setSavedState({ listingId: listing.id, userId: user.id, value: nextSaved });
+    } catch (error) {
+      console.error("Failed to save featured listing", error);
+      setSaveError("Could not update saved listing.");
+    } finally {
+      setSaving(false);
+    }
+  };
+  const image = listing.images?.find((url) => typeof url === "string" && url.trim().length > 0);
 
   return (
     <article
@@ -42,16 +74,14 @@ export function FeaturedCard({
       )}
     >
       <div className="relative aspect-[1.35/1] overflow-hidden">
-        <img
-          src={listing.images[0]}
-          alt={listing.title}
-          className="
-            size-full object-cover
-            transition-transform duration-700
-            group-hover:scale-[1.04]
-          "
-          loading="lazy"
-        />
+        {image && (
+          <img
+            src={image}
+            alt={listing.title}
+            className="size-full object-cover transition-transform duration-700 group-hover:scale-[1.04]"
+            loading="lazy"
+          />
+        )}
 
         <div
           className="
@@ -86,7 +116,9 @@ export function FeaturedCard({
               ? "Remove from saved"
               : "Save listing"
           }
-          onClick={() => setSaved((value) => !value)}
+          onClick={toggleSaved}
+          disabled={!user || saving}
+          aria-pressed={saved}
           className="
             absolute right-3 top-3
             grid size-9 place-items-center
@@ -110,6 +142,7 @@ export function FeaturedCard({
             )}
           />
         </button>
+        {saveError && <span role="status" className="absolute right-3 top-14 rounded-md bg-white px-2 py-1 text-xs text-red-600">{saveError}</span>}
       </div>
 
       <div className="p-3.5">

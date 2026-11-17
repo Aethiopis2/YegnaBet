@@ -2,13 +2,13 @@ import {
   Bell,
   ChevronDown,
   Menu,
-  MessageSquare,
   Search,
 } from "lucide-react";
 import { useState } from "react";
 import { ProfileDropdown } from "./ProfileDropdown";
 import { NotificationDropdown } from "./NotificationDropdown";
 import type { AuthUser } from "../../types/auth/authTypes";
+import { MessageCenter } from "../communication/MessageCenter";
 
 interface EmployeeHeaderProps {
   user: AuthUser | null;
@@ -17,7 +17,6 @@ interface EmployeeHeaderProps {
 export function EmployeeHeader({ user }: EmployeeHeaderProps) {
   const [profileOpen, setProfileOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
-  const [darkMode, setDarkMode] = useState(false);
 
   return (
     <header
@@ -102,7 +101,7 @@ export function EmployeeHeader({ user }: EmployeeHeaderProps) {
         <div className="ml-auto flex items-center gap-1">
           {/* NOTIFICATIONS */}
 
-          <div className="relative">
+          {/* <div className="relative">
             <button
               type="button"
               onClick={() =>
@@ -148,48 +147,10 @@ export function EmployeeHeader({ user }: EmployeeHeaderProps) {
             {notificationsOpen && (
               <NotificationDropdown />
             )}
-          </div>
+          </div> */}
 
           {/* MESSAGES */}
-
-          <button
-            type="button"
-            className="
-              relative
-              grid size-9
-              place-items-center
-              rounded-xl
-              text-gray-500
-              transition
-              hover:bg-gray-100
-              hover:text-gray-900
-
-              dark:text-gray-400
-              dark:hover:bg-white/5
-              dark:hover:text-white
-            "
-            aria-label="Messages"
-          >
-            <MessageSquare className="size-4.5" />
-
-            <span
-              className="
-                absolute
-                right-1
-                top-1
-                grid
-                size-3.5
-                place-items-center
-                rounded-full
-                bg-red-500
-                text-[7px]
-                font-bold
-                text-white
-              "
-            >
-              2
-            </span>
-          </button>
+          <MessageCenter user={user} compact />
 
           {/* PROFILE */}
 
@@ -243,9 +204,8 @@ export function EmployeeHeader({ user }: EmployeeHeaderProps) {
 
             {profileOpen && (
               <ProfileDropdown
-                darkMode={darkMode}
-                setDarkMode={setDarkMode}
                 user={user}
+                onClose={() => setProfileOpen(false)}
               />
             )}
           </div>

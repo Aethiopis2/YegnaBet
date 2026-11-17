@@ -5,9 +5,9 @@ namespace YegnaBet.Infrastructure.Persistence
 {
     public class BrokerDbContext : DbContext
     {
-        public BrokerDbContext(DbContextOptions<BrokerDbContext> options) 
+        public BrokerDbContext(DbContextOptions<BrokerDbContext> options)
             : base(options)
-        { 
+        {
         }
 
         public DbSet<User> Users => Set<User>();
@@ -25,9 +25,12 @@ namespace YegnaBet.Infrastructure.Persistence
         public DbSet<TaxonomyNode> TaxonomyNode => Set<TaxonomyNode>();
         public DbSet<AttributeDefinition> AttributeDefinition => Set<AttributeDefinition>();
         public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
+        public DbSet<PasswordResetToken> PasswordResetTokens => Set<PasswordResetToken>();
         public DbSet<SavedListings> SavedListings => Set<SavedListings>();
         public DbSet<ListingViewsCount> ListingViewsCount => Set<ListingViewsCount>();
         public DbSet<ListingViewsDates> ListingViewsDates => Set<ListingViewsDates>();
+        public DbSet<Conversation> Conversations => Set<Conversation>();
+        public DbSet<Message> Messages => Set<Message>();
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -47,40 +50,44 @@ namespace YegnaBet.Infrastructure.Persistence
 
             modelBuilder.Entity<Listing>()
                 .Property(x => x.TrustScore)
-                .HasPrecision(5, 2); 
-            
+                .HasPrecision(5, 2);
+
             modelBuilder.Entity<Listing>()
                 .Property(x => x.Price)
-                .HasPrecision(12, 2); 
-            
+                .HasPrecision(12, 2);
+
             modelBuilder.Entity<Deal>()
                 .Property(x => x.DealValue)
-                .HasPrecision(12, 2); 
-            
+                .HasPrecision(12, 2);
+
             modelBuilder.Entity<Deal>()
                 .Property(x => x.CommissionRate)
-                .HasPrecision(5, 2); 
-            
+                .HasPrecision(5, 2);
+
             modelBuilder.Entity<Deal>()
                 .Property(x => x.CommissionAmount)
-                .HasPrecision(12, 2); 
-            
+                .HasPrecision(12, 2);
+
             modelBuilder.Entity<FinancialTransaction>()
                 .Property(x => x.Amount)
                 .HasPrecision(12, 2);
 
             modelBuilder.Entity<Listing>()
-                .HasIndex(x => x.ListingStatus); 
+                .HasIndex(x => x.ListingStatus);
 
             modelBuilder.Entity<Listing>()
-                .HasIndex(x => x.LocationId); 
-            
+                .HasIndex(x => x.LocationId);
+
             modelBuilder.Entity<Inquiry>()
                 .HasIndex(x => x.InquiryStatus);
 
             modelBuilder.Entity<Expense>()
                 .Property(x => x.Amount)
                 .HasPrecision(12, 2);
+
+            modelBuilder.Entity<Deal>()
+            .HasIndex(x => x.InquiryId)
+            .IsUnique();
         }
     }
 }

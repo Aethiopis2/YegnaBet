@@ -7,11 +7,13 @@ using System.Text;
 using System.Text.Json.Serialization;
 using YegnaBet.API.Modules.Authentication;
 using YegnaBet.API.Modules.Brokers.Services;
+using YegnaBet.API.Modules.Configuration;
 using YegnaBet.API.Modules.Employee.Services;
 using YegnaBet.API.Modules.Finance.Services;
 using YegnaBet.API.Modules.Marketplace.Services;
 using YegnaBet.API.Modules.Provider.Services;
 using YegnaBet.API.Modules.Realtime;
+using YegnaBet.API.Modules.Realtime.Services;
 using YegnaBet.API.Modules.Search;
 using YegnaBet.API.Modules.Search.Abstractions;
 using YegnaBet.API.Modules.Search.Numeric;
@@ -27,20 +29,29 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<BrokerDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("Default")));
 
+builder.Services.Configure<BusinessSettings>(
+    builder.Configuration.GetSection("BusinessSettings"));
+
 builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
 builder.Services.AddScoped<CategoryService>();
 builder.Services.AddScoped<MarketplaceService>();
 builder.Services.AddScoped<BrokerService>();
+builder.Services.AddScoped<MessagingService>();
 builder.Services.AddScoped<AuditService>();
 builder.Services.AddScoped<FinanceService>();
 builder.Services.AddScoped<UserService>();
+builder.Services.AddScoped<UserProfileService>();
 builder.Services.AddScoped<ProviderService>();
 builder.Services.AddScoped<CustAuthService>();
 builder.Services.AddScoped<EmployeeService>();
+builder.Services.AddScoped<EmployeeDirectoryService>();
+builder.Services.AddScoped<ProviderDirectoryService>();
+builder.Services.AddScoped<EmployeeDealService>();
 builder.Services.AddScoped<IEmployeeTaxonomyService, EmployeeTaxonomyService>();
 
 builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<PasswordResetService>();
 
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ICurrentUser, CurrentUser>();
@@ -121,7 +132,6 @@ builder.Services.AddSingleton<
     ISearchEngine,
     SearchEngine>();
 
-
 builder.Services.Configure<JwtOptions>(
     builder.Configuration.GetSection("Jwt")
 );
@@ -171,6 +181,23 @@ builder.Services
                 NameClaimType =
                     ClaimTypes.NameIdentifier
             };
+
+        options.Events = new JwtBearerEvents
+        {
+            OnMessageReceived = context =>
+            {
+                var accessToken = context.Request.Query["access_token"];
+                var requestPath = context.HttpContext.Request.Path;
+
+                if (!string.IsNullOrEmpty(accessToken) &&
+                    requestPath.StartsWithSegments("/hubs/broker"))
+                {
+                    context.Token = accessToken;
+                }
+
+                return Task.CompletedTask;
+            }
+        };
     });
 
 builder.Services.AddAuthorization();

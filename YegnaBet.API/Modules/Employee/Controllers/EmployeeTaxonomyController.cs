@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using YegnaBet.API.Modules.Employee.Dtos;
 using YegnaBet.API.Modules.Employee.Services;
@@ -7,6 +8,7 @@ namespace YegnaBet.API.Modules.Employee.Controllers
 {
     [Route("api/employee/taxonomies")]
     [ApiController]
+    [Authorize(Roles = "Employee")]
     public class EmployeeTaxonomyController : ControllerBase
     {
         private readonly IEmployeeTaxonomyService _service;
@@ -114,6 +116,33 @@ namespace YegnaBet.API.Modules.Employee.Controllers
                 });
             } // end catch 22
         } // end MoveNode
+
+        [HttpDelete("nodes/{nodeId:long}")]
+        public async Task<IActionResult> DeleteNode(long nodeId, CancellationToken cancellationToken)
+        {
+            try
+            {
+                await _service.DeleteNode(nodeId, cancellationToken);
+                return NoContent();
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+        }
+
+        [HttpGet("nodes/{nodeId:long}/listings")]
+        public async Task<IActionResult> GetNodeListings(long nodeId, CancellationToken cancellationToken)
+        {
+            try
+            {
+                return Ok(await _service.GetNodeListings(nodeId, cancellationToken));
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+        }
 
 
         [HttpGet("nodes/{nodeId:long}/attributes")]

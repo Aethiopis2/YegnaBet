@@ -22,6 +22,17 @@ import LocationsSectionPage from "../pages/customer/LocationsSectionPage";
 import SignUpPage from "../pages/auth/SignupPage";
 import { EmployeeRequestsPage } from "../pages/employee/EmployeeRequestsPage";
 import { EmployeeRequestDetailsPage } from "../pages/employee/EmployeeRequestsDetailsPage";
+import EmployeeListingViewPage from "../pages/employee/EmployeeListingViewPage";
+import AddEmployeePage from "../pages/employee/AddEmployeePage";
+import EmployeeDirectoryPage from "../pages/employee/EmployeeDirectoryPage";
+import EditEmployeePage from "../pages/employee/EditEmployeePage";
+import ProviderDirectoryPage from "../pages/employee/ProviderDirectoryPage";
+import ProviderFormPage from "../pages/employee/ProviderFormPage";
+import EmployeeDealsPage from "../pages/employee/EmployeeDealsPage";
+import OwnerListings from "../pages/owner/BulidOwnerListings";
+import PasswordResetPage from "../pages/auth/PasswordResetPage";
+import ProviderListingsPage from "../pages/employee/ProviderListingsPage";
+import OwnerCommissionsPage from "../pages/owner/OwnerCommissionsPage";
 
 export function AppRoutes() {
   return (
@@ -81,6 +92,9 @@ export function AppRoutes() {
         element={<LoginPage />}
       />
 
+      <Route path="/forgot-password" element={<PasswordResetPage />} />
+      <Route path="/reset-password" element={<PasswordResetPage />} />
+
       <Route
         path="/Signup"
         element={<SignUpPage />}
@@ -89,6 +103,13 @@ export function AppRoutes() {
       {/* ------------------------------------------------ */}
       {/* Customer */}
       {/* ------------------------------------------------ */}
+
+      <Route element={<RequireAuth />}>
+        <Route
+          path="/profile"
+          element={<ProfilePage />}
+        />
+      </Route>
 
       <Route element={<RequireAuth roles={["Customer"]} />}>
         <Route
@@ -106,10 +127,6 @@ export function AppRoutes() {
           element={<InboxPage />}
         />
 
-        <Route
-          path="/profile"
-          element={<ProfilePage />}
-        />
       </Route>
 
       {/* ------------------------------------------------ */}
@@ -117,6 +134,27 @@ export function AppRoutes() {
       {/* ------------------------------------------------ */}
 
       <Route element={<RequireAuth roles={["Employee"]} />}>
+
+        <Route
+          path="/employee/employees/new"
+          element={<AddEmployeePage />}
+        />
+
+        <Route
+          path="/employee/employees"
+          element={<EmployeeDirectoryPage />}
+        />
+
+        <Route
+          path="/employee/employees/:employeeId/edit"
+          element={<EditEmployeePage />}
+        />
+
+        <Route path="/employee/providers" element={<ProviderDirectoryPage />} />
+        <Route path="/employee/providers/new" element={<ProviderFormPage />} />
+        <Route path="/employee/providers/:providerId/edit" element={<ProviderFormPage />} />
+        <Route path="/employee/providers/:providerId/listings" element={<ProviderListingsPage />} />
+        <Route path="/employee/profile" element={<ProfilePage employeeMode />} />
 
         <Route
           path="/employee"
@@ -146,6 +184,16 @@ export function AppRoutes() {
           <EmployeeRequestDetailsPage />
         }
       />
+
+      <Route path="/employee/deals" element={<EmployeeDealsPage />} />
+
+      <Route 
+        path="/employee/listings"
+        element={
+          <EmployeeListingViewPage />
+        }
+      />
+      
       </Route>
 
       {/* ------------------------------------------------ */}
@@ -158,6 +206,13 @@ export function AppRoutes() {
           path="/owner"
           element={<OwnerDashboard />}
         />
+        
+        <Route 
+          path="/owner/listings" 
+          element={<OwnerListings />} 
+        />
+        <Route path="/owner/commissions" element={<OwnerCommissionsPage />} />
+        <Route path="/owner/commissions/:transactionId" element={<OwnerCommissionsPage />} />
         
       </Route>
 

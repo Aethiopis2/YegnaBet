@@ -2,17 +2,18 @@ import {
   ArrowLeft,
   CheckCircle2,
   ChevronRight,
-  LogOut,
-  Moon,
   ShieldCheck,
   Sun,
   Trash2,
 } from "lucide-react";
 
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import { API_BASE, ASSET_URL } from "../../types/api";
+import { useAuth } from "../../types/auth/authStore";
 
 import { AppShell } from "../../components/layout/AppShell";
+import { EmployeeShell } from "../../components/employee/EmployeeShell";
 import { PageContainer } from "../../components/layout/PageContainer";
 
 import {
@@ -25,80 +26,108 @@ import {
 
 import { ProfileSection } from "../../components/profile/ProfileSection";
 
-import type {
-  UserProfile,
-} from "../../types/customer/profile";
-
 import { AccountAction, PreferenceRow, ThemeToggle, Toggle }  from "../../components/profile/ProfileMisc";
 
-const initialProfile: UserProfile = {
-  id: "user-1",
+interface ProfileState {
+  id: string; firstName: string; lastName: string; phone: string; email: string;
+  city: string; area: string; verified: boolean; avatarUrl?: string; receiveNotifications: boolean;
+}
 
-  fullName: "Abebe Kebede",
+function getErrorMessage(error: unknown, fallback: string): string {
+  if (typeof error === "object" && error !== null && "response" in error) {
+    const response = (error as { response?: { data?: { message?: unknown } } }).response;
+    if (typeof response?.data?.message === "string") return response.data.message;
+  }
+  return fallback;
+}
 
-  phoneNumber: "+251 91 234 5678",
-  role: "Customer",
-  email: "abebe@example.com",
+interface ProfilePageProps {
+  employeeMode?: boolean;
+}
 
-  city: "Addis Ababa",
-  area: "Bole",
-
-  verified: true,
-};
-
-export function ProfilePage() {
+export function ProfilePage({ employeeMode = false }: ProfilePageProps) {
   const navigate = useNavigate();
-
-  const [profile, setProfile] =
-    useState<UserProfile>(
-      initialProfile
-    );
-
-  const [avatarUrl, setAvatarUrl] =
-    useState<string>();
+  const location = useLocation();
+  const { accessToken, logout } = useAuth();
+  const [profile, setProfile] = useState<ProfileState | null>(null);
 
   const [saving, setSaving] =
     useState(false);
+  const [error, setError] = useState("");
+  const [saved, setSaved] = useState(false);
+
+  useEffect(() => {
+    if (!accessToken) return;
+    let cancelled = false;
+    API_BASE.get("/user/profile", { headers: { Authorization: `Bearer ${accessToken}` } })
+      .then(({ data }) => {
+        if (cancelled) return;
+        const names = String(data.fullName ?? "").trim().split(/\s+/);
+        setProfile({
+          id: String(data.id), firstName: names.shift() ?? "", lastName: names.join(" "),
+          phone: data.phoneNumber ?? "", email: data.email ?? "", city: data.city ?? "", area: data.area ?? "",
+          verified: Boolean(data.verified), avatarUrl: data.avatarUrl ? `${ASSET_URL}${data.avatarUrl}` : undefined,
+          receiveNotifications: data.receiveNotifications ?? true,
+        });
+      })
+      .catch((loadError) => { if (!cancelled) setError(loadError.response?.data?.message ?? "Could not load your profile."); });
+    return () => { cancelled = true; };
+  }, [accessToken]);
 
   const update = (
-    values: Partial<UserProfile>
+    values: Partial<ProfileState>
   ) => {
-    setProfile((current) => ({
+    setSaved(false);
+    setProfile((current) => current ? ({
       ...current,
       ...values,
-    }));
+    }) : current);
   };
 
   const saveProfile = async () => {
+    if (!profile || !accessToken) return;
     setSaving(true);
-
-    // Backend integration later.
-    await new Promise((resolve) =>
-      setTimeout(resolve, 600)
-    );
-
-    localStorage.setItem(
-      "yegna-profile",
-      JSON.stringify(profile)
-    );
-
-    setSaving(false);
+    setError("");
+    try {
+      await API_BASE.put("/user/profile", {
+        fullName: `${profile.firstName} ${profile.lastName}`.trim(),
+        phoneNumber: profile.phone, email: profile.email || null,
+        city: profile.city, area: profile.area,
+        receiveNotifications: profile.receiveNotifications,
+      }, { headers: { Authorization: `Bearer ${accessToken}` } });
+      setSaved(true);
+    } catch (saveError: unknown) {
+      setError(getErrorMessage(saveError, "Could not save your profile."));
+    } finally { setSaving(false); }
   };
 
   const handleAvatar = (
     file: File
   ) => {
-    const url =
-      URL.createObjectURL(file);
-
-    setAvatarUrl(url);
-
-    // Later:
-    // upload file to backend.
+    if (!accessToken) return;
+    const form = new FormData();
+    form.append("file", file);
+    setError("");
+    API_BASE.post("/user/profile/avatar", form, { headers: { Authorization: `Bearer ${accessToken}` } })
+      .then(({ data }) => update({ avatarUrl: `${ASSET_URL}${data.avatarUrl}` }))
+      .catch((uploadError: unknown) => setError(getErrorMessage(uploadError, "Could not upload your avatar.")));
   };
 
+  const handleDeleteAccount = async () => {
+    if (!accessToken || !window.confirm("Delete your account? You will be signed out and cannot use it again.")) return;
+    try {
+      await API_BASE.delete("/user/profile", { headers: { Authorization: `Bearer ${accessToken}` } });
+      await logout();
+      navigate("/login", { replace: true });
+    } catch (deleteError: unknown) { setError(getErrorMessage(deleteError, "Could not delete your account.")); }
+  };
+
+  const PageShell = employeeMode ? EmployeeShell : AppShell;
+
+  if (!profile) return <PageShell><PageContainer><p className="p-8 text-sm text-gray-500">{error || "Loading profile…"}</p></PageContainer></PageShell>;
+
   return (
-    <AppShell>
+    <PageShell>
       <PageContainer>
         <main className="mx-auto max-w-2xl px-1 py-6">
           {/* HEADER */}
@@ -106,9 +135,14 @@ export function ProfilePage() {
           <div className="mb-6 flex items-center gap-3">
             <button
               type="button"
-              onClick={() =>
-                navigate(-1)
-              }
+              onClick={() => {
+                if (employeeMode) {
+                  const returnTo = (location.state as { from?: string } | null)?.from;
+                  navigate(returnTo || "/employee");
+                } else {
+                  navigate(-1);
+                }
+              }}
               className="
                 grid
                 size-9
@@ -125,7 +159,7 @@ export function ProfilePage() {
 
             <div>
               <h1 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">
-                My Profile
+                {employeeMode ? "Employee Profile" : "My Profile"}
               </h1>
 
               <p className="mt-1 text-xs text-gray-400">
@@ -137,11 +171,10 @@ export function ProfilePage() {
           <div className="space-y-4">
             {/* PROFILE HEADER */}
 
-            <ProfileSection>
+            <ProfileSection title="Profile photo">
               <AvatarPicker
                 name={`${profile.firstName} ${profile.lastName}`}
                 imageUrl={
-                  avatarUrl ??
                   profile.avatarUrl
                 }
                 onChange={handleAvatar}
@@ -332,8 +365,8 @@ export function ProfilePage() {
                   description="Receive property matches and updates"
                   action={
                     <Toggle
-                      checked={true}
-                      onChange={() => {}}
+                      checked={profile.receiveNotifications}
+                      onChange={() => update({ receiveNotifications: !profile.receiveNotifications })}
                     />
                   }
                 />
@@ -367,6 +400,8 @@ export function ProfilePage() {
                 ? "Saving..."
                 : "Save changes"}
             </button>
+            {saved && <p role="status" className="text-center text-sm text-emerald-700">Profile saved.</p>}
+            {error && <p role="alert" className="text-center text-sm text-red-600">{error}</p>}
 
             {/* ACCOUNT */}
 
@@ -375,22 +410,16 @@ export function ProfilePage() {
             >
               <div className="space-y-1">
                 <AccountAction
-                  icon={LogOut}
-                  title="Log out"
-                  onClick={() => {}}
-                />
-
-                <AccountAction
                   icon={Trash2}
                   title="Delete account"
                   danger
-                  onClick={() => {}}
+                  onClick={() => { void handleDeleteAccount(); }}
                 />
               </div>
             </ProfileSection>
           </div>
         </main>
       </PageContainer>
-    </AppShell>
+    </PageShell>
   );
 }

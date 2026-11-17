@@ -1,24 +1,20 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import LoginForm from "./LoginForm";
-import { login } from "../../../lib/auth/authService";
 import { useNavigate } from "react-router-dom";
-import type { AuthUser } from "../../../types/auth/authTypes";
+import { useAuth } from "../../../types/auth/authStore";
 
 
 type LogInModalProps = {
   open: boolean;
   setOpen: React.Dispatch<React.SetStateAction<boolean>>;
-  setUser: React.Dispatch<React.SetStateAction<AuthUser | null>>;
-  setToken: React.Dispatch<React.SetStateAction<string>>;
 };
 
 export default function LogInModal({
   open,
   setOpen,
-  setUser,
-  setToken,
 }: LogInModalProps) {
   const navigate = useNavigate();
+  const { login } = useAuth();
 
   const [mounted, setMounted] = useState(open);
   const [visible, setVisible] = useState(false);
@@ -35,9 +31,7 @@ export default function LogInModal({
     setLoading(true);
 
     try {
-      const resp = await login({phoneNumber, password });
-      setUser(resp.user);
-      setToken(resp.accessToken);
+      await login({ phoneNumber, password });
       setOpen(false);
     } catch (err) {
       setError(err instanceof Error
@@ -50,15 +44,18 @@ export default function LogInModal({
   };
 
 
-  const onClose = () => {
+  const onClose = useCallback(() => {
     setPassword("");
     setPhoneNumber("");
     setError("");
     setOpen(false);
-  }
+  }, [setOpen]);
   
   const onSignup = () => {navigate('/Signup')};
-  const onForgotPassword = () => {};
+  const onForgotPassword = () => {
+    setOpen(false);
+    navigate("/forgot-password");
+  };
 
   const onPhoneChange = (e: React.ChangeEvent<HTMLInputElement, HTMLInputElement>) => {
     setPhoneNumber(e.target.value);
@@ -71,23 +68,25 @@ export default function LogInModal({
 
   useEffect(() => {
     if (open) {
-      setMounted(true);
-
       // Let the browser render the initial state first.
       const frame = requestAnimationFrame(() => {
+        setMounted(true);
         setVisible(true);
       });
 
       return () => cancelAnimationFrame(frame);
     }
 
-    setVisible(false);
+    const frame = requestAnimationFrame(() => setVisible(false));
 
     const timeout = window.setTimeout(() => {
       setMounted(false);
     }, 300);
 
-    return () => window.clearTimeout(timeout);
+    return () => {
+      cancelAnimationFrame(frame);
+      window.clearTimeout(timeout);
+    };
   }, [open]);
 
   useEffect(() => {

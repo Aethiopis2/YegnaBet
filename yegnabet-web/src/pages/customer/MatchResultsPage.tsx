@@ -1,155 +1,85 @@
-import { useMemo } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
 
 import { AppShell } from "../../components/layout/AppShell";
 import { PageContainer } from "../../components/layout/PageContainer";
-
-import { MatchListingCard } from "../../components/match/MatchListingCard";
-import { MatchResultsHeader } from "../../components/match/MatchResultsHeader";
-
-import {
-  findMatches,
-} from "../../lib/matching";
-
+import { Explorer } from "../../components/explorer/Explorer";
+import ErrorBlock from "../../components/ui/common/ErrorBlock";
+import Loading from "../../components/ui/common/Loading";
+import { getMatchExplorerFilters } from "../../lib/customer/customerApi";
+import type { ListingFilters } from "../../types/customer/explorer";
+import { useAuth } from "../../types/auth/authStore";
 import type { MatchPreferences } from "../../types/match";
 
-import { listings } from "../../data/listings";
-
-export function MatchResultsPage() {
-  const navigate = useNavigate();
-
-  const preferences =
-    useMemo<MatchPreferences>(() => {
-      const stored =
-        sessionStorage.getItem(
-          "yegna-match-preferences"
-        );
-
-      if (stored) {
-        return JSON.parse(stored);
-      }
-
+function readMatchPreferences(): MatchPreferences {
+  try {
+    const stored = sessionStorage.getItem("yegna-match-preferences");
+    if (stored) {
+      const parsed = JSON.parse(stored) as Partial<MatchPreferences>;
       return {
-        areas: [],
-        features: [],
-        verifiedOnly: false,
-      };
-    }, []);
+        ...parsed,
+        areas: Array.isArray(parsed.areas) ? parsed.areas : [],
+        features: Array.isArray(parsed.features) ? parsed.features : [],
+        verifiedOnly: Boolean(parsed.verifiedOnly),
+      } as MatchPreferences;
+    }
+  } catch (error) {
+    console.warn("Could not read saved match preferences", error);
+  }
 
-  const results = useMemo(
-    () =>
-      findMatches(
-        listings,
-        preferences
-      ),
-    [preferences]
-  );
+  return { areas: [], features: [], verifiedOnly: false };
+}
 
-  const resultListings = results
-    .map((result) => {
-      const listing = listings.find(
-        (item) =>
-          item.id === result.listingId
-      );
+function MatchResultsContent() {
+  const { user } = useAuth();
+  const [preferences] = useState(readMatchPreferences);
+  const [filters, setFilters] = useState<ListingFilters | null>(null);
+  const [error, setError] = useState("");
 
-      return listing
-        ? {
-            listing,
-            result,
-          }
-        : null;
-    })
-    .filter(
-      (
-        item
-      ): item is NonNullable<typeof item> =>
-        item !== null
-    );
+  useEffect(() => {
+    let cancelled = false;
+    void getMatchExplorerFilters(preferences)
+      .then(initialFilters => {
+        if (!cancelled) setFilters(initialFilters);
+      })
+      .catch(loadError => {
+        console.error("Failed to prepare match filters", loadError);
+        if (!cancelled) setError("We could not prepare your matches. Please try again.");
+      });
 
-  const bestScore =
-    results[0]?.score ?? 0;
+    return () => { cancelled = true; };
+  }, [preferences]);
+
+  if (error) {
+    return <PageContainer><ErrorBlock message={error} /></PageContainer>;
+  }
+
+  if (!filters) {
+    return <PageContainer><Loading /></PageContainer>;
+  }
 
   return (
+    <Explorer
+      config={{
+        title: "Your matches",
+        subtitle: "Browse properties based on your preferences. Refine the search to find the right fit.",
+        mode: "All",
+        filters,
+        matchPreferences: preferences,
+        showMode: false,
+        showModeTabs: true,
+        showFilters: true,
+        showPopularLocations: false,
+        initialView: "grid",
+        user: user ?? undefined,
+      }}
+    />
+  );
+}
+
+export function MatchResultsPage() {
+  return (
     <AppShell>
-      <PageContainer>
-        <main className="mx-auto max-w-6xl px-1 py-6">
-          <MatchResultsHeader
-            count={resultListings.length}
-            score={bestScore}
-            onEdit={() =>
-              navigate(
-                "/match/preferences"
-              )
-            }
-          />
-
-          {resultListings.length > 0 ? (
-            <div
-              className="
-                grid
-                grid-cols-2
-                gap-3
-                sm:grid-cols-3
-                lg:grid-cols-4
-              "
-            >
-              {resultListings.map(
-                ({ listing, result }) => (
-                  <MatchListingCard
-                    key={listing.id}
-                    listing={listing}
-                    result={result}
-                  />
-                )
-              )}
-            </div>
-          ) : (
-            <div
-              className="
-                rounded-3xl
-                border
-                border-black/[0.05]
-                bg-white
-                p-10
-                text-center
-                dark:border-white/[0.06]
-                dark:bg-white/[0.035]
-              "
-            >
-              <h2 className="text-lg font-bold text-gray-900 dark:text-white">
-                No strong matches yet
-              </h2>
-
-              <p className="mx-auto mt-2 max-w-sm text-xs leading-5 text-gray-400">
-                Try relaxing your budget,
-                location or property
-                requirements.
-              </p>
-
-              <button
-                type="button"
-                onClick={() =>
-                  navigate(
-                    "/match/preferences"
-                  )
-                }
-                className="
-                  mt-5
-                  rounded-xl
-                  bg-yegna-700
-                  px-5
-                  py-3
-                  text-xs
-                  font-bold
-                  text-white
-                "
-              >
-                Adjust preferences
-              </button>
-            </div>
-          )}
-        </main>
-      </PageContainer>
+      <MatchResultsContent />
     </AppShell>
   );
 }

@@ -1,11 +1,13 @@
 import { CheckCircle2, Image as ImageIcon, MapPin, Tag, } from "lucide-react";
 import type { ListingDraft, } from "../../../../types/provider/providerTypes";
+import type { ListingProviderDraft } from "../../../../types/provider/providerTypes";
 import type { ProviderLocation, ProviderTaxonomy, } from "../../../../types/employee/employee";
 
 interface Props {
   listing: ListingDraft;
   taxonomy: ProviderTaxonomy[];
   locations: ProviderLocation[];
+  provider: ListingProviderDraft;
 }
 
 function findTaxonomy(nodes: ProviderTaxonomy[], id: number | null): ProviderTaxonomy | null {
@@ -29,7 +31,7 @@ function findTaxonomy(nodes: ProviderTaxonomy[], id: number | null): ProviderTax
   return null;
 }
 
-export function ListingReviewStep({ listing, taxonomy, locations, }: Props) {
+export function ListingReviewStep({ listing, taxonomy, locations, provider }: Props) {
   const taxonomyNode = findTaxonomy(taxonomy, listing.taxonomyId);
   const location = locations.find((item) => item.id === listing.locationId);
 
@@ -123,6 +125,11 @@ export function ListingReviewStep({ listing, taxonomy, locations, }: Props) {
                 ` / ${listing.priceUnit}`}
             </div>
           )}
+          <div className="mt-5 rounded-xl bg-slate-50 p-4 dark:bg-white/5">
+            <p className="text-xs font-bold uppercase tracking-wide text-slate-400">Provider</p>
+            <p className="mt-1 text-sm font-semibold text-slate-900 dark:text-white">{provider.fullName || "Not selected"}</p>
+            <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">{provider.phoneNumber}{provider.email ? ` · ${provider.email}` : ""}</p>
+          </div>
         </div>
       </div>
     </div>

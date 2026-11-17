@@ -21,7 +21,6 @@ export function SectionHeader({
   listingMode,
   actionLabel = "View all",
   actionHref = "#",
-  className,
   user,
   categories
 }: SectionHeaderProps) {
@@ -29,11 +28,7 @@ export function SectionHeader({
 
   return (
     <div
-      className={cn(
-        "flex items-center justify-between gap-4",
-        className
-      )}
-    >
+      className={cn("flex items-center justify-between gap-4" )} >
       <h2 className="text-[17px] font-semibold tracking-[-0.02em] text-gray-900 dark:text-white">
         {title}
       </h2>

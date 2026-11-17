@@ -22,7 +22,7 @@ export function FeaturedSection({ listingMode, user }: FeaturedSectionProps) {
     const getFeatured = async () => {
       setLoading(true);
       try {
-        const featured = await getFeaturedListings(listingMode);
+        const featured = await getFeaturedListings(listingMode, user?.id);
         setListings(featured);
       } catch (err) {
         setError(String(err));
@@ -33,7 +33,7 @@ export function FeaturedSection({ listingMode, user }: FeaturedSectionProps) {
     } // end getFeatured
 
     getFeatured();
-  }, [listingMode])
+  }, [listingMode, user?.id])
 
   const featured = listings.filter(
     (listing) => listing.featured
@@ -70,6 +70,7 @@ export function FeaturedSection({ listingMode, user }: FeaturedSectionProps) {
           <FeaturedCard
             key={listing.id}
             listing={listing}
+            user={user}
             className="
               w-[82vw]
               max-w-82.5

@@ -84,7 +84,7 @@ export function MatchPreferencesPage() {
   const [preferences, setPreferences] =
     useState<MatchPreferences>({
       propertyType: undefined,
-      city: "Addis Ababa",
+      city: undefined,
       areas: [],
       minPrice: undefined,
       maxPrice: undefined,

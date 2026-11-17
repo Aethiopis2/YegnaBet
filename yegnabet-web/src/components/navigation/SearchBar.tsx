@@ -1,4 +1,5 @@
-import { Search, SlidersHorizontal } from "lucide-react";
+import { Search } from "lucide-react";
+import { useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { cn } from "../../lib/cn";
@@ -6,16 +7,35 @@ import { cn } from "../../lib/cn";
 interface SearchBarProps {
   className?: string;
   placeholder?: string;
+  value?: string;
+  onSearch?: (search: string) => void;
 }
 
 export function SearchBar({
   className,
   placeholder = "Search houses, land, services...",
+  value = "",
+  onSearch,
 }: SearchBarProps) {
   const navigate = useNavigate();
+  const [search, setSearch] = useState(value);
+
+  const submit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const term = search.trim();
+    if (onSearch) {
+      onSearch(term);
+      return;
+    }
+
+    const params = new URLSearchParams();
+    if (term) params.set("search", term);
+    navigate(`/explore${params.size ? `?${params.toString()}` : ""}`);
+  };
 
   return (
-    <div
+    <form
+      onSubmit={submit}
       className={cn(
         "flex h-14 items-center gap-3",
         "rounded-full border",
@@ -29,7 +49,10 @@ export function SearchBar({
       <Search className="size-5 shrink-0 text-gray-400" />
 
       <input
-        type="input"
+        type="search"
+        value={search}
+        onChange={event => setSearch(event.target.value)}
+        aria-label="Search listings"
         className="
           min-w-0 flex-1
           truncate
@@ -42,8 +65,8 @@ export function SearchBar({
 
       <button
         type="button"
-        aria-label="Open filters"
-        onClick={() => navigate("/search")}
+        aria-label="Search listings"
+        type="submit"
         className="
           grid size-10 shrink-0 place-items-center
           rounded-full
@@ -54,8 +77,8 @@ export function SearchBar({
           active:scale-95
         "
       >
-        <SlidersHorizontal className="size-[18px]" />
+        <Search className="size-[18px]" />
       </button>
-    </div>
+    </form>
   );
 }

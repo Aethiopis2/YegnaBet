@@ -10,15 +10,26 @@
         public string Method { get; set; } = null!;
         public long TaxonomyId { get; set; }
         public long? LocationId { get; set; }
-        public long ProviderId { get; set; }
+        public long EmployeeId { get; set; }
         public string City { get; set; } = null!;
         public string Area { get; set; } = null!;
         public string? SubArea { get; set; }
         public List<ListingAttributeDto> Attributes { get; set; } = [];
         public List<ListingPhotoDraftDto> Photos { get; set; } = [];
         public List<ListingVideoDraftDto> Videos { get; set; } = [];
+        public List<string> VideoUrls { get; set; } = [];
         public double? Latitude { get; set; }
         public double? Longitude { get; set; }
         public bool PreciseLocation { get; set; } = false;
+        public ListingProviderDraftDto? Provider { get; set; }
      }
+
+    public class ListingProviderDraftDto
+    {
+        public long? ProviderId { get; set; }
+        public string? FullName { get; set; }
+        public string? PhoneNumber { get; set; }
+        public string? Email { get; set; }
+        public string? Password { get; set; }
+    }
 }

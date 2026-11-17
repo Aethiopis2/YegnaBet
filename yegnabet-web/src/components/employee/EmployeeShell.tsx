@@ -1,9 +1,8 @@
 import { EmployeeSidebar } from "./EmployeeSidebar";
 import { EmployeeHeader } from "./EmployeeHeader";
-import { getCustomerAuth } from "../../lib/customer/customerApi";
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext } from "react";
 import type { AuthUser } from "../../types/auth/authTypes";
-import { useAuth } from "../../types/auth/authContext";
+import { useAuth } from "../../types/auth/authStore";
 
 interface EmployeeShellProps {
   children: React.ReactNode;
@@ -32,30 +31,11 @@ export function EmployeeShell({
   children,
 }: EmployeeShellProps) {
 
-  const { accessToken } = useAuth();
-
-  const [user, setUser] = useState<AuthUser | null>(null);
-
-  useEffect(() => {
-    if (!accessToken) {
-      return;
-    }
-
-    const loadLoggedUser = async () => {
-      try {
-        const u = await getCustomerAuth(accessToken);
-        setUser(u);
-      } catch (err) {
-        console.error(err);
-      }
-    };
-
-    loadLoggedUser();
-  }, [accessToken]);
+  const { accessToken, user } = useAuth();
 
 
   return (
-    <AppContext.Provider value={{ user, token: String(accessToken) }}>
+    <AppContext.Provider value={{ user, token: accessToken ?? undefined }}>
       <div
         className="
           min-h-screen
@@ -67,7 +47,7 @@ export function EmployeeShell({
           dark:text-white
         "
       >
-        <EmployeeSidebar />
+        <EmployeeSidebar user={user ?? null} />
 
         <div
           className="

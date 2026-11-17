@@ -34,4 +34,5 @@ public class UpdateInquiryDto
 {
     public long InquiryId { get; set; }
     public InquiryStatus Status { get; set; }
+    public decimal? DealValue { get; set; }
 }

@@ -12,6 +12,8 @@ namespace YegnaBet.API.Modules.Employee.Services
             CancellationToken cancellationToken = default);
         Task MoveNode(long nodeId, MoveTaxonomyNodeRequest request,
             CancellationToken cancellationToken = default);
+        Task DeleteNode(long nodeId, CancellationToken cancellationToken = default);
+        Task<List<EmployeeTaxonomyListingDto>> GetNodeListings(long nodeId, CancellationToken cancellationToken = default);
 
 
         // attributes

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { X } from "lucide-react";
 
-import type { ListingFilters } from "../../types/explorer";
+import type {ListingFilters,} from "../../types/customer/explorer";
 
 interface PriceFilterDialogProps {
   open: boolean;
@@ -78,11 +78,11 @@ export function PriceFilterDialog({
         className="
           w-full max-w-sm
           rounded-2xl
-          border border-black/[0.06]
+          border border-black/6
           bg-white
           p-5
           shadow-2xl
-          dark:border-white/[0.08]
+          dark:border-white/8
           dark:bg-zinc-900
         "
         onMouseDown={(event) =>
@@ -154,7 +154,7 @@ export function PriceFilterDialog({
                 focus:ring-2
                 focus:ring-yegna-500/10
                 dark:border-white/10
-                dark:bg-white/[0.04]
+                dark:bg-white/4
                 dark:text-white
               "
             />
@@ -196,7 +196,7 @@ export function PriceFilterDialog({
                 focus:ring-2
                 focus:ring-yegna-500/10
                 dark:border-white/10
-                dark:bg-white/[0.04]
+                dark:bg-white/4
                 dark:text-white
               "
             />

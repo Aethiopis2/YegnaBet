@@ -1,4 +1,4 @@
-import { Heart, MapPin, LucideFileExclamationPoint } from "lucide-react";
+import { Heart, MapPin, LucideFileExclamationPoint, Pencil, Trash2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import type { Listing } from "../../types/customer/listings";
@@ -8,6 +8,9 @@ import { resolveIcon } from "../../lib/IconResolver";
 import VerifiedTag from "../common/VerifiedTag";
 import { updateSavedListing } from "../../lib/customer/customerApi";
 import type { AuthUser } from "../../types/auth/authTypes";
+import { useAuth } from "../../types/auth/authStore";
+import { OkCancelDialog } from "../ui/common/OkCancelDialog";
+import { removeManagedListing } from "../../lib/customer/customerApi";
 
 
 interface ListingGridCardProps {
@@ -21,9 +24,30 @@ export function ListingGridCard({
   user,
 }: ListingGridCardProps) {
   const navigate = useNavigate();
+  const { accessToken } = useAuth();
+  const canManage = user?.role === "Employee" || user?.role === "Owner";
+  const isOwner = user?.role === "Owner";
 
   const [saved, setSaved] = useState(listing.saved ?? false);
   const [error, setError] = useState<string>("");
+  const [confirmRemove, setConfirmRemove] = useState(false);
+  const [removing, setRemoving] = useState(false);
+  const [removed, setRemoved] = useState(false);
+
+  const removeListing = async () => {
+    if (!isOwner || !accessToken) return;
+    setRemoving(true);
+    try {
+      await removeManagedListing(listing.id, accessToken);
+      setRemoved(true);
+      setConfirmRemove(false);
+    } catch (removeError) {
+      console.error("Failed to remove listing", removeError);
+      setError("Could not remove this listing.");
+    } finally {
+      setRemoving(false);
+    }
+  };
 
   const saveListing = async () => {
     if (!user) {
@@ -56,8 +80,11 @@ export function ListingGridCard({
     });
   };
 
+  if (removed) return null;
+
 
   return (
+    <>
     <article
       className="
         group
@@ -144,6 +171,12 @@ export function ListingGridCard({
           </span>
         )}
 
+        {canManage && listing.listingStatus && (
+          <span className="absolute bottom-3 left-3 rounded-lg bg-black/65 px-2 py-1 text-[9px] font-bold uppercase tracking-wide text-white">
+            {listing.listingStatus}
+          </span>
+        )}
+
         {/* Verified */}
         {listing.verified && (
           <VerifiedTag />
@@ -151,7 +184,33 @@ export function ListingGridCard({
         
         {/* Save */}
 
-        <button
+        {canManage ? (
+          <div className="absolute right-3 top-3 flex gap-2">
+            <button
+              type="button"
+              onClick={event => {
+                event.stopPropagation();
+                navigate(`/listing/${listing.id}?edit=true`, { state: { listing, user } });
+              }}
+              className="inline-flex h-9 items-center gap-1.5 rounded-full bg-white/95 px-3 text-[10px] font-semibold text-gray-700 shadow-sm backdrop-blur hover:bg-white"
+            >
+              <Pencil className="size-3.5" /> Edit
+            </button>
+            {isOwner && (
+              <button
+                type="button"
+                onClick={event => {
+                  event.stopPropagation();
+                  setConfirmRemove(true);
+                }}
+                aria-label="Remove listing"
+                className="grid size-9 place-items-center rounded-full bg-white/95 text-red-600 shadow-sm backdrop-blur hover:bg-red-50"
+              >
+                <Trash2 className="size-4" />
+              </button>
+            )}
+          </div>
+        ) : <button
           type="button"
           aria-label={
             saved
@@ -189,7 +248,7 @@ export function ListingGridCard({
             )}
           />}
           {error && <LucideFileExclamationPoint className="size-4.25 text-red-500" />}
-        </button>
+        </button>}
 
       </div>
 
@@ -317,5 +376,16 @@ export function ListingGridCard({
       </div>
 
     </article>
+    <OkCancelDialog
+      open={confirmRemove}
+      title="Remove this listing?"
+      message={`“${listing.title}” will be removed from the marketplace.`}
+      okText="Remove listing"
+      variant="danger"
+      busy={removing}
+      onOk={() => void removeListing()}
+      onCancel={() => !removing && setConfirmRemove(false)}
+    />
+    </>
   );
 }

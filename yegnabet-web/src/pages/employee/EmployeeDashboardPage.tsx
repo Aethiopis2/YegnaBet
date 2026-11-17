@@ -4,7 +4,6 @@ import {
   ClipboardList,
   Clock,
   Plus,
-  Search,
   UserPlus,
   TrendingUp,
 } from "lucide-react";
@@ -271,7 +270,7 @@ function EmployeeDashboardPageComponent() {
               })}
             />
 
-            <QuickAction
+            {/* <QuickAction
               icon={UserPlus}
               label="New Customer Request"
               onClick={() => {}}
@@ -281,7 +280,7 @@ function EmployeeDashboardPageComponent() {
               icon={Search}
               label="Search Properties"
               onClick={()=>{}}
-            />
+            /> */}
 
           </DashboardPanel>
 

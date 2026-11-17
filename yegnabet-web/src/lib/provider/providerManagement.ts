@@ -6,6 +6,13 @@ export function createEmptyListingDraft(providerId: number): ListingDraft {
     title: "",
     description: "",
 
+    provider: {
+      fullName: "",
+      phoneNumber: "",
+      email: "",
+      password: "",
+    },
+
     price: "",
     priceUnit: "",
     method: "",
@@ -47,6 +54,11 @@ export function createListingDraftFormData(draft: ListingDraft) : FormData {
         formData.append("TaxonomyId", String(draft.taxonomyId));
 
     formData.append("ProviderId", String(draft.providerId));
+    formData.append("Provider.ProviderId", draft.provider.providerId ? String(draft.provider.providerId) : "");
+    formData.append("Provider.FullName", draft.provider.fullName);
+    formData.append("Provider.PhoneNumber", draft.provider.phoneNumber);
+    formData.append("Provider.Email", draft.provider.email);
+    formData.append("Provider.Password", draft.provider.password);
     formData.append("City", draft.city);
     formData.append("Area", draft.area);
 
@@ -66,7 +78,7 @@ export function createListingDraftFormData(draft: ListingDraft) : FormData {
 
 
     // now attributes
-    let attr: ListingAttribute[] = [];
+    const attr: ListingAttribute[] = [];
     Object.entries(draft.attributes).forEach(([key, value]) => {
         attr.push({
         name: key,
@@ -104,10 +116,13 @@ export function createListingDraftFormData(draft: ListingDraft) : FormData {
         );
     });
 
-    // video urls
-    if (draft.videos.length > 0) {
-        formData.append("Videos", JSON.stringify(draft.videos));
-    }
+    // Bind video items as structured form fields for ASP.NET's form model binder.
+    draft.videos.forEach((video, index) => {
+        if (video.id != null) {
+            formData.append(`Videos[${index}].Id`, String(video.id));
+        }
+        formData.append(`Videos[${index}].Url`, video.url);
+    });
 
     return formData;
 } // end createListingDraftFormData

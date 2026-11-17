@@ -322,6 +322,46 @@ namespace YegnaBet.API.Modules.Employee.Services
             await transaction.CommitAsync(cancellationToken);
         } // end MoveNode
 
+        public async Task DeleteNode(long nodeId, CancellationToken cancellationToken = default)
+        {
+            var node = await _db.TaxonomyNode.FirstOrDefaultAsync(x => x.Id == nodeId, cancellationToken);
+            if (node is null) throw new KeyNotFoundException($"Taxonomy node {nodeId} was not found.");
+
+            // Keep historical listing and attribute references intact; hide this branch from active taxonomy trees.
+            var branch = new HashSet<long> { nodeId };
+            var frontier = new List<long> { nodeId };
+            while (frontier.Count > 0)
+            {
+                var children = await _db.TaxonomyNode
+                    .Where(x => x.ParentId != null && frontier.Contains(x.ParentId.Value))
+                    .Select(x => new { x.Id, x.IsActive })
+                    .ToListAsync(cancellationToken);
+                frontier = children.Where(x => branch.Add(x.Id)).Select(x => x.Id).ToList();
+            }
+
+            await _db.TaxonomyNode.Where(x => branch.Contains(x.Id))
+                .ExecuteUpdateAsync(setters => setters.SetProperty(x => x.IsActive, false), cancellationToken);
+        }
+
+        public async Task<List<EmployeeTaxonomyListingDto>> GetNodeListings(long nodeId, CancellationToken cancellationToken = default)
+        {
+            var exists = await _db.TaxonomyNode.AnyAsync(x => x.Id == nodeId, cancellationToken);
+            if (!exists) throw new KeyNotFoundException($"Taxonomy node {nodeId} was not found.");
+
+            return await _db.Listings.AsNoTracking()
+                .Where(x => x.TaxonomyNodes.Any(n => n.TaxonomyNodeId == nodeId))
+                .OrderByDescending(x => x.CreatedAt)
+                .Select(x => new EmployeeTaxonomyListingDto
+                {
+                    Id = x.Id,
+                    Title = x.Title,
+                    Status = x.ListingStatus.ToString(),
+                    Price = x.Price,
+                    CreatedAt = x.CreatedAt
+                })
+                .ToListAsync(cancellationToken);
+        }
+
         private async Task<bool> IsDescendant(long nodeId, long possibleDescendantId,
             CancellationToken cancellationToken)
         {
@@ -350,8 +390,7 @@ namespace YegnaBet.API.Modules.Employee.Services
         {
             var attrs = await _db.AttributeDefinition
                 .AsNoTracking()
-                .Where(x => x.Nodes.ToList()
-                    .Any(y => y.TaxonomyNodeId == nodeId))
+                .Where(x => x.Nodes.Any(y => y.TaxonomyNodeId == nodeId))
                 .ToListAsync(cancellationToken);
 
             return [.. attrs

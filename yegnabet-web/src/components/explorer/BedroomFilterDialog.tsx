@@ -1,11 +1,10 @@
+
 import { useEffect, useState } from "react";
 import { BedDouble, X } from "lucide-react";
 
-import type { ListingFilters } from "../../types/explorer";
-
 interface BedroomFilterDialogProps {
   open: boolean;
-  filters: ListingFilters;
+  value?: number;
   onClose: () => void;
   onApply: (bedrooms: number | undefined) => void;
 }
@@ -14,7 +13,7 @@ const BEDROOM_OPTIONS = [1, 2, 3, 4, 5, 6];
 
 export function BedroomFilterDialog({
   open,
-  filters,
+  value,
   onClose,
   onApply,
 }: BedroomFilterDialogProps) {
@@ -24,9 +23,9 @@ export function BedroomFilterDialog({
 
   useEffect(() => {
     if (open) {
-      setBedrooms(filters.bedrooms);
+      setBedrooms(value);
     }
-  }, [open, filters.bedrooms]);
+  }, [open, value]);
 
   if (!open) return null;
 
@@ -35,8 +34,7 @@ export function BedroomFilterDialog({
       className="
         fixed inset-0 z-50
         flex items-end justify-center
-        bg-black/30
-        p-4
+        bg-black/30 p-4
         backdrop-blur-[2px]
         sm:items-center
       "
@@ -46,14 +44,12 @@ export function BedroomFilterDialog({
         className="
           w-full max-w-sm
           rounded-2xl
-          border border-black/[0.06]
-          bg-white
-          p-5
-          shadow-2xl
-          dark:border-white/[0.08]
+          border border-black/6
+          bg-white p-5 shadow-2xl
+          dark:border-white/8
           dark:bg-zinc-900
         "
-        onMouseDown={(event) =>
+        onMouseDown={event =>
           event.stopPropagation()
         }
       >
@@ -73,8 +69,7 @@ export function BedroomFilterDialog({
             onClick={onClose}
             className="
               grid size-8 place-items-center
-              rounded-full
-              text-gray-400
+              rounded-full text-gray-400
               hover:bg-gray-100
               hover:text-gray-700
               dark:hover:bg-white/10
@@ -91,24 +86,18 @@ export function BedroomFilterDialog({
             onClick={() => setBedrooms(undefined)}
             className={`
               flex h-16 flex-col
-              items-center justify-center
-              gap-1
-              rounded-xl
-              border
-              text-xs
-              transition
+              items-center justify-center gap-1
+              rounded-xl border text-xs transition
               ${
                 bedrooms === undefined
                   ? `
-                    border-yegna-500
-                    bg-yegna-50
+                    border-yegna-500 bg-yegna-50
                     text-yegna-700
                     dark:bg-yegna-500/10
                     dark:text-yegna-400
                   `
                   : `
-                    border-gray-200
-                    text-gray-600
+                    border-gray-200 text-gray-600
                     hover:border-yegna-300
                     dark:border-white/10
                     dark:text-gray-400
@@ -116,39 +105,31 @@ export function BedroomFilterDialog({
               }
             `}
           >
-            <span className="font-semibold">
-              Any
-            </span>
-
+            <span className="font-semibold">Any</span>
             <span className="text-[9px] opacity-60">
               Bedrooms
             </span>
           </button>
 
-          {BEDROOM_OPTIONS.map((value) => (
+          {BEDROOM_OPTIONS.map(value => (
             <button
               key={value}
               type="button"
               onClick={() => setBedrooms(value)}
               className={`
                 flex h-16 flex-col
-                items-center justify-center
-                gap-1
-                rounded-xl
-                border
-                transition
+                items-center justify-center gap-1
+                rounded-xl border transition
                 ${
                   bedrooms === value
                     ? `
-                      border-yegna-500
-                      bg-yegna-50
+                      border-yegna-500 bg-yegna-50
                       text-yegna-700
                       dark:bg-yegna-500/10
                       dark:text-yegna-400
                     `
                     : `
-                      border-gray-200
-                      text-gray-600
+                      border-gray-200 text-gray-600
                       hover:border-yegna-300
                       dark:border-white/10
                       dark:text-gray-400
@@ -170,10 +151,8 @@ export function BedroomFilterDialog({
             type="button"
             onClick={() => onApply(undefined)}
             className="
-              h-10 flex-1
-              rounded-xl
-              text-xs font-medium
-              text-gray-600
+              h-10 flex-1 rounded-xl
+              text-xs font-medium text-gray-600
               hover:bg-gray-100
               dark:text-gray-400
               dark:hover:bg-white/10
@@ -186,13 +165,9 @@ export function BedroomFilterDialog({
             type="button"
             onClick={() => onApply(bedrooms)}
             className="
-              h-10 flex-[1.5]
-              rounded-xl
-              bg-yegna-600
-              text-xs font-semibold
-              text-white
-              shadow-sm
-              transition
+              h-10 flex-[1.5] rounded-xl
+              bg-yegna-600 text-xs font-semibold
+              text-white shadow-sm transition
               hover:bg-yegna-700
             "
           >

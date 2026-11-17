@@ -6,7 +6,6 @@ import {
   MoreVertical,
   Pencil,
   Plus,
-  Trash2,
 } from "lucide-react";
 import { useState } from "react";
 import type { TaxonomyNodeFront } from "../../../types/customer/taxonomy";
